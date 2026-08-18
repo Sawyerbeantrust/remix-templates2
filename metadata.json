@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Car Lifts South Africa",
+  "description": "Professional catalog, ecommerce, and builder for car-lifts.co.za with spray booths, WooCommerce simulation, SEO analyzer, and custom contact plugin exporter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
