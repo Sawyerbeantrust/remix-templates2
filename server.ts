@@ -193,32 +193,23 @@ app.post("/api/catalog", async (req, res) => {
 
     inMemoryCatalog = catalogData;
 
-    let blobUrl: string | null = null;
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const content = JSON.stringify(catalogData, null, 2);
-        const blob = await put("data/catalog.json", content, {
-          access: "public",
-          addRandomSuffix: false,
-          allowOverwrite: true,
-        });
-        blobUrl = blob.url;
-        console.log(`[Server] Catalog saved to Vercel Blob: ${blob.url}`);
-      } catch (blobErr: any) {
-        console.warn("[Server] Error writing catalog to Vercel Blob:", blobErr?.message || blobErr);
-      }
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.log("[Server] Blob token missing, catalog save skipped");
+      return res.json({ success: true, url: null, message: "Blob token missing, catalog save skipped" });
     }
 
+    let blobUrl: string | null = null;
     try {
-      const dataDir = path.join(process.cwd(), "data");
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      const catalogFilePath = path.join(dataDir, "catalog.json");
-      fs.writeFileSync(catalogFilePath, JSON.stringify(catalogData, null, 2));
-      console.log(`[Server] Catalog saved to local disk: ${catalogFilePath}`);
-    } catch (fsErr: any) {
-      console.warn("[Server] Error writing catalog to disk:", fsErr?.message || fsErr);
+      const content = JSON.stringify(catalogData, null, 2);
+      const blob = await put("data/catalog.json", content, {
+        access: "public",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      });
+      blobUrl = blob.url;
+      console.log(`[Server] Catalog saved to Vercel Blob: ${blob.url}`);
+    } catch (blobErr: any) {
+      console.warn("[Server] Error writing catalog to Vercel Blob:", blobErr?.message || blobErr);
     }
 
     return res.json({ success: true, url: blobUrl });
@@ -371,17 +362,6 @@ app.post("/api/migrate-default-images-to-blob", async (req, res) => {
       } catch (saveErr: any) {
         console.error("[Migration] Failed to save corrected catalog to Blob:", saveErr?.message || saveErr);
       }
-    }
-
-    try {
-      const dataDir = path.join(process.cwd(), "data");
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      fs.writeFileSync(path.join(dataDir, "catalog.json"), JSON.stringify(catalog, null, 2));
-      console.log(`[Migration] Corrected catalog saved to local disk`);
-    } catch (fsErr: any) {
-      console.warn("[Migration] Error saving catalog to disk:", fsErr?.message || fsErr);
     }
 
     inMemoryCatalog = catalog;
@@ -866,7 +846,7 @@ async function generateContentWithResilience(
     primaryModel?: string;
   }
 ) {
-  const model = options.primaryModel || "gemini-3.6-flash";
+  const model = options.primaryModel || "gemini-1.5-flash";
   let lastErr: any;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
@@ -1222,7 +1202,7 @@ Inquiry Data:
       // 4-second timeout promise for Gemini call so it never blocks the request
       const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000));
       const geminiPromise = ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-1.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json'
@@ -1849,12 +1829,12 @@ function generateLocalAssistantResponse(message: string, history: any[] = []) {
   return "For exact pricing/specs on that, our sales team can help directly — call 021 556 2413 and they'll sort you out.";
 }
 
-// Endpoint for Triton's Official AI Product Assistant
-app.post("/api/assistant-chat", async (req, res) => {
-  const { message, history } = req.body;
+// Handler for Triton's Official AI Product Assistant
+async function handleAssistantChat(req: express.Request, res: express.Response) {
+  const { message, history } = req.body || {};
 
   if (!message || typeof message !== "string") {
-    return res.status(400).json({ error: "Missing message parameter" });
+    return res.status(400).json({ success: false, error: "Missing message parameter" });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -1942,7 +1922,7 @@ ${JSON.stringify(catalogContext, null, 2)}
 
       const response = await generateContentWithResilience(ai, {
         contents: formattedPrompt,
-        primaryModel: "gemini-3.6-flash",
+        primaryModel: "gemini-1.5-flash",
         config: {
           temperature: 0.1
         }
@@ -1957,20 +1937,23 @@ ${JSON.stringify(catalogContext, null, 2)}
         });
       }
     } catch (err: any) {
+      console.error("[Gemini API Error]", err?.status || err?.statusCode, err?.message);
       console.error(`[Assistant API Error] Gemini call failed for query "${message}":`, err?.message || err);
-      console.error(`[Assistant API Error Stack]:`, err?.stack || JSON.stringify(err, null, 2));
       console.log(`[Assistant API Info] Running local assistant fallback after Gemini error.`);
     }
   }
 
-  // Fallback execution
+  // Fallback execution guarantees { success: true, source: "local-rules", reply: "..." }
   const fallbackReply = generateLocalAssistantResponse(message, history);
   return res.json({
     success: true,
     source: "local-rules",
     reply: fallbackReply
   });
-});
+}
+
+app.post("/api/assistant-chat", handleAssistantChat);
+app.post("/api/chat", handleAssistantChat);
 
 // Dynamic XML Sitemap for elite search engine indexing
 let customSitemapXmlOverride: string | null = null;
