@@ -11,8 +11,8 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
 // Static route aliases for assets - ensure /assets/images/* and /images/* are served seamlessly
 app.use("/assets/images", express.static(path.join(process.cwd(), "public", "assets", "images")));
@@ -357,27 +357,81 @@ app.get("/api/migrate-catalog", async (req, res) => {
 
 // Endpoint to upload an image to WordPress Media Library
 app.post("/api/upload-image", async (req, res) => {
-  const { name, data, image } = req.body || {};
-  const imgData = data || image;
-  const imgName = name || `upload_${Date.now()}.jpg`;
-
-  if (!imgData) {
-    return res.status(400).json({ success: false, error: "Missing name or data parameter" });
-  }
-
   try {
-    const base64Data = imgData.replace(/^data:image\/[^;]+;base64,/, "").replace(/^data:application\/[^;]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    const safeName = path.basename(imgName).replace(/[^a-zA-Z0-9_.-]/g, "_");
+    const { name, data } = req.body || {};
+    if (!name || !data || typeof data !== "string") {
+      return res.status(400).json({ success: false, error: "Missing name or base64 data" });
+    }
 
-    const sourceUrl = await uploadBufferToWordPressMedia(safeName, buffer);
+    if (!process.env.WP_BASE_URL) {
+      return res.status(500).json({ success: false, error: "WP_BASE_URL env var is missing" });
+    }
+
+    const wpBaseUrl = getWpBaseUrl();
+    const safeName = path.basename(name).replace(/[^a-zA-Z0-9_.-]/g, "_");
+    const mimeType = getMimeType(safeName);
+
+    const base64Data = data.replace(/^data:image\/[^;]+;base64,/, "").replace(/^data:application\/[^;]+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    const endpoint = `${wpBaseUrl}/wp-json/wp/v2/media`;
+    console.log(`[Upload] Uploading "${safeName}" (${buffer.length} bytes, ${mimeType}) to ${endpoint}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const wpRes = await fetch(endpoint, {
+      method: "POST",
+      signal: controller.signal,
+      headers: getWpHeaders({
+        "Content-Disposition": `attachment; filename="${safeName}"`,
+        "Content-Type": mimeType,
+      }),
+      body: buffer,
+    }).catch((err) => {
+      clearTimeout(timeoutId);
+      throw new Error(`Failed to connect to WordPress Media endpoint: ${err?.message || err}`);
+    });
+    clearTimeout(timeoutId);
+
+    const wpText = await wpRes.text();
+    console.log("[Upload] WP status:", wpRes.status, "body:", wpText.slice(0, 300));
+
+    let wpJson: any;
+    try {
+      wpJson = JSON.parse(wpText);
+    } catch {
+      return res.status(502).json({
+        success: false,
+        error: "WordPress returned non-JSON: " + wpText.slice(0, 200)
+      });
+    }
+
+    if (!wpRes.ok) {
+      let errMsg = wpJson.message || `WordPress returned status ${wpRes.status}`;
+      if (wpRes.status === 401) {
+        errMsg += " — WordPress rejected the login — check WP_APP_USER / WP_APP_PASSWORD / X-Triton-Key";
+      }
+      return res.status(wpRes.status || 500).json({
+        success: false,
+        error: errMsg,
+        details: wpJson
+      });
+    }
+
+    const sourceUrl = wpJson.source_url || wpJson.guid?.rendered || wpJson.link;
+    if (!sourceUrl) {
+      return res.status(500).json({
+        success: false,
+        error: "WordPress media response missing source_url",
+        details: wpJson
+      });
+    }
+
     return res.json({ success: true, path: sourceUrl, url: sourceUrl });
   } catch (error: any) {
-    console.error("[Server] /api/upload-image failed:", error?.message || error);
-    return res.status(500).json({
-      success: false,
-      error: error?.message || "Failed to upload image to WordPress Media Library"
-    });
+    console.error("[Upload] FAILED:", error);
+    return res.status(500).json({ success: false, error: String(error?.message || error) });
   }
 });
 
@@ -388,21 +442,81 @@ app.post("/api/save-category-image", async (req, res) => {
     const imgData = data || image;
     const imgName = name || `category_${Date.now()}.jpg`;
 
-    if (!imgData) {
+    if (!imgData || typeof imgData !== "string") {
       return res.status(400).json({ success: false, error: "Missing image data parameter" });
     }
 
+    if (!process.env.WP_BASE_URL) {
+      return res.status(500).json({ success: false, error: "WP_BASE_URL env var is missing" });
+    }
+
+    const wpBaseUrl = getWpBaseUrl();
+    const safeName = path.basename(imgName).replace(/[^a-zA-Z0-9_.-]/g, "_");
+    const mimeType = getMimeType(safeName);
+
     const base64Data = imgData.replace(/^data:image\/[^;]+;base64,/, "").replace(/^data:application\/[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
-    const safeName = path.basename(imgName).replace(/[^a-zA-Z0-9_.-]/g, "_");
 
-    const sourceUrl = await uploadBufferToWordPressMedia(safeName, buffer);
+    const endpoint = `${wpBaseUrl}/wp-json/wp/v2/media`;
+    console.log(`[Upload] Saving category image "${safeName}" (${buffer.length} bytes, ${mimeType}) to ${endpoint}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const wpRes = await fetch(endpoint, {
+      method: "POST",
+      signal: controller.signal,
+      headers: getWpHeaders({
+        "Content-Disposition": `attachment; filename="${safeName}"`,
+        "Content-Type": mimeType,
+      }),
+      body: buffer,
+    }).catch((err) => {
+      clearTimeout(timeoutId);
+      throw new Error(`Failed to connect to WordPress Media endpoint: ${err?.message || err}`);
+    });
+    clearTimeout(timeoutId);
+
+    const wpText = await wpRes.text();
+    console.log("[Upload Category Image] WP status:", wpRes.status, "body:", wpText.slice(0, 300));
+
+    let wpJson: any;
+    try {
+      wpJson = JSON.parse(wpText);
+    } catch {
+      return res.status(502).json({
+        success: false,
+        error: "WordPress returned non-JSON: " + wpText.slice(0, 200)
+      });
+    }
+
+    if (!wpRes.ok) {
+      let errMsg = wpJson.message || `WordPress returned status ${wpRes.status}`;
+      if (wpRes.status === 401) {
+        errMsg += " — WordPress rejected the login — check WP_APP_USER / WP_APP_PASSWORD / X-Triton-Key";
+      }
+      return res.status(wpRes.status || 500).json({
+        success: false,
+        error: errMsg,
+        details: wpJson
+      });
+    }
+
+    const sourceUrl = wpJson.source_url || wpJson.guid?.rendered || wpJson.link;
+    if (!sourceUrl) {
+      return res.status(500).json({
+        success: false,
+        error: "WordPress media response missing source_url",
+        details: wpJson
+      });
+    }
+
     return res.json({ success: true, path: sourceUrl, url: sourceUrl });
   } catch (error: any) {
-    console.error("[Server] /api/save-category-image failed:", error?.message || error);
+    console.error("[Upload Category Image] FAILED:", error);
     return res.status(500).json({
       success: false,
-      error: error?.message || "Failed to save category image to WordPress",
+      error: String(error?.message || error),
     });
   }
 });
