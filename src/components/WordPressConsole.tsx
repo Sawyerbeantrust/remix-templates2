@@ -1648,26 +1648,38 @@ export default function WordPressConsole({
   };
 
   const uploadImageToServer = async (file: File): Promise<string> => {
-    // Compress image to ensure it remains lightweight (<100KB) and avoids hitting localStorage quotas
-    const compressedBase64 = await compressImage(file, 1000, 1000, 0.82);
+    let dataUrl = await compressImage(file, 1200, 1200, 0.85);
+    if (!dataUrl) {
+      dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string || '');
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (!dataUrl) {
+      throw new Error('Failed to read image data from device');
+    }
 
     try {
       const response = await fetch('/api/upload-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: file.name, data: compressedBase64 })
+        body: JSON.stringify({ name: file.name, data: dataUrl })
       });
       const result = await response.json();
-      if (result.success && result.path) {
-        addLog(`📂 [Server upload] Saved directly to WordPress Media: ${result.path}`);
-        return result.path;
+      if (result.success && (result.path || result.url)) {
+        const finalUrl = result.path || result.url;
+        addLog(`📂 [Server upload] Saved: ${finalUrl}`);
+        return finalUrl;
       } else {
         throw new Error(result.error || 'Failed to upload image');
       }
-    } catch (err) {
-      console.warn('Server upload failed, falling back to Base64:', err);
-      addLog(`⚠️ [Server upload] Failed. Falling back to local compressed Base64.`);
-      return compressedBase64;
+    } catch (err: any) {
+      console.warn('Server upload notice, using local data URL:', err);
+      addLog(`⚠️ [Server upload] Offline/local fallback applied for '${file.name}'.`);
+      return dataUrl;
     }
   };
 
@@ -1977,23 +1989,20 @@ export default function WordPressConsole({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressedBase64 = await compressImage(file, 1000, 1000, 0.85);
-      
-      const response = await fetch('/api/save-category-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: file.name, data: compressedBase64 })
-      });
-
-      const data = await response.json().catch(() => {
-        throw new Error('Server returned an invalid or non-JSON response');
-      });
-
-      if (!response.ok || !data.success) {
-        throw new Error(data?.error || `Upload failed with status code ${response.status}`);
+      let savedPath: string;
+      try {
+        savedPath = await uploadImageToServer(file);
+      } catch {
+        const compressedBase64 = await compressImage(file, 1000, 1000, 0.85);
+        const response = await fetch('/api/save-category-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: file.name, data: compressedBase64 })
+        });
+        const data = await response.json().catch(() => ({}));
+        savedPath = data.url || data.path || compressedBase64;
       }
 
-      const savedPath = data.url || data.path || compressedBase64;
       const updated = currentFeaturedCategories.map((c) =>
         c.id === selectedCatId ? { ...c, img: savedPath } : c
       );
@@ -2003,20 +2012,12 @@ export default function WordPressConsole({
     } catch (err: any) {
       console.error('Failed to upload category image:', err);
       const errMsg = err?.message || 'Unknown network error';
-      addLog(`❌ [Category Media] Upload error: ${errMsg}. Falling back to local Base64.`);
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        if (dataUrl) {
-          const updated = currentFeaturedCategories.map((c) =>
-            c.id === selectedCatId ? { ...c, img: dataUrl } : c
-          );
-          updateFeaturedCategories(updated);
-          setIsCatDetailsDirty(true);
-        }
-      };
-      reader.readAsDataURL(file);
+      addLog(`❌ [Category Media] Upload error: ${errMsg}.`);
+    } finally {
+      if (categoryImageFileInputRef.current) {
+        categoryImageFileInputRef.current.value = '';
+      }
+      e.target.value = '';
     }
   };
 
@@ -2801,26 +2802,21 @@ export default function WordPressConsole({
     if (file && editedProduct) {
       try {
         const savedPath = await uploadImageToServer(file);
-        setEditedProduct({
+        const updated = {
           ...editedProduct,
           image: savedPath
-        });
-        addLog(`Uploaded cover image '${file.name}' from local device. Saved strictly to 'src/assets/images/'`);
+        };
+        setEditedProduct(updated);
+
+        const newProducts = currentProducts.map(p => p.id === editedProduct.id ? updated : p);
+        updateProducts(newProducts);
+
+        addLog(`✅ Uploaded cover image '${file.name}' from device.`);
       } catch (err: any) {
         console.error('Failed to upload device image:', err);
-        addLog(`❌ [Upload] Disk save failed, falling back to local Base64.`);
-        
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (typeof reader.result === 'string') {
-            setEditedProduct({
-              ...editedProduct,
-              image: reader.result
-            });
-            addLog(`Uploaded cover image '${file.name}' from local device (Base64 fallback).`);
-          }
-        };
-        reader.readAsDataURL(file);
+        addLog(`❌ [Upload] Error uploading image: ${err?.message || err}`);
+      } finally {
+        e.target.value = '';
       }
     }
   };
@@ -6787,17 +6783,18 @@ export default function WordPressConsole({
                                           id={`secondary-upload-${imageIdx}`}
                                           type="file"
                                           accept="image/*"
-                                          onChange={(e) => {
+                                          onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
-                                              const reader = new FileReader();
-                                              reader.onloadend = () => {
-                                                if (typeof reader.result === 'string') {
-                                                  handleUpdateAdditionalImage(imageIdx, reader.result);
-                                                  addLog(`Uploaded secondary image '${file.name}' from local device.`);
-                                                }
-                                              };
-                                              reader.readAsDataURL(file);
+                                              try {
+                                                const savedPath = await uploadImageToServer(file);
+                                                handleUpdateAdditionalImage(imageIdx, savedPath);
+                                                addLog(`Uploaded secondary image '${file.name}' from local device.`);
+                                              } catch (err: any) {
+                                                console.error('Failed to upload secondary image:', err);
+                                              } finally {
+                                                e.target.value = '';
+                                              }
                                             }
                                           }}
                                           className="hidden"

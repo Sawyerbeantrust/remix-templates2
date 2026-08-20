@@ -103,6 +103,7 @@ export function ImageUploader({
     if (file) {
       handleFile(file);
     }
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {

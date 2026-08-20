@@ -1,6 +1,38 @@
 import { Product, FeaturedCategory } from '../types';
 
 /**
+ * Formats and cleans image URLs returned from WordPress / backend uploads,
+ * ensuring trailing query parameters (e.g. ?resize=..., ?v=..., etc.) are stripped so image resolution is not broken.
+ */
+export function cleanImageUrl(url: string): string {
+  if (!url || typeof url !== 'string') {
+    return url;
+  }
+  // Leave base64 data and blob URIs intact
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+
+  try {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      const parsed = new URL(url);
+      return `${parsed.origin}${parsed.pathname}`;
+    }
+    const qIdx = url.indexOf('?');
+    if (qIdx !== -1) {
+      return url.substring(0, qIdx);
+    }
+  } catch {
+    const qIdx = url.indexOf('?');
+    if (qIdx !== -1) {
+      return url.substring(0, qIdx);
+    }
+  }
+
+  return url;
+}
+
+/**
  * Helper function to compress and resize images (base64 or data URLs) before uploading to /api/upload-image.
  * Resizes large dimensions to fit within maxWidth/maxHeight and encodes to compressed JPEG.
  */
@@ -87,9 +119,10 @@ export async function processCategoryForStorage(category: FeaturedCategory): Pro
     throw new Error(`Failed to upload category image for '${category.name}'`);
   }
 
+  const rawUrl = result.url || result.path;
   return {
     ...category,
-    img: result.path
+    img: cleanImageUrl(rawUrl)
   };
 }
 
@@ -115,7 +148,8 @@ export async function processProductForStorage(product: Product): Promise<Produc
     if (!result || !result.success) {
       throw new Error(`Failed to upload cover image for '${updatedProd.name}'`);
     }
-    updatedProd.image = result.path;
+    const rawUrl = result.url || result.path;
+    updatedProd.image = cleanImageUrl(rawUrl);
   }
 
   if (Array.isArray(updatedProd.images)) {
@@ -133,7 +167,8 @@ export async function processProductForStorage(product: Product): Promise<Produc
           if (!result || !result.success) {
             throw new Error(`Failed to upload gallery image for '${updatedProd.name}'`);
           }
-          return result.path;
+          const rawUrl = result.url || result.path;
+          return cleanImageUrl(rawUrl);
         }
         return img;
       })
@@ -150,5 +185,6 @@ export async function processProductsForStorage(products: Product[]): Promise<Pr
   );
   return processed;
 }
+
 
 

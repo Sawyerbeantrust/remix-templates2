@@ -113,14 +113,20 @@ export default function ResponsiveImage({
   };
 
   const handleError = () => {
+    // If it's a base64 or blob or local uploads path, do not attempt /assets/images/ rewrites
+    if (typeof currentSrc === 'string' && (currentSrc.startsWith('data:') || currentSrc.startsWith('blob:') || currentSrc.startsWith('/uploads/'))) {
+      setImageLoading(false);
+      setHasError(true);
+      setCurrentSrc(fallbackSrc);
+      return;
+    }
+
     const filename = getFilenameFromPath(typeof currentSrc === 'string' ? currentSrc : '');
-    const isLocalAsset = filename && (
-      (typeof currentSrc === 'string' && (
-        currentSrc.includes('/images/') || 
-        currentSrc.includes('/assets/images/') || 
-        currentSrc.includes('/src/assets/images/')
-      )) || 
-      filename.match(/\.(jpe?g|png|webp|gif|svg)$/i)
+    const isLocalAsset = filename && typeof currentSrc === 'string' && (
+      currentSrc.startsWith('/images/') || 
+      currentSrc.startsWith('/assets/images/') || 
+      currentSrc.startsWith('/src/assets/images/') ||
+      currentSrc.startsWith('images/')
     );
 
     if (isLocalAsset) {
@@ -136,7 +142,7 @@ export default function ResponsiveImage({
       }
     }
 
-    // If WooCommerce resized url failed and we haven't tried the raw resolvedSrc, try raw resolvedSrc once
+    // If resized url failed and we haven't tried the raw resolvedSrc, try raw resolvedSrc once
     if (currentSrc !== resolvedSrc && resolvedSrc && fallbackStep === 0) {
       setFallbackStep(1);
       setCurrentSrc(resolvedSrc);
@@ -174,7 +180,7 @@ export default function ResponsiveImage({
       {currentSrc ? (
         <img
           src={currentSrc}
-          srcSet={generateSrcSet(src)}
+          srcSet={!hasError && fallbackStep === 0 && typeof src === 'string' && src.includes('images.unsplash.com') ? generateSrcSet(src) : undefined}
           sizes="(max-width: 640px) 300px, (max-width: 1024px) 600px, 1024px"
           width={imgWidth}
           height={imgHeight}

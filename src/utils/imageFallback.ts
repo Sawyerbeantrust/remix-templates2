@@ -26,9 +26,23 @@ export function normalizeImgPath(path: string): string {
  * Chain: /assets/images/{file} -> /images/{file} -> fallbackSrc
  */
 export function getNextImageFallbackUrl(currentSrc: string, currentStep: number, fallbackSrc: string = DEFAULT_FALLBACK_IMAGE): { nextUrl: string; nextStep: number } {
+  if (!currentSrc || typeof currentSrc !== 'string') {
+    return { nextUrl: fallbackSrc, nextStep: 99 };
+  }
+
+  // If it's a data URI, blob URI, or /uploads/ path, fallback directly to the default image without asset cycling
+  if (currentSrc.startsWith('data:') || currentSrc.startsWith('blob:') || currentSrc.includes('/uploads/')) {
+    return { nextUrl: fallbackSrc, nextStep: 99 };
+  }
+
+  const isLocalAsset = currentSrc.startsWith('/images/') || 
+    currentSrc.startsWith('/assets/images/') || 
+    currentSrc.startsWith('/src/assets/images/') ||
+    currentSrc.startsWith('images/');
+
   const filename = getFilenameFromPath(currentSrc);
   
-  if (!filename || !filename.match(/\.(jpe?g|png|webp|gif|svg)$/i)) {
+  if (!isLocalAsset || !filename || !filename.match(/\.(jpe?g|png|webp|gif|svg)$/i)) {
     return { nextUrl: fallbackSrc, nextStep: 99 };
   }
 

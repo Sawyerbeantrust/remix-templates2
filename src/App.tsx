@@ -17,6 +17,7 @@ import ResponsiveImage from './components/ResponsiveImage';
 import CategoryPreviewImage from './components/CategoryPreviewImage';
 import { handleImageElementError } from './utils/imageFallback';
 import { useResolvedImage } from './hooks/useResolvedImage';
+import { useImagePreloader } from './hooks/useImagePreloader';
 import { processCategoriesForStorage, processProductsForStorage } from './utils/sanitizeAndStoreImages';
 import { PRODUCTS } from './data/products';
 import { Product, CartItem, InquiryFormData, FeaturedCategory } from './types';
@@ -1441,6 +1442,13 @@ export default function App() {
       });
     }
   }
+
+  // Preload images for currently visible products in the showroom grid
+  const visibleShowroomProducts = filteredProducts.slice(0, visibleCount);
+  useImagePreloader(visibleShowroomProducts, {
+    priorityCount: 8,
+    includeSecondaryImages: true
+  });
 
   const handleShortcutInquiry = (product: Product) => {
     handleAddToCart(product);

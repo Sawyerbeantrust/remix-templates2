@@ -5,6 +5,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
+    define: {
+      'process.env.WP_BASE_URL': JSON.stringify(process.env.WP_BASE_URL || 'https://car-lifts.co.za'),
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
