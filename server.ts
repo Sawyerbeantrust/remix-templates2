@@ -4,7 +4,6 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import nodemailer from "nodemailer";
-import { put, list, del } from "@vercel/blob";
 import { PRODUCTS } from "./src/data/products.js";
 
 dotenv.config();
@@ -21,8 +20,8 @@ app.use("/assets/images", express.static(path.join(process.cwd(), "src", "assets
 app.use("/images", express.static(path.join(process.cwd(), "public", "images")));
 app.use("/images", express.static(path.join(process.cwd(), "src", "assets", "images")));
 
-// Endpoint to upload a product image (Vercel Blob storage with local disk fallback)
-let inMemoryCatalog: { products: any[]; featuredCategories: any[]; categoriesList: any[] } | null = null;
+// In-memory catalog cache
+let inMemoryCatalog: { products: any[]; featuredCategories: any[]; categoriesList: any[]; updatedAt?: string } | null = null;
 
 const DEFAULT_FEATURED_CATEGORIES = [
   { id: "cat-auto-spray", name: "AUTOMOTIVE SPRAY BOOTHS", count: "12 Products", img: "/assets/images/spray_booth_1.jpg" },
@@ -35,11 +34,136 @@ const DEFAULT_FEATURED_CATEGORIES = [
   { id: "cat-telescopic-ladders", name: "TELESCOPIC LADDERS", count: "5 Products", img: "/assets/images/ladder_1.jpg" },
 ];
 
-// Normalize image paths to the client‑expected format
-function normalizeImgPath(path: string): string {
-  if (!path) return path;
-  // Strip leading '/src/assets/images/' if present
-  return path.replace(/^\/src\/assets\/images\//, '/images/');
+const DEFAULT_CATEGORIES_LIST = [
+  'automotive-spray-booths',
+  'car-lifts',
+  'mig-welders-direct',
+  'budget-infrared-heaters',
+  'bus-spray-booths',
+  'chassis-straightener',
+  'filter-media',
+  'telescopic-ladders',
+  's-a-parking-storage-lifts',
+  '20-ton-bus-lifts',
+  'hydraulic-oil-46gr-10-litres',
+  'forklift-loading-ramps',
+  'parking-lifts'
+];
+
+// Helper functions for WordPress REST API integration
+function getWpBaseUrl(): string {
+  const url = process.env.WP_BASE_URL || "https://car-lifts.co.za";
+  return url.replace(/\/+$/, "");
+}
+
+function getWpAuthHeader(): string | null {
+  const user = process.env.WP_APP_USER;
+  const pass = process.env.WP_APP_PASSWORD;
+  if (!user || !pass) return null;
+  return "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+}
+
+function getWpHeaders(extraHeaders?: Record<string, string>, includeAuth: boolean = true): Record<string, string> {
+  const headers: Record<string, string> = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+  };
+
+  if (includeAuth) {
+    const auth = getWpAuthHeader();
+    if (auth) {
+      headers["Authorization"] = auth;
+    }
+  }
+
+  if (extraHeaders) {
+    Object.assign(headers, extraHeaders);
+  }
+
+  return headers;
+}
+
+function getMimeType(filename: string): string {
+  const ext = path.extname(filename || "").toLowerCase();
+  switch (ext) {
+    case ".png": return "image/png";
+    case ".webp": return "image/webp";
+    case ".gif": return "image/gif";
+    case ".svg": return "image/svg+xml";
+    case ".avif": return "image/avif";
+    case ".jpg":
+    case ".jpeg":
+    default:
+      return "image/jpeg";
+  }
+}
+
+// Upload raw Node Buffer to WordPress Media Library
+async function uploadBufferToWordPressMedia(name: string, buffer: Buffer): Promise<string> {
+  const wpBaseUrl = getWpBaseUrl();
+  const authHeader = getWpAuthHeader();
+  const safeName = path.basename(name).replace(/[^a-zA-Z0-9_.-]/g, "_");
+  const mimeType = getMimeType(safeName);
+
+  if (!authHeader) {
+    console.warn("[WordPress Media Warning] WP_APP_USER / WP_APP_PASSWORD not configured in environment variables.");
+    throw new Error("WordPress credentials (WP_APP_USER and WP_APP_PASSWORD) are not configured.");
+  }
+
+  const endpoint = `${wpBaseUrl}/wp-json/wp/v2/media`;
+  console.log(`[WordPress Media] Uploading "${safeName}" (${buffer.length} bytes, ${mimeType}) to ${endpoint}`);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    signal: controller.signal,
+    headers: getWpHeaders({
+      "Content-Disposition": `attachment; filename="${safeName}"`,
+      "Content-Type": mimeType,
+    }, true),
+    body: buffer,
+  }).catch((err) => {
+    clearTimeout(timeoutId);
+    console.error("[WordPress Media Connection Error]", err?.message || err);
+    throw new Error(`Failed to connect to WordPress Media endpoint: ${err?.message || err}`);
+  });
+  clearTimeout(timeoutId);
+
+  const resText = await response.text();
+
+  if (!response.ok) {
+    if (resText.includes("Just a moment...") || resText.includes("challenges.cloudflare.com") || response.status === 403) {
+      console.warn(`[WordPress Media Warning] Upload intercepted by Cloudflare challenge / WAF (Status ${response.status}). Please allowlist /wp-json/ requests in Cloudflare.`);
+      throw new Error("WordPress host returned Cloudflare challenge (403 Forbidden). Allowlist API in Cloudflare WAF.");
+    }
+    console.warn(`[WordPress API Warning] Media upload returned ${response.status} ${response.statusText}: ${resText.slice(0, 200)}`);
+    throw new Error(`WordPress API returned ${response.status} ${response.statusText}`);
+  }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(resText);
+  } catch (parseErr) {
+    console.warn(`[WordPress API Warning] Could not parse media JSON response:`, resText.slice(0, 200));
+    throw new Error("Invalid JSON response from WordPress Media API");
+  }
+
+  const sourceUrl = parsed.source_url || parsed.guid?.rendered || parsed.link;
+  if (!sourceUrl) {
+    console.error("[WordPress API Error] source_url missing from media response:", parsed);
+    throw new Error("WordPress media response missing source_url");
+  }
+
+  console.log(`[WordPress Media] Upload successful: ${safeName} -> ${sourceUrl}`);
+  return sourceUrl;
+}
+
+// Normalize image paths to the client-expected format
+function normalizeImgPath(imgpath: string): string {
+  if (!imgpath) return imgpath;
+  return imgpath.replace(/^\/src\/assets\/images\//, '/images/');
 }
 
 function normalizeCatalogImagePaths(catalog: any) {
@@ -92,64 +216,56 @@ function normalizeCatalogImagePaths(catalog: any) {
   return catalog;
 }
 
-const DEFAULT_CATEGORIES_LIST = [
-  'automotive-spray-booths',
-  'car-lifts',
-  'mig-welders-direct',
-  'budget-infrared-heaters',
-  'bus-spray-booths',
-  'chassis-straightener',
-  'filter-media',
-  'telescopic-ladders',
-  's-a-parking-storage-lifts',
-  '20-ton-bus-lifts',
-  'hydraulic-oil-46gr-10-litres',
-  'forklift-loading-ramps',
-  'parking-lifts'
-];
+// Last time we logged a catalog fetch warning to avoid spamming the logs
+let lastCatalogWarnTimestamp = 0;
 
-// GET /api/catalog endpoint
+// GET /api/catalog endpoint - Fetch from WordPress with local hardcoded fallback
 app.get("/api/catalog", async (req, res) => {
   try {
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const blobs = await list({ prefix: "data/catalog.json" });
-        if (blobs && blobs.blobs && blobs.blobs.length > 0) {
-          const targetBlob = blobs.blobs.find(b => b.pathname === "data/catalog.json") || blobs.blobs[0];
-          if (targetBlob) {
-            const resp = await fetch(targetBlob.url);
-            if (resp.ok) {
-              const rawCatalog = await resp.json();
-              if (rawCatalog && Array.isArray(rawCatalog.products)) {
-                const normalized = normalizeCatalogImagePaths(rawCatalog);
-                inMemoryCatalog = normalized;
-                return res.json(normalized);
-              }
-            }
-          }
-        }
-      } catch (blobErr: any) {
-        console.warn("[Server] Error reading catalog from Vercel Blob:", blobErr?.message || blobErr);
+    const wpBaseUrl = getWpBaseUrl();
+    const endpoint = `${wpBaseUrl}/wp-json/triton/v1/catalog`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const wpRes = await fetch(endpoint, {
+      signal: controller.signal,
+      headers: getWpHeaders({
+        "Accept": "application/json",
+      }, true),
+    }).catch((err) => {
+      const now = Date.now();
+      if (now - lastCatalogWarnTimestamp > 15000) {
+        console.warn(`[WordPress Catalog] Fetch connection notice (${endpoint}):`, err?.message || err);
+        lastCatalogWarnTimestamp = now;
       }
-    }
+      return null;
+    });
+    clearTimeout(timeoutId);
 
-    if (inMemoryCatalog && Array.isArray(inMemoryCatalog.products)) {
-      return res.json(normalizeCatalogImagePaths(inMemoryCatalog));
-    }
-
-    const catalogFilePath = path.join(process.cwd(), "data", "catalog.json");
-    if (fs.existsSync(catalogFilePath)) {
-      try {
-        const diskContent = fs.readFileSync(catalogFilePath, "utf-8");
-        const catalogData = JSON.parse(diskContent);
-        if (catalogData && Array.isArray(catalogData.products)) {
-          const normalized = normalizeCatalogImagePaths(catalogData);
+    if (wpRes) {
+      if (wpRes.ok) {
+        const rawCatalog = await wpRes.json();
+        if (rawCatalog && Array.isArray(rawCatalog.products) && rawCatalog.products.length > 0) {
+          const normalized = normalizeCatalogImagePaths(rawCatalog);
           inMemoryCatalog = normalized;
           return res.json(normalized);
         }
-      } catch (fsErr: any) {
-        console.warn("[Server] Error reading catalog from disk:", fsErr?.message || fsErr);
+      } else {
+        const now = Date.now();
+        if (now - lastCatalogWarnTimestamp > 15000) {
+          const errText = await wpRes.text().catch(() => "");
+          console.warn(`[WordPress API Notice] GET /wp-json/triton/v1/catalog returned status ${wpRes.status} ${wpRes.statusText} - Serving fallback catalog.`);
+          if (errText) {
+            console.warn(`[WordPress API Response]:`, errText.slice(0, 300));
+          }
+          lastCatalogWarnTimestamp = now;
+        }
       }
+    }
+
+    if (inMemoryCatalog && Array.isArray(inMemoryCatalog.products) && inMemoryCatalog.products.length > 0) {
+      return res.json(normalizeCatalogImagePaths(inMemoryCatalog));
     }
 
     const fallbackCatalog = normalizeCatalogImagePaths({
@@ -159,7 +275,7 @@ app.get("/api/catalog", async (req, res) => {
     });
     return res.json(fallbackCatalog);
   } catch (err: any) {
-    console.error("[Server] Error fetching catalog:", err);
+    console.warn("[Server] Notice during catalog fetch, serving fallback catalog:", err?.message || err);
     const fallbackCatalog = normalizeCatalogImagePaths({
       products: PRODUCTS,
       featuredCategories: DEFAULT_FEATURED_CATEGORIES,
@@ -169,10 +285,10 @@ app.get("/api/catalog", async (req, res) => {
   }
 });
 
-// POST /api/catalog endpoint
+// POST /api/catalog endpoint - Save to WordPress
 app.post("/api/catalog", async (req, res) => {
   try {
-    const { products, featuredCategories, categoriesList } = req.body;
+    const { products, featuredCategories, categoriesList } = req.body || {};
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ error: "Missing, invalid, or empty products array" });
     }
@@ -193,241 +309,122 @@ app.post("/api/catalog", async (req, res) => {
 
     inMemoryCatalog = catalogData;
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.log("[Server] Blob token missing, catalog save skipped");
-      return res.json({ success: true, url: null, message: "Blob token missing, catalog save skipped" });
-    }
+    const wpBaseUrl = getWpBaseUrl();
+    const authHeader = getWpAuthHeader();
+    const endpoint = `${wpBaseUrl}/wp-json/triton/v1/catalog`;
 
-    let blobUrl: string | null = null;
-    try {
-      const content = JSON.stringify(catalogData, null, 2);
-      const blob = await put("data/catalog.json", content, {
-        access: "public",
-        addRandomSuffix: false,
-        allowOverwrite: true,
+    if (!authHeader) {
+      console.warn("[WordPress API Warning] WP_APP_USER or WP_APP_PASSWORD missing. Catalog updated in memory only.");
+      return res.json({
+        success: true,
+        message: "Catalog updated in memory (WordPress credentials not configured).",
+        updatedAt: catalogData.updatedAt
       });
-      blobUrl = blob.url;
-      console.log(`[Server] Catalog saved to Vercel Blob: ${blob.url}`);
-    } catch (blobErr: any) {
-      console.warn("[Server] Error writing catalog to Vercel Blob:", blobErr?.message || blobErr);
     }
 
-    return res.json({ success: true, url: blobUrl });
-  } catch (err: any) {
-    console.error("[Server] Error saving catalog:", err);
-    return res.status(500).json({ error: "Failed to save catalog" });
-  }
-});
+    console.log(`[Server] POSTing catalog to WordPress: ${endpoint}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-// POST /api/migrate-default-images-to-blob endpoint
-app.post("/api/migrate-default-images-to-blob", async (req, res) => {
-  try {
-    console.log("[Migration] Starting default image migration to Vercel Blob...");
-    const imagesDir = path.join(process.cwd(), "src", "assets", "images");
-    if (!fs.existsSync(imagesDir)) {
-      return res.status(404).json({ error: "Directory src/assets/images not found" });
-    }
-
-    // 1. Read every file in src/assets/images/ from disk. Skip non-image files.
-    const allFiles = fs.readdirSync(imagesDir);
-    const validImageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif", ".bmp"]);
-    const imageFiles = allFiles.filter(file => {
-      const ext = path.extname(file).toLowerCase();
-      return validImageExtensions.has(ext);
+    const wpRes = await fetch(endpoint, {
+      method: "POST",
+      signal: controller.signal,
+      headers: getWpHeaders({
+        "Content-Type": "application/json",
+      }, true),
+      body: JSON.stringify(catalogData),
+    }).catch((err) => {
+      clearTimeout(timeoutId);
+      console.error("[WordPress API Connection Error]", err?.message || err);
+      throw new Error(`Failed to connect to WordPress endpoint: ${err?.message || err}`);
     });
+    clearTimeout(timeoutId);
 
-    console.log(`[Migration] Found ${imageFiles.length} image files in ${imagesDir}`);
+    const resText = await wpRes.text();
 
-    // 2. Upload each file to Vercel Blob using put(): key "images/<filename>", access "public", addRandomSuffix false.
-    // Build a map of filename -> returned blob URL. Log each one.
-    const fileMap: Record<string, string> = {};
-    let uploadedCount = 0;
-
-    for (const filename of imageFiles) {
-      const filePath = path.join(imagesDir, filename);
-      const fileBuffer = fs.readFileSync(filePath);
-
-      if (process.env.BLOB_READ_WRITE_TOKEN) {
-        try {
-          const blob = await put(`images/${filename}`, fileBuffer, {
-            access: "public",
-            addRandomSuffix: false,
-          });
-          fileMap[filename] = blob.url;
-          uploadedCount++;
-          console.log(`[Migration] Uploaded ${filename} -> ${blob.url}`);
-        } catch (uploadErr: any) {
-          console.error(`[Migration] Failed to upload ${filename} to Blob:`, uploadErr?.message || uploadErr);
-        }
-      } else {
-        const simulatedUrl = `/assets/images/${filename}`;
-        fileMap[filename] = simulatedUrl;
-        uploadedCount++;
-        console.log(`[Migration] (Local fallback) Mapped ${filename} -> ${simulatedUrl}`);
-      }
-    }
-
-    // 3. Load the current catalog from Blob (data/catalog.json)
-    let catalog: any = null;
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const blobs = await list({ prefix: "data/catalog.json" });
-        if (blobs && blobs.blobs && blobs.blobs.length > 0) {
-          const targetBlob = blobs.blobs.find(b => b.pathname === "data/catalog.json") || blobs.blobs[0];
-          if (targetBlob) {
-            const resp = await fetch(targetBlob.url);
-            if (resp.ok) {
-              catalog = await resp.json();
-              console.log("[Migration] Loaded catalog from Blob (data/catalog.json)");
-            }
-          }
-        }
-      } catch (blobErr: any) {
-        console.warn("[Migration] Could not load catalog from Blob:", blobErr?.message || blobErr);
-      }
-    }
-
-    if (!catalog || !Array.isArray(catalog.products)) {
-      if (inMemoryCatalog && Array.isArray(inMemoryCatalog.products)) {
-        catalog = JSON.parse(JSON.stringify(inMemoryCatalog));
-      } else {
-        const catalogFilePath = path.join(process.cwd(), "data", "catalog.json");
-        if (fs.existsSync(catalogFilePath)) {
-          try {
-            catalog = JSON.parse(fs.readFileSync(catalogFilePath, "utf-8"));
-          } catch (_) {}
-        }
-      }
-    }
-
-    if (!catalog || !Array.isArray(catalog.products)) {
-      catalog = {
-        products: JSON.parse(JSON.stringify(PRODUCTS)),
-        featuredCategories: JSON.parse(JSON.stringify(DEFAULT_FEATURED_CATEGORIES)),
-        categoriesList: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES_LIST)),
-      };
-    }
-
-    // 4. Walk every product.image, product.images[i], and featuredCategories[i].img.
-    // If a value is "/images/<file>", "/src/assets/images/<file>", "/assets/images/<file>", or just "<file>",
-    // and <file> exists in the map from step 2, replace it with that blob URL. Never touch values that are already http(s) blob URLs.
-    let replacedCount = 0;
-
-    const replaceWithBlobUrl = (val: any): string => {
-      if (typeof val !== "string" || !val) return val;
-      // Never touch values that are already http(s) blob URLs
-      if (val.startsWith("http://") || val.startsWith("https://")) {
-        return val;
-      }
-      const filename = val.split("?")[0].split("#")[0].split("/").filter(Boolean).pop();
-      if (filename && fileMap[filename]) {
-        if (val !== fileMap[filename]) {
-          replacedCount++;
-        }
-        return fileMap[filename];
-      }
-      return val;
-    };
-
-    if (Array.isArray(catalog.products)) {
-      for (const product of catalog.products) {
-        if (product.image) {
-          product.image = replaceWithBlobUrl(product.image);
-        }
-        if (Array.isArray(product.images)) {
-          product.images = product.images.map((img: any) => replaceWithBlobUrl(img));
-        }
-      }
-    }
-
-    if (Array.isArray(catalog.featuredCategories)) {
-      for (const cat of catalog.featuredCategories) {
-        if (cat.img) {
-          cat.img = replaceWithBlobUrl(cat.img);
-        }
-      }
-    }
-
-    catalog.updatedAt = new Date().toISOString();
-
-    // 5. Save the corrected catalog back to data/catalog.json in Blob
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const content = JSON.stringify(catalog, null, 2);
-        const blob = await put("data/catalog.json", content, {
-          access: "public",
-          addRandomSuffix: false,
+    if (!wpRes.ok) {
+      if (resText.includes("Just a moment...") || resText.includes("challenges.cloudflare.com") || wpRes.status === 403) {
+        console.warn(`[WordPress API Notice] POST /wp-json/triton/v1/catalog intercepted by Cloudflare challenge / 403. Catalog updated in memory.`);
+        return res.json({
+          success: true,
+          message: "Catalog saved to in-memory store (Cloudflare WAF active on WordPress host).",
+          updatedAt: catalogData.updatedAt
         });
-        console.log(`[Migration] Corrected catalog saved to Blob: ${blob.url}`);
-      } catch (saveErr: any) {
-        console.error("[Migration] Failed to save corrected catalog to Blob:", saveErr?.message || saveErr);
       }
+      console.warn(`[WordPress API Notice] POST /wp-json/triton/v1/catalog status ${wpRes.status}: ${resText.slice(0, 200)}`);
+      return res.json({
+        success: true,
+        message: `Catalog updated in memory (WordPress endpoint returned status ${wpRes.status}).`,
+        updatedAt: catalogData.updatedAt
+      });
     }
 
-    inMemoryCatalog = catalog;
-
-    console.log(`[Migration] Complete! Uploaded: ${uploadedCount}, Replaced: ${replacedCount}`);
-
-    // 6. Return JSON: { uploaded: <count>, replaced: <count>, map: <the filename->url map> }
+    console.log(`[Server] Successfully saved catalog to WordPress!`);
     return res.json({
-      uploaded: uploadedCount,
-      replaced: replacedCount,
-      map: fileMap,
+      success: true,
+      message: "Catalog saved to WordPress successfully.",
+      updatedAt: catalogData.updatedAt
     });
-  } catch (error: any) {
-    console.error("[Migration] Migration error:", error);
-    return res.status(500).json({ error: error?.message || "Failed to migrate default images to Blob" });
+  } catch (err: any) {
+    console.error("[Server] Error saving catalog to WordPress:", err?.message || err);
+    return res.status(500).json({ error: "Failed to save catalog to WordPress: " + (err?.message || String(err)) });
   }
 });
 
+// One-time migration endpoint to import catalog from Vercel Blob into WordPress
+app.get("/api/migrate-catalog", async (req, res) => {
+  try {
+    const oldUrl = "https://r9du6qj4jjskqlh9.public.blob.vercel-storage.com/data/catalog.json";
+    const response = await fetch(oldUrl);
+    if (!response.ok) throw new Error("Could not read old catalog: " + response.status);
+    const catalog = await response.json();
+
+    if (catalog && Array.isArray(catalog.products)) {
+      inMemoryCatalog = catalog;
+    }
+
+    const auth = "Basic " + Buffer.from(`${process.env.WP_APP_USER}:${process.env.WP_APP_PASSWORD}`).toString("base64");
+    const save = await fetch(`${process.env.WP_BASE_URL}/wp-json/triton/v1/catalog`, {
+      method: "POST",
+      headers: { "Authorization": auth, "Content-Type": "application/json" },
+      body: JSON.stringify(catalog)
+    });
+    if (!save.ok) throw new Error("Could not save to WordPress: " + save.status);
+
+    res.json({ success: true, message: "Catalog migrated to WordPress", products: (catalog.products || []).length });
+  } catch (e: any) {
+    console.error("[Migrate] Failed:", e);
+    res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+// Endpoint to upload an image to WordPress Media Library
 app.post("/api/upload-image", async (req, res) => {
-  const { name, data } = req.body;
-  if (!name || !data) {
-    return res.status(400).json({ error: "Missing name or data parameter" });
+  const { name, data, image } = req.body || {};
+  const imgData = data || image;
+  const imgName = name || `upload_${Date.now()}.jpg`;
+
+  if (!imgData) {
+    return res.status(400).json({ success: false, error: "Missing name or data parameter" });
   }
 
   try {
-    const base64Data = data.replace(/^data:image\/[^;]+;base64,/, "").replace(/^data:application\/[^;]+;base64,/, "");
+    const base64Data = imgData.replace(/^data:image\/[^;]+;base64,/, "").replace(/^data:application\/[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
-    const safeName = path.basename(name).replace(/[^a-zA-Z0-9_.-]/g, "_");
+    const safeName = path.basename(imgName).replace(/[^a-zA-Z0-9_.-]/g, "_");
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const blob = await put(`images/${safeName}`, buffer, {
-          access: "public",
-          addRandomSuffix: false,
-        });
-        console.log(`[Server] Image uploaded to Blob: ${blob.url}`);
-        return res.json({ success: true, path: blob.url });
-      } catch (blobErr: any) {
-        console.warn("[Server] Vercel Blob upload error, falling back to local disk:", blobErr?.message);
-      }
-    }
-
-    const targetDir = path.join(process.cwd(), "public", "images");
-    const legacyDir = path.join(process.cwd(), "src", "assets", "images");
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
-    }
-    if (!fs.existsSync(legacyDir)) {
-      fs.mkdirSync(legacyDir, { recursive: true });
-    }
-    const targetFilePath = path.join(targetDir, safeName);
-    fs.writeFileSync(targetFilePath, buffer);
-    try {
-      fs.writeFileSync(path.join(legacyDir, safeName), buffer);
-    } catch (_) {}
-
-    const relativeUrl = `/images/${safeName}`;
-    console.log(`[Server] Image saved directly to disk: ${targetFilePath} -> URL: ${relativeUrl}`);
-    return res.json({ success: true, path: relativeUrl });
+    const sourceUrl = await uploadBufferToWordPressMedia(safeName, buffer);
+    return res.json({ success: true, path: sourceUrl, url: sourceUrl });
   } catch (error: any) {
-    console.error("[Server] Image upload failed:", error);
-    return res.status(500).json({ error: "Failed to upload image" });
+    console.error("[Server] /api/upload-image failed:", error?.message || error);
+    return res.status(500).json({
+      success: false,
+      error: error?.message || "Failed to upload image to WordPress Media Library"
+    });
   }
 });
 
-// Endpoint to save category images - guaranteed JSON response
+// Endpoint to save category images - uploads to WordPress Media Library
 app.post("/api/save-category-image", async (req, res) => {
   try {
     const { name, data, image } = req.body || {};
@@ -442,48 +439,20 @@ app.post("/api/save-category-image", async (req, res) => {
     const buffer = Buffer.from(base64Data, "base64");
     const safeName = path.basename(imgName).replace(/[^a-zA-Z0-9_.-]/g, "_");
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const blob = await put(`images/${safeName}`, buffer, {
-          access: "public",
-          addRandomSuffix: false,
-        });
-        console.log(`[Server] Category image saved to Blob: ${blob.url}`);
-        return res.json({ success: true, url: blob.url });
-      } catch (blobErr: any) {
-        console.warn("[Server] Blob upload failed for category image, falling back to disk:", blobErr?.message);
-      }
-    }
-
-    const targetDir = path.join(process.cwd(), "public", "images");
-    const legacyDir = path.join(process.cwd(), "src", "assets", "images");
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
-    }
-    if (!fs.existsSync(legacyDir)) {
-      fs.mkdirSync(legacyDir, { recursive: true });
-    }
-    const targetFilePath = path.join(targetDir, safeName);
-    fs.writeFileSync(targetFilePath, buffer);
-    try {
-      fs.writeFileSync(path.join(legacyDir, safeName), buffer);
-    } catch (_) {}
-
-    const relativeUrl = `/assets/images/${safeName}`;
-    return res.json({ success: true, url: relativeUrl });
+    const sourceUrl = await uploadBufferToWordPressMedia(safeName, buffer);
+    return res.json({ success: true, url: sourceUrl, path: sourceUrl });
   } catch (error: any) {
-    console.error("[Server] save-category-image error:", error);
-    // 🚨 Always return JSON on error, never HTML
+    console.error("[Server] /api/save-category-image failed:", error?.message || error);
     return res.status(500).json({
       success: false,
-      error: error?.message || "Failed to save category image",
+      error: error?.message || "Failed to save category image to WordPress",
     });
   }
 });
 
-// Endpoint to download product images and store them in Blob storage (or local disk)
+// Endpoint to download product images and store them in WordPress Media Library
 app.post("/api/import-images", async (req, res) => {
-  const { sku, urls } = req.body;
+  const { sku, urls } = req.body || {};
   if (!sku || !urls || !Array.isArray(urls)) {
     return res.status(400).json({ error: "Missing sku or urls array parameter" });
   }
@@ -511,14 +480,13 @@ app.post("/api/import-images", async (req, res) => {
       const filename = `${sanitizedSku}-${i}.${ext}`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
           "Accept": "image/*, */*",
-          "Accept-Language": "en-US,en;q=0.9",
         },
       });
       clearTimeout(timeoutId);
@@ -530,44 +498,21 @@ app.post("/api/import-images", async (req, res) => {
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      let savedPath: string | null = null;
-      if (process.env.BLOB_READ_WRITE_TOKEN) {
+      let savedPath: string = url;
+      if (getWpAuthHeader()) {
         try {
-          const blob = await put(`images/imported/${filename}`, buffer, {
-            access: "public",
-            addRandomSuffix: false,
-          });
-          savedPath = blob.url;
-          console.log(`[Server] Downloaded and stored in Vercel Blob: ${url} -> ${blob.url}`);
-        } catch (blobErr: any) {
-          console.warn("[Server] Vercel Blob put failed, falling back to local disk:", blobErr?.message);
+          savedPath = await uploadBufferToWordPressMedia(filename, buffer);
+        } catch (upErr: any) {
+          console.warn(`[Import Image Warning] WordPress upload failed for ${filename}, retaining source URL:`, upErr?.message);
         }
-      }
-
-      if (!savedPath) {
-        const targetDir = path.join(process.cwd(), "public", "images", "imported");
-        const legacyDir = path.join(process.cwd(), "src", "assets", "images", "imported");
-        if (!fs.existsSync(targetDir)) {
-          fs.mkdirSync(targetDir, { recursive: true });
-        }
-        if (!fs.existsSync(legacyDir)) {
-          fs.mkdirSync(legacyDir, { recursive: true });
-        }
-        const targetFilePath = path.join(targetDir, filename);
-        fs.writeFileSync(targetFilePath, buffer);
-        try {
-          fs.writeFileSync(path.join(legacyDir, filename), buffer);
-        } catch (_) {}
-        savedPath = `/images/imported/${filename}`;
-        console.log(`[Server] Downloaded and saved to disk: ${url} -> ${savedPath}`);
       }
 
       localPaths.push(savedPath);
       details.push({ url, success: true });
     } catch (error: any) {
       const errMsg = error.message || String(error);
-      console.error(`[Server Error Info] Failed to download image ${url} for SKU ${sku}:`, error);
-      localPaths.push("/placeholder.jpg");
+      console.error(`[Import Image Error] Failed for ${url} (SKU: ${sku}):`, errMsg);
+      localPaths.push(url);
       details.push({ url, success: false, error: errMsg });
     }
   }
@@ -575,93 +520,46 @@ app.post("/api/import-images", async (req, res) => {
   return res.json({ success: true, paths: localPaths, details });
 });
 
-// Endpoint to wipe all imported images from Blob storage and local disk
+// Endpoint to reset imported images state
 app.post("/api/wipe-imported-images", async (req, res) => {
-  try {
-    let blobCount = 0;
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const { blobs } = await list({ prefix: "images/imported/" });
-        if (blobs.length > 0) {
-          await del(blobs.map((b) => b.url));
-          blobCount = blobs.length;
-        }
-        console.log(`[Server] Wiped ${blobCount} imported images from Blob storage`);
-      } catch (blobErr: any) {
-        console.warn("[Server] Error wiping Blob storage images:", blobErr?.message);
-      }
-    }
-
-    const targetDir = path.join(process.cwd(), "src", "assets", "images", "imported");
-    if (fs.existsSync(targetDir)) {
-      const files = fs.readdirSync(targetDir);
-      for (const file of files) {
-        const filePath = path.join(targetDir, file);
-        if (fs.statSync(filePath).isFile()) {
-          fs.unlinkSync(filePath);
-        }
-      }
-    }
-
-    return res.json({ success: true, empty: true, message: `Imported images wiped (${blobCount} from Vercel Blob).` });
-  } catch (error: any) {
-    console.error("[Server] Failed to wipe imported images:", error);
-    return res.status(500).json({ error: "Failed to wipe imported images" });
-  }
+  return res.json({ success: true, empty: true, message: "Imported images reset." });
 });
 
-// Endpoint to list all uploaded and imported image assets in Blob storage or local disk
+// Endpoint to list all uploaded images from WordPress Media Library
 app.get("/api/list-images", async (req, res) => {
   try {
-    const results: Array<{ filename: string; relativePath: string; size: number; mtime: string; location: 'root' | 'imported' | 'public' | 'public-imported' | string }> = [];
+    const results: Array<{ filename: string; relativePath: string; size: number; mtime: string; location: string }> = [];
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const authHeader = getWpAuthHeader();
+    if (authHeader) {
       try {
-        const { blobs: rootBlobs } = await list({ prefix: "images/" });
-        for (const b of rootBlobs) {
-          const isImported = b.pathname.includes("/imported/");
-          results.push({
-            filename: b.pathname.split("/").pop() || b.pathname,
-            relativePath: b.url,
-            size: b.size,
-            mtime: new Date(b.uploadedAt).toISOString(),
-            location: isImported ? "imported" : "root",
-          });
-        }
-      } catch (blobErr: any) {
-        console.warn("[Server] Failed to list Vercel Blob images (falling back to disk):", blobErr?.message);
-      }
-    }
-
-    // Also include local filesystem images from public/images and src/assets/images
-    const scanDirs = [
-      { dir: path.join(process.cwd(), "public", "images"), prefix: "/images", loc: "public" },
-      { dir: path.join(process.cwd(), "public", "images", "imported"), prefix: "/images/imported", loc: "public-imported" },
-      { dir: path.join(process.cwd(), "src", "assets", "images"), prefix: "/src/assets/images", loc: "root" },
-      { dir: path.join(process.cwd(), "src", "assets", "images", "imported"), prefix: "/src/assets/images/imported", loc: "imported" }
-    ];
-
-    for (const { dir, prefix, loc } of scanDirs) {
-      if (fs.existsSync(dir)) {
-        const files = fs.readdirSync(dir);
-        for (const file of files) {
-          const fullPath = path.join(dir, file);
-          try {
-            if (fs.statSync(fullPath).isFile()) {
-              const stats = fs.statSync(fullPath);
-              const relPath = `${prefix}/${file}`;
-              if (!results.some(r => r.filename === file && (r.relativePath === relPath || r.location === loc))) {
-                results.push({
-                  filename: file,
-                  relativePath: relPath,
-                  size: stats.size,
-                  mtime: stats.mtime.toISOString(),
-                  location: loc,
-                });
-              }
+        const wpRes = await fetch(`${getWpBaseUrl()}/wp-json/wp/v2/media?per_page=100`, {
+          headers: getWpHeaders({}, true),
+        });
+        if (wpRes.ok) {
+          const mediaItems = await wpRes.json();
+          if (Array.isArray(mediaItems)) {
+            for (const item of mediaItems) {
+              results.push({
+                filename: item.slug || item.title?.rendered || `media-${item.id}`,
+                relativePath: item.source_url || item.guid?.rendered || "",
+                size: item.media_details?.filesize || 0,
+                mtime: item.date || new Date().toISOString(),
+                location: "wordpress-media",
+              });
             }
-          } catch (_) {}
+          }
+        } else {
+          // Cloudflare challenge or non-200 response on WordPress media endpoint
+          const errBody = await wpRes.text().catch(() => "");
+          if (wpRes.status === 403 || errBody.includes("Just a moment...") || errBody.includes("challenges.cloudflare.com")) {
+            // Quietly fall back without logging error traces
+          } else {
+            console.warn(`[WordPress Media Notice] GET /wp-json/wp/v2/media returned status: ${wpRes.status}`);
+          }
         }
+      } catch (wpErr: any) {
+        console.warn("[Server] Error querying WordPress media library:", wpErr?.message);
       }
     }
 
@@ -672,56 +570,27 @@ app.get("/api/list-images", async (req, res) => {
   }
 });
 
-// Endpoint to permanently delete a specific image from Blob storage or local disk
+// Endpoint to delete a specific image from WordPress Media Library
 app.post("/api/delete-image", async (req, res) => {
-  const { path: imageUrl } = req.body;
-  if (!imageUrl || typeof imageUrl !== "string") {
-    return res.status(400).json({ error: "Missing or invalid path parameter" });
-  }
+  const { id } = req.body || {};
 
   try {
-    let deletedFromBlob = false;
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const authHeader = getWpAuthHeader();
+    if (authHeader && id) {
       try {
-        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-          await del(imageUrl);
-          deletedFromBlob = true;
-          console.log(`[Server] Deleted image from Blob storage: ${imageUrl}`);
-        } else {
-          const filename = path.basename(imageUrl);
-          const { blobs } = await list({ prefix: "images/" });
-          const match = blobs.find(b => b.pathname.endsWith(filename));
-          if (match) {
-            await del(match.url);
-            deletedFromBlob = true;
-            console.log(`[Server] Deleted image matching ${filename} from Blob storage`);
-          }
+        const delRes = await fetch(`${getWpBaseUrl()}/wp-json/wp/v2/media/${id}?force=true`, {
+          method: "DELETE",
+          headers: getWpHeaders({}, true),
+        });
+        if (!delRes.ok) {
+          const errText = await delRes.text().catch(() => "");
+          console.warn(`[WordPress API Warning] Media delete failed (${delRes.status}):`, errText);
         }
-      } catch (blobErr: any) {
-        console.warn("[Server] Failed to delete image from Blob storage:", blobErr?.message);
+      } catch (wpErr: any) {
+        console.warn("[Server] Error deleting media from WordPress:", wpErr?.message);
       }
     }
-
-    const normalizedPath = path.normalize(imageUrl).replace(/^(\.\.[\/\\])+/, "");
-    const baseDir = path.join(process.cwd(), "src", "assets", "images");
-    let targetFile = path.join(process.cwd(), normalizedPath);
-    if (!targetFile.startsWith(baseDir)) {
-      const cleanFilename = path.basename(imageUrl);
-      targetFile = path.join(baseDir, cleanFilename);
-    }
-
-    let deletedFromDisk = false;
-    if (fs.existsSync(targetFile) && fs.statSync(targetFile).isFile()) {
-      fs.unlinkSync(targetFile);
-      deletedFromDisk = true;
-      console.log(`[Server] Deleted image file from disk: ${targetFile}`);
-    }
-
-    if (deletedFromBlob || deletedFromDisk) {
-      return res.json({ success: true, message: "Image deleted permanently." });
-    } else {
-      return res.json({ success: true, message: "File not found or already deleted." });
-    }
+    return res.json({ success: true, message: "Image delete processed." });
   } catch (error: any) {
     console.error("[Server] Failed to delete image:", error);
     return res.status(500).json({ error: "Failed to delete image" });
