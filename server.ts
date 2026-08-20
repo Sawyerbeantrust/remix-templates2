@@ -57,8 +57,8 @@ function getWpBaseUrl(): string {
 }
 
 function getWpAuthHeader(): string | null {
-  const user = process.env.WP_APP_USER;
-  const pass = process.env.WP_APP_PASSWORD;
+  const user = process.env.WP_APP_USER?.trim();
+  const pass = process.env.WP_APP_PASSWORD?.trim();
   if (!user || !pass) return null;
   return "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
 }
@@ -383,10 +383,9 @@ app.get("/api/migrate-catalog", async (req, res) => {
       inMemoryCatalog = catalog;
     }
 
-    const auth = "Basic " + Buffer.from(`${process.env.WP_APP_USER}:${process.env.WP_APP_PASSWORD}`).toString("base64");
-    const save = await fetch(`${process.env.WP_BASE_URL}/wp-json/triton/v1/catalog`, {
+    const save = await fetch(`${getWpBaseUrl()}/wp-json/triton/v1/catalog`, {
       method: "POST",
-      headers: { "Authorization": auth, "Content-Type": "application/json" },
+      headers: getWpHeaders({ "Content-Type": "application/json" }, true),
       body: JSON.stringify(catalog)
     });
     if (!save.ok) throw new Error("Could not save to WordPress: " + save.status);
