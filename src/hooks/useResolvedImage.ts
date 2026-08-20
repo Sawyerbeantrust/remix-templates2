@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { imageStore } from '../utils/imageStore';
 
 const CATEGORY_PLACEHOLDER = '/assets/images/spray_booth_1.jpg';
 
@@ -20,52 +19,15 @@ export function useResolvedImage(urlOrKey: string | undefined | null, fallback =
 
   const [resolved, setResolved] = useState<string>(() => {
     if (!urlOrKey) return effectiveFallback;
-    const normalized = normalizeImageKey(urlOrKey);
-    if (normalized.startsWith('data:') || normalized.startsWith('/') || normalized.startsWith('http://') || normalized.startsWith('https://') || normalized.startsWith('blob:')) {
-      return normalized;
-    }
-    if (imageStore.runtimeImageCache.has(urlOrKey)) {
-      return imageStore.runtimeImageCache.get(urlOrKey)!;
-    }
-    return effectiveFallback;
+    return normalizeImageKey(urlOrKey);
   });
 
   useEffect(() => {
-    let isMounted = true;
-
     if (!urlOrKey) {
       setResolved(effectiveFallback);
       return;
     }
-
-    const normalized = normalizeImageKey(urlOrKey);
-    if (normalized.startsWith('data:') || normalized.startsWith('/') || normalized.startsWith('http://') || normalized.startsWith('https://') || normalized.startsWith('blob:')) {
-      setResolved(normalized);
-      return;
-    }
-
-    if (imageStore.runtimeImageCache.has(urlOrKey)) {
-      setResolved(imageStore.runtimeImageCache.get(urlOrKey)!);
-      return;
-    }
-
-    imageStore.resolveImageUrl(urlOrKey).then((dataUrl) => {
-      if (isMounted) {
-        if (dataUrl && typeof dataUrl === 'string' && dataUrl.trim() !== '') {
-          setResolved(dataUrl);
-        } else {
-          setResolved(effectiveFallback);
-        }
-      }
-    }).catch(() => {
-      if (isMounted) {
-        setResolved(effectiveFallback);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-    };
+    setResolved(normalizeImageKey(urlOrKey));
   }, [urlOrKey, effectiveFallback]);
 
   return resolved;

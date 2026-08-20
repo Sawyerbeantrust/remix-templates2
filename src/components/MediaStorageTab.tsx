@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ImageIcon, Trash2, Upload, Search, RefreshCw, CheckCircle2, 
-  AlertTriangle, HardDrive, Filter, ExternalLink, ShieldAlert,
-  Info, Sparkles, Check, X, FileImage, Database, Link, Tag, Package, Layers
+  HardDrive, ExternalLink, ShieldAlert,
+  Check, X, Database, Link, Package, Layers
 } from 'lucide-react';
 import { Product, FeaturedCategory } from '../types';
-import { imageStore } from '../utils/imageStore';
 import { useResolvedImage } from '../hooks/useResolvedImage';
 import { handleImageElementError } from '../utils/imageFallback';
 
@@ -31,15 +30,15 @@ interface MediaStorageTabProps {
   isInospace?: boolean;
   onFixLegacyImages?: () => void;
   isMigratingImages?: boolean;
-  onMigrateDefaultImagesToBlob?: () => void;
+  onMigrateDefaultImagesToWordPress?: () => void;
   isMigratingDefaultImages?: boolean;
 }
 
 interface MediaAssetItem {
-  id: string;
+  id: string | number;
   url: string;
   filename: string;
-  sourceType: 'Server Disk' | 'Base64 Local' | 'Remote CDN' | 'Static Asset';
+  sourceType: 'WordPress Media' | 'Server Disk' | 'Base64 Local' | 'Remote CDN' | 'Static Asset';
   fileSize?: number; // in bytes
   mtime?: string;
   usedInProducts: { id: string; name: string; sku: string }[];
@@ -55,14 +54,14 @@ export default function MediaStorageTab({
   isInospace = false,
   onFixLegacyImages,
   isMigratingImages = false,
-  onMigrateDefaultImagesToBlob,
+  onMigrateDefaultImagesToWordPress,
   isMigratingDefaultImages = false,
 }: MediaStorageTabProps) {
-  const [serverImages, setServerImages] = useState<Array<{ filename: string; relativePath: string; size: number; mtime: string; location: 'root' | 'imported' }>>([]);
+  const [serverImages, setServerImages] = useState<Array<{ id?: number; filename: string; url: string; size?: number; date?: string }>>([]);
   const [loadingServerImages, setLoadingServerImages] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'used' | 'unused' | 'base64' | 'disk'>('all');
-  const [selectedImageIds, setSelectedImageIds] = useState<string[]>([]);
+  const [filterType, setFilterType] = useState<'all' | 'used' | 'unused' | 'wordpress' | 'disk'>('all');
+  const [selectedImageIds, setSelectedImageIds] = useState<(string | number)[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState<{ isOpen: boolean; assets: MediaAssetItem[] }>({ isOpen: false, assets: [] });
@@ -79,7 +78,7 @@ export default function MediaStorageTab({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [quickUploadAssignTarget, setQuickUploadAssignTarget] = useState<string>('library_only'); // 'library_only' | product_id | category_id
 
-  // Fetch server disk images from API
+  // Fetch images from WordPress Media Library API
   const fetchServerImages = async () => {
     setLoadingServerImages(true);
     try {
@@ -101,14 +100,13 @@ export default function MediaStorageTab({
     fetchServerImages();
   }, []);
 
-  // Aggregate all unique media assets from products, categories, and server disk
+  // Aggregate all unique media assets from products, categories, and WordPress Media
   const mediaAssets = useMemo(() => {
     const assetMap = new Map<string, MediaAssetItem>();
 
-    // Helper to get or create asset entry
     const getOrCreateAsset = (url: string): MediaAssetItem => {
       const cleanUrl = url.trim();
-      let id = cleanUrl;
+      let id: string = cleanUrl;
       let filename = cleanUrl.split('/').pop() || cleanUrl;
 
       if (cleanUrl.startsWith('data:image')) {
@@ -120,7 +118,9 @@ export default function MediaStorageTab({
 
       if (!assetMap.has(id)) {
         let sourceType: MediaAssetItem['sourceType'] = 'Remote CDN';
-        if (cleanUrl.startsWith('data:image')) {
+        if (cleanUrl.includes('car-lifts.co.za/wp-content') || cleanUrl.includes('/wp-content/uploads/')) {
+          sourceType = 'WordPress Media';
+        } else if (cleanUrl.startsWith('data:image')) {
           sourceType = 'Base64 Local';
         } else if (cleanUrl.startsWith('/src/assets/images/') || cleanUrl.startsWith('/src/assets/')) {
           sourceType = 'Server Disk';
@@ -130,16 +130,15 @@ export default function MediaStorageTab({
           sourceType = 'Static Asset';
         }
 
-        // Check matching server disk image stats if available
-        const matchedServer = serverImages.find(s => s.relativePath === cleanUrl || s.filename === filename);
+        const matchedServer = serverImages.find(s => s.url === cleanUrl || s.filename === filename);
 
         assetMap.set(id, {
-          id,
+          id: matchedServer?.id || id,
           url: cleanUrl,
-          filename,
+          filename: matchedServer?.filename || filename,
           sourceType,
           fileSize: matchedServer ? matchedServer.size : undefined,
-          mtime: matchedServer ? matchedServer.mtime : undefined,
+          mtime: matchedServer ? matchedServer.date : undefined,
           usedInProducts: [],
           usedInCategories: [],
         });
@@ -178,17 +177,18 @@ export default function MediaStorageTab({
       }
     });
 
-    // 3. Scan Server Disk Images
+    // 3. Scan WordPress Server Images
     serverImages.forEach(s => {
-      const relPath = s.relativePath;
-      if (!assetMap.has(relPath)) {
-        assetMap.set(relPath, {
-          id: relPath,
-          url: relPath,
+      const url = s.url;
+      const id = String(s.id || url);
+      if (!assetMap.has(id) && !assetMap.has(url)) {
+        assetMap.set(id, {
+          id: s.id || id,
+          url,
           filename: s.filename,
-          sourceType: 'Server Disk',
+          sourceType: 'WordPress Media',
           fileSize: s.size,
-          mtime: s.mtime,
+          mtime: s.date,
           usedInProducts: [],
           usedInCategories: [],
         });
@@ -209,8 +209,8 @@ export default function MediaStorageTab({
 
       if (filterType === 'used') return asset.usedInProducts.length > 0 || asset.usedInCategories.length > 0;
       if (filterType === 'unused') return asset.usedInProducts.length === 0 && asset.usedInCategories.length === 0;
-      if (filterType === 'base64') return asset.sourceType === 'Base64 Local';
-      if (filterType === 'disk') return asset.sourceType === 'Server Disk';
+      if (filterType === 'wordpress') return asset.sourceType === 'WordPress Media';
+      if (filterType === 'disk') return asset.sourceType === 'Server Disk' || asset.sourceType === 'Static Asset';
 
       return true;
     });
@@ -295,7 +295,7 @@ export default function MediaStorageTab({
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    setUploadStatus('Uploading file to permanent storage...');
+    setUploadStatus('Uploading file to WordPress Media Library...');
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -306,7 +306,6 @@ export default function MediaStorageTab({
           reader.onload = async () => {
             try {
               const base64Data = reader.result as string;
-              let finalPath = base64Data;
 
               // Send to server upload endpoint
               const res = await fetch('/api/upload-image', {
@@ -318,27 +317,18 @@ export default function MediaStorageTab({
                 })
               });
 
-              if (res.ok) {
-                const data = await res.json();
-                if (data.path) {
-                  finalPath = data.path;
-                }
-                addLog(`[Media Storage] Successfully saved permanent upload: ${file.name} -> ${finalPath}`);
-              } else {
-                addLog(`[Media Storage] Storing ${file.name} in durable IndexedDB persistent memory.`);
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Upload failed with HTTP ${res.status}`);
               }
 
-              // If it's a base64 blob, store it in IndexedDB
-              if (finalPath.startsWith('data:image')) {
-                const uniqueKey = `media_asset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-                const savedOk = await imageStore.setItem(uniqueKey, base64Data);
-                if (!savedOk) {
-                  alert(`Failed to save uploaded image '${file.name}' to persistent IndexedDB storage!`);
-                  reject(new Error("IndexedDB image store setItem failed"));
-                  return;
-                }
-                finalPath = uniqueKey;
+              const data = await res.json();
+              const finalPath = data.path || data.url;
+              if (!finalPath) {
+                throw new Error("Server did not return a valid media path");
               }
+
+              addLog(`[WordPress Media] Uploaded: ${file.name} -> ${finalPath}`);
 
               // Check if quick upload target assignment was selected
               if (quickUploadAssignTarget.startsWith('prod_')) {
@@ -357,7 +347,7 @@ export default function MediaStorageTab({
                     return p;
                   });
                   onProductsChange(updatedProducts);
-                  addLog(`[Media Auto-Attach] Uploaded '${file.name}' and attached as primary image for product: ${targetProd.name}`);
+                  addLog(`[Media Auto-Attach] Uploaded '${file.name}' and attached to product: ${targetProd.name}`);
                 }
               } else if (quickUploadAssignTarget.startsWith('cat_')) {
                 const catId = quickUploadAssignTarget.replace('cat_', '');
@@ -384,12 +374,13 @@ export default function MediaStorageTab({
         });
       }
 
-      setUploadStatus('Image(s) uploaded successfully!');
+      setUploadStatus('Image(s) uploaded successfully to WordPress!');
       await fetchServerImages();
       setTimeout(() => setUploadStatus(null), 3500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[MediaStorageTab] Upload failed:', err);
-      setUploadStatus('Error uploading image.');
+      setUploadStatus(`Error uploading image: ${err?.message || err}`);
+      alert(`Upload error: ${err?.message || err}`);
     } finally {
       setIsUploading(false);
       e.target.value = '';
@@ -404,18 +395,19 @@ export default function MediaStorageTab({
 
     addLog(`[Media Delete] Starting permanent deletion of ${assetsToDelete.length} media asset(s)...`);
 
-    // 1. Send delete API request for server disk files
+    // 1. Send delete API request
     for (const asset of assetsToDelete) {
-      if (asset.sourceType === 'Server Disk' || asset.url.startsWith('/src/assets/')) {
-        try {
-          await fetch('/api/delete-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: asset.url })
-          });
-        } catch (e) {
-          console.warn('[MediaStorageTab] Error deleting server image:', e);
-        }
+      try {
+        await fetch('/api/delete-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            id: typeof asset.id === 'number' ? asset.id : undefined,
+            url: asset.url 
+          })
+        });
+      } catch (e) {
+        console.warn('[MediaStorageTab] Error deleting media asset:', e);
       }
     }
 
@@ -483,10 +475,10 @@ export default function MediaStorageTab({
               </div>
               <div>
                 <h2 className={`text-xl font-bold ${isInospace ? 'text-neutral-900' : 'text-white'}`}>
-                  Permanent Image Storage & Catalogue Media Manager
+                  WordPress Media & Catalogue Image Manager
                 </h2>
                 <p className={`text-xs mt-0.5 ${isInospace ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                  Upload from device, store permanently on disk, assign to product or catalogue items, and permanently delete images.
+                  Upload from device, store permanently in WordPress Media, assign to products or categories, and manage media library.
                 </p>
               </div>
             </div>
@@ -494,20 +486,20 @@ export default function MediaStorageTab({
 
           {/* Quick Action Upload & Assign options */}
           <div className="flex flex-wrap items-center gap-3">
-            {onMigrateDefaultImagesToBlob && (
+            {onMigrateDefaultImagesToWordPress && (
               <button
                 type="button"
-                onClick={onMigrateDefaultImagesToBlob}
+                onClick={onMigrateDefaultImagesToWordPress}
                 disabled={isMigratingDefaultImages}
                 className={`px-3 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
                   isInospace
                     ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100'
                     : 'border-blue-500/40 bg-blue-950/60 text-blue-300 hover:bg-blue-900/60'
                 } disabled:opacity-50`}
-                title="POST /api/migrate-default-images-to-blob: Upload all default images to Vercel Blob and update data/catalog.json"
+                title="Upload all default images to WordPress Media Library and update catalog URLs"
               >
                 <Upload size={14} className={isMigratingDefaultImages ? 'animate-spin text-blue-400' : 'text-blue-400'} />
-                <span>{isMigratingDefaultImages ? 'Migrating to Blob...' : 'Migrate Default Images to Blob'}</span>
+                <span>{isMigratingDefaultImages ? 'Migrating to WordPress...' : 'Migrate Default Images to WordPress'}</span>
               </button>
             )}
 
@@ -521,10 +513,10 @@ export default function MediaStorageTab({
                     ? 'border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100'
                     : 'border-purple-500/40 bg-purple-950/60 text-purple-300 hover:bg-purple-900/60'
                 } disabled:opacity-50`}
-                title="Convert local assets to base64, upload to Vercel Blob via /api/upload-image, and update catalog URLs"
+                title="Scan catalog for legacy URLs or base64 and migrate to WordPress Media"
               >
                 <Database size={14} className={isMigratingImages ? 'animate-spin text-purple-400' : 'text-purple-400'} />
-                <span>{isMigratingImages ? 'Migrating to Blob...' : 'Migrate Images to Blob'}</span>
+                <span>{isMigratingImages ? 'Fixing Images...' : 'Fix Legacy Image URLs'}</span>
               </button>
             )}
 
@@ -538,7 +530,7 @@ export default function MediaStorageTab({
               }`}
             >
               <RefreshCw size={14} className={loadingServerImages ? 'animate-spin' : ''} />
-              Sync Media
+              Browse Media Library
             </button>
 
             {/* Quick Assign Dropdown for Device Upload */}
@@ -551,7 +543,7 @@ export default function MediaStorageTab({
                   : 'bg-[#181818] border-neutral-700 text-neutral-200'
               }`}
             >
-              <option value="library_only">📂 Upload to Library Only</option>
+              <option value="library_only">📂 Upload to Media Library</option>
               <optgroup label="Attach to Product">
                 {products.map(p => (
                   <option key={p.id} value={`prod_${p.id}`}>
@@ -670,14 +662,14 @@ export default function MediaStorageTab({
             Unused ({unusedAssetsCount})
           </button>
           <button
-            onClick={() => setFilterType('disk')}
+            onClick={() => setFilterType('wordpress')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-              filterType === 'disk' 
+              filterType === 'wordpress' 
                 ? 'bg-blue-600 text-white' 
                 : (isInospace ? 'bg-neutral-100 text-neutral-600' : 'bg-[#1a1a1a] text-neutral-400')
             }`}
           >
-            Server Disk
+            WordPress Media
           </button>
         </div>
 
@@ -711,7 +703,7 @@ export default function MediaStorageTab({
 
             return (
               <div
-                key={asset.id}
+                key={String(asset.id)}
                 className={`relative group rounded-xl border overflow-hidden flex flex-col transition-all duration-200 ${
                   isSelected 
                     ? 'border-red-500 ring-2 ring-red-500/30' 
@@ -737,7 +729,7 @@ export default function MediaStorageTab({
                 {/* Source Tag Badge */}
                 <div className="absolute top-2 right-2 z-10 flex gap-1">
                   <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase backdrop-blur-md shadow ${
-                    asset.sourceType === 'Server Disk'
+                    asset.sourceType === 'WordPress Media'
                       ? 'bg-blue-600/90 text-white'
                       : asset.sourceType === 'Base64 Local'
                       ? 'bg-purple-600/90 text-white'
@@ -1005,11 +997,11 @@ export default function MediaStorageTab({
 
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs space-y-2">
               <p className="text-red-300 font-medium">
-                You are about to permanently wipe <strong>{confirmDeleteModal.assets.length}</strong> image file(s) from server storage and remove them from all product catalogues.
+                You are about to permanently remove <strong>{confirmDeleteModal.assets.length}</strong> image file(s) from media storage and unlink them from all products and categories.
               </p>
               <ul className="max-h-28 overflow-y-auto font-mono text-[11px] text-neutral-300 space-y-1 list-disc pl-4">
                 {confirmDeleteModal.assets.map(a => (
-                  <li key={a.id} className="truncate">{a.filename}</li>
+                  <li key={String(a.id)} className="truncate">{a.filename}</li>
                 ))}
               </ul>
             </div>
@@ -1041,4 +1033,3 @@ export default function MediaStorageTab({
     </div>
   );
 }
-

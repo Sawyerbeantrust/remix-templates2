@@ -428,7 +428,7 @@ app.post("/api/upload-image", async (req, res) => {
       });
     }
 
-    return res.json({ success: true, path: sourceUrl, url: sourceUrl });
+    return res.json({ success: true, path: sourceUrl, url: sourceUrl, id: wpJson.id });
   } catch (error: any) {
     console.error("[Upload] FAILED:", error);
     return res.status(500).json({ success: false, error: String(error?.message || error) });
@@ -594,16 +594,108 @@ app.post("/api/wipe-imported-images", async (req, res) => {
   return res.json({ success: true, empty: true, message: "Imported images reset." });
 });
 
-// Endpoint to list all uploaded images (Blob retired)
+// Endpoint to list all uploaded images from WordPress Media Library
 app.get("/api/list-images", async (req, res) => {
-  console.log("[Images] Blob retired");
-  return res.json({ success: true, images: [] });
+  try {
+    const wpBaseUrl = getWpBaseUrl();
+    const endpoint = `${wpBaseUrl}/wp-json/wp/v2/media?per_page=100`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const wpRes = await fetch(endpoint, {
+      signal: controller.signal,
+      headers: getWpHeaders(),
+    }).catch((err) => {
+      clearTimeout(timeoutId);
+      console.warn("[WordPress Media List Error]", err?.message || err);
+      return null;
+    });
+    clearTimeout(timeoutId);
+
+    if (wpRes && wpRes.ok) {
+      const items = await wpRes.json().catch(() => []);
+      if (Array.isArray(items)) {
+        const images = items.map((item: any) => ({
+          id: item.id,
+          filename: item.slug || item.title?.rendered || `media-${item.id}`,
+          url: item.source_url || item.guid?.rendered || item.link || "",
+          size: item.media_details?.filesize || 0,
+          date: item.date || item.date_gmt || new Date().toISOString(),
+        }));
+        return res.json({ success: true, images });
+      }
+    }
+
+    const resText = wpRes ? await wpRes.text().catch(() => "") : "";
+    console.warn(`[Images] WordPress media list returned ${wpRes?.status || "network error"}: ${resText.slice(0, 200)}`);
+    return res.json({ success: true, images: [] });
+  } catch (error: any) {
+    console.error("[Images] Failed to list images:", error);
+    return res.status(500).json({ success: false, error: String(error?.message || error), images: [] });
+  }
 });
 
-// Endpoint to delete a specific image (Blob retired)
+// Endpoint to delete a specific image from WordPress Media Library
 app.post("/api/delete-image", async (req, res) => {
-  console.log("[Images] Blob retired");
-  return res.json({ success: true, message: "Blob retired" });
+  try {
+    const { id, url, path: assetPath } = req.body || {};
+    let mediaId = id;
+    const targetUrl = url || assetPath;
+    const wpBaseUrl = getWpBaseUrl();
+
+    // If no mediaId provided directly, search WordPress media by url to find ID
+    if (!mediaId && targetUrl) {
+      try {
+        const listRes = await fetch(`${wpBaseUrl}/wp-json/wp/v2/media?per_page=100`, {
+          headers: getWpHeaders(),
+        });
+        if (listRes.ok) {
+          const mediaItems = await listRes.json();
+          if (Array.isArray(mediaItems)) {
+            const matched = mediaItems.find((item: any) => 
+              item.source_url === targetUrl ||
+              item.guid?.rendered === targetUrl ||
+              item.link === targetUrl ||
+              (item.source_url && targetUrl.includes(path.basename(item.source_url)))
+            );
+            if (matched) {
+              mediaId = matched.id;
+            }
+          }
+        }
+      } catch (findErr) {
+        console.warn("[Images] Could not query media by URL:", findErr);
+      }
+    }
+
+    if (mediaId) {
+      const delEndpoint = `${wpBaseUrl}/wp-json/wp/v2/media/${mediaId}?force=true`;
+      console.log(`[Images] Deleting media item ${mediaId} from WordPress: ${delEndpoint}`);
+      
+      const delRes = await fetch(delEndpoint, {
+        method: "DELETE",
+        headers: getWpHeaders(),
+      });
+
+      const delText = await delRes.text().catch(() => "");
+      console.log("[Images] WP delete status:", delRes.status, "body:", delText.slice(0, 200));
+
+      if (!delRes.ok) {
+        return res.status(delRes.status || 500).json({
+          success: false,
+          error: `WordPress delete failed with status ${delRes.status}`
+        });
+      }
+
+      return res.json({ success: true, message: `Media ${mediaId} deleted successfully.` });
+    }
+
+    return res.json({ success: true, message: "No matching remote media found to delete." });
+  } catch (error: any) {
+    console.error("[Images] Delete failed:", error);
+    return res.status(500).json({ success: false, error: String(error?.message || error) });
+  }
 });
 
 // List of high-fidelity, curated real-life automotive action images from highly-rated Unsplash mechanics/workshops

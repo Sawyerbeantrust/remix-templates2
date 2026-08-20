@@ -12,7 +12,6 @@ import { PRODUCTS } from '../data/products';
 import { Product, FeaturedCategory } from '../types';
 import ResponsiveImage from './ResponsiveImage';
 import CategoryPreviewImage from './CategoryPreviewImage';
-import { imageStore } from '../utils/imageStore';
 import { processCategoriesForStorage, processProductsForStorage, compressAndResizeBase64Image } from '../utils/sanitizeAndStoreImages';
 import { safeLocalStorage, safeSessionStorage } from '../utils/safeStorage';
 import { syncCatalogToServer, fetchServerCatalog, getStoredCategoriesList } from '../utils/catalogSync';
@@ -22,7 +21,7 @@ import { motion } from 'motion/react';
 import { stripHtml } from '../utils/stripHtml';
 import AssetAuditTab from './AssetAuditTab';
 import MediaStorageTab from './MediaStorageTab';
-import { migrateLegacyAssetsToBlob } from '../utils/migrateLegacyImages';
+import { migrateDefaultImagesToWordPress, fixLegacyImageUrls } from '../utils/migrateLegacyImages';
 
 interface WordPressConsoleProps {
   isFullPage?: boolean;
@@ -358,15 +357,15 @@ export default function WordPressConsole({
   const handleFixLegacyImages = async () => {
     if (isMigratingImages) return;
     setIsMigratingImages(true);
-    addLog("🚀 Starting legacy image asset migration to Blob CDN...");
+    addLog("🚀 Starting legacy image URL migration to WordPress Media...");
     try {
-      const { updatedProducts, updatedCategories, migratedCount } = await migrateLegacyAssetsToBlob(
+      const { updatedProducts, updatedCategories, fixedCount } = await fixLegacyImageUrls(
         currentProducts,
         currentFeaturedCategories,
         (msg) => addLog(`[Image Fix] ${msg}`)
       );
 
-      if (migratedCount > 0) {
+      if (fixedCount > 0) {
         await updateProducts(updatedProducts);
         await updateFeaturedCategories(updatedCategories);
 
@@ -381,14 +380,14 @@ export default function WordPressConsole({
           })
         });
         if (res.ok) {
-          addLog(`✅ Successfully migrated ${migratedCount} legacy image assets to Blob CDN and saved catalog!`);
-          alert(`Successfully migrated ${migratedCount} legacy image asset paths to Vercel Blob CDN! Catalog updated.`);
+          addLog(`✅ Successfully migrated ${fixedCount} legacy image URLs to WordPress Media and saved catalog!`);
+          alert(`Successfully migrated ${fixedCount} legacy image URLs to WordPress Media! Catalog updated.`);
         } else {
-          addLog(`⚠️ Migrated ${migratedCount} images locally, but failed to save catalog to server.`);
+          addLog(`⚠️ Migrated ${fixedCount} image URLs locally, but failed to save catalog to server.`);
         }
       } else {
-        addLog("✨ No legacy /src/assets/ image paths found. All assets are already using CDN or valid remote URLs!");
-        alert("No legacy /src/assets/ image paths found. All images are already using Blob CDN URLs!");
+        addLog("✨ No legacy or broken image URLs found in catalog. All assets are up to date!");
+        alert("No legacy or broken image URLs found. All images are already using valid URLs!");
       }
     } catch (err: any) {
       addLog(`❌ Error during legacy image migration: ${err?.message || err}`);
@@ -406,34 +405,51 @@ export default function WordPressConsole({
   } | null>(null);
   const [copiedBlobKey, setCopiedBlobKey] = useState<string | null>(null);
 
-  const handleMigrateDefaultImagesToBlob = async () => {
+  const handleMigrateDefaultImagesToWordPress = async () => {
     if (isMigratingDefaultImages) return;
     setIsMigratingDefaultImages(true);
-    addLog("🚀 [Blob Migration] Triggering POST /api/migrate-default-images-to-blob...");
+    addLog("🚀 [WordPress Media Migration] Starting migration of default local images to WordPress...");
     try {
-      const res = await fetch('/api/migrate-default-images-to-blob', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Server responded with HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      setDefaultImagesMigrationSummary(data);
-      addLog(`✅ [Blob Migration Complete] Uploaded ${data.uploaded} default images to Vercel Blob, Replaced ${data.replaced} catalog paths.`);
+      const result = await migrateDefaultImagesToWordPress(
+        currentProducts,
+        currentFeaturedCategories,
+        (msg) => addLog(`[Media Migration] ${msg}`)
+      );
 
-      // Sync local UI state with server's updated catalog.json
-      const updatedCatalog = await fetchServerCatalog();
-      if (updatedCatalog && Array.isArray(updatedCatalog.products)) {
-        updateProducts(updatedCatalog.products);
-        if (Array.isArray(updatedCatalog.featuredCategories)) {
-          updateFeaturedCategories(updatedCatalog.featuredCategories);
+      setDefaultImagesMigrationSummary({
+        uploaded: result.uploaded,
+        replaced: result.replaced,
+        map: result.map
+      });
+
+      if (result.uploaded > 0 || result.replaced > 0) {
+        await updateProducts(result.updatedProducts);
+        await updateFeaturedCategories(result.updatedCategories);
+
+        const categoriesList = getStoredCategoriesList();
+        const res = await fetch('/api/catalog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            products: result.updatedProducts,
+            featuredCategories: result.updatedCategories,
+            categoriesList
+          })
+        });
+
+        if (res.ok) {
+          addLog(`✅ [WordPress Media Migration Complete] Uploaded ${result.uploaded} default images to WordPress Media Library, Replaced ${result.replaced} catalog paths.`);
+          alert(`Migration Complete! Uploaded ${result.uploaded} images to WordPress and updated catalog.`);
+        } else {
+          addLog(`⚠️ Uploaded ${result.uploaded} images, but failed to save catalog to server.`);
         }
+      } else {
+        addLog("✨ All default images have already been migrated to WordPress Media Library!");
+        alert("All default images are already migrated to WordPress!");
       }
     } catch (err: any) {
       console.error("Default image migration error:", err);
-      addLog(`❌ [Blob Migration Error] ${err?.message || err}`);
+      addLog(`❌ [WordPress Media Migration Error] ${err?.message || err}`);
       alert(`Migration error: ${err?.message || err}`);
     } finally {
       setIsMigratingDefaultImages(false);
@@ -1643,7 +1659,7 @@ export default function WordPressConsole({
       });
       const result = await response.json();
       if (result.success && result.path) {
-        addLog(`📂 [Server upload] Saved directly to Blob/disk: ${result.path}`);
+        addLog(`📂 [Server upload] Saved directly to WordPress Media: ${result.path}`);
         return result.path;
       } else {
         throw new Error(result.error || 'Failed to upload image');
@@ -3619,8 +3635,7 @@ export default function WordPressConsole({
     try {
       addLog("📦 Preparing full website database, settings, and media assets backup package...");
       
-      // Fetch all stored image base64 entries from IndexedDB
-      const storedImageEntries = await imageStore.getAllEntries();
+      const storedImageEntries: Record<string, string> = {};
 
       // Collect system configuration settings
       const settings = {
@@ -3670,8 +3685,7 @@ export default function WordPressConsole({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      const imgCount = Object.keys(storedImageEntries).length;
-      const successMsg = `Backup downloaded: ${fileName} (${currentProducts.length} products, ${currentFeaturedCategories.length} categories, ${imgCount} stored image assets & system settings).`;
+      const successMsg = `Backup downloaded: ${fileName} (${currentProducts.length} products, ${currentFeaturedCategories.length} categories, & system settings).`;
       setBackupExportSuccess(successMsg);
       addLog(`✅ ${successMsg}`);
     } catch (err: any) {
@@ -3739,17 +3753,17 @@ export default function WordPressConsole({
       const { data } = backupFileToRestore.rawBackup;
       addLog(`🔄 Restoring backup package '${backupFileToRestore.fileName}'...`);
 
-      // 1. Process and upload imageStore entries to Blob storage, building key -> Blob URL mapping
-      const keyToBlobUrlMap: Record<string, string> = {};
+      // 1. Process and upload legacy imageStore entries to WordPress Media Library
+      const keyToMediaUrlMap: Record<string, string> = {};
       if (data.imageStore && typeof data.imageStore === 'object') {
         const imageEntries = Object.entries(data.imageStore);
         const totalImages = imageEntries.length;
         if (totalImages > 0) {
-          addLog(`🖼️ Uploading ${totalImages} backup image(s) to Blob storage...`);
+          addLog(`🖼️ Uploading ${totalImages} backup image(s) to WordPress Media Library...`);
           let count = 0;
           for (const [key, base64Val] of imageEntries) {
             count++;
-            addLog(`Uploading ${count} of ${totalImages} images to Blob storage...`);
+            addLog(`Uploading ${count} of ${totalImages} images to WordPress Media Library...`);
             if (typeof base64Val === 'string' && base64Val.trim()) {
               try {
                 // Compress and resize image before upload to ensure faster load times
@@ -3762,9 +3776,9 @@ export default function WordPressConsole({
                 });
                 const resJson = await response.json();
                 if (resJson && resJson.success && resJson.path) {
-                  keyToBlobUrlMap[key] = resJson.path;
+                  keyToMediaUrlMap[key] = resJson.path;
                 } else {
-                  addLog(`⚠️ Warning: Failed to upload image '${key}' to Blob storage.`);
+                  addLog(`⚠️ Warning: Failed to upload image '${key}' to WordPress Media Library.`);
                 }
               } catch (imgErr: any) {
                 addLog(`⚠️ Warning: Failed to upload image '${key}': ${imgErr?.message || imgErr}`);
@@ -3774,28 +3788,28 @@ export default function WordPressConsole({
         }
       }
 
-      // 2. Replace old IndexedDB keys in products and categories with corresponding Blob URLs
+      // 2. Replace old keys in products and categories with corresponding WordPress URLs
       let productsToRestore = Array.isArray(data.products) ? data.products : [];
-      if (productsToRestore.length > 0 && Object.keys(keyToBlobUrlMap).length > 0) {
+      if (productsToRestore.length > 0 && Object.keys(keyToMediaUrlMap).length > 0) {
         productsToRestore = productsToRestore.map((prod: any) => {
           let updatedProd = { ...prod };
           if (updatedProd.image && typeof updatedProd.image === 'string') {
             const trimmedKey = updatedProd.image.trim();
-            if (keyToBlobUrlMap[trimmedKey]) {
-              updatedProd.image = keyToBlobUrlMap[trimmedKey];
-            } else if (keyToBlobUrlMap[updatedProd.image]) {
-              updatedProd.image = keyToBlobUrlMap[updatedProd.image];
+            if (keyToMediaUrlMap[trimmedKey]) {
+              updatedProd.image = keyToMediaUrlMap[trimmedKey];
+            } else if (keyToMediaUrlMap[updatedProd.image]) {
+              updatedProd.image = keyToMediaUrlMap[updatedProd.image];
             }
           }
           if (Array.isArray(updatedProd.images)) {
             updatedProd.images = updatedProd.images.map((img: any) => {
               if (typeof img === 'string') {
                 const trimmedImg = img.trim();
-                if (keyToBlobUrlMap[trimmedImg]) {
-                  return keyToBlobUrlMap[trimmedImg];
+                if (keyToMediaUrlMap[trimmedImg]) {
+                  return keyToMediaUrlMap[trimmedImg];
                 }
-                if (keyToBlobUrlMap[img]) {
-                  return keyToBlobUrlMap[img];
+                if (keyToMediaUrlMap[img]) {
+                  return keyToMediaUrlMap[img];
                 }
               }
               return img;
@@ -3806,15 +3820,15 @@ export default function WordPressConsole({
       }
 
       let categoriesToRestore = Array.isArray(data.categories) ? data.categories : [];
-      if (categoriesToRestore.length > 0 && Object.keys(keyToBlobUrlMap).length > 0) {
+      if (categoriesToRestore.length > 0 && Object.keys(keyToMediaUrlMap).length > 0) {
         categoriesToRestore = categoriesToRestore.map((cat: any) => {
           let updatedCat = { ...cat };
           if (updatedCat.img && typeof updatedCat.img === 'string') {
             const trimmedCatKey = updatedCat.img.trim();
-            if (keyToBlobUrlMap[trimmedCatKey]) {
-              updatedCat.img = keyToBlobUrlMap[trimmedCatKey];
-            } else if (keyToBlobUrlMap[updatedCat.img]) {
-              updatedCat.img = keyToBlobUrlMap[updatedCat.img];
+            if (keyToMediaUrlMap[trimmedCatKey]) {
+              updatedCat.img = keyToMediaUrlMap[trimmedCatKey];
+            } else if (keyToMediaUrlMap[updatedCat.img]) {
+              updatedCat.img = keyToMediaUrlMap[updatedCat.img];
             }
           }
           return updatedCat;
@@ -4355,14 +4369,14 @@ export default function WordPressConsole({
 
                         <button
                           type="button"
-                          id="btn-migrate-default-images-to-blob"
-                          onClick={handleMigrateDefaultImagesToBlob}
+                          id="btn-migrate-default-images-to-wp"
+                          onClick={handleMigrateDefaultImagesToWordPress}
                           disabled={isMigratingDefaultImages}
                           className={`text-xs px-2.5 py-0.5 bg-blue-950/60 border border-blue-500/50 text-blue-300 hover:bg-blue-900/70 font-bold uppercase flex items-center gap-1.5 transition-colors cursor-pointer ${isInospace ? 'rounded-none' : 'rounded-full'} no-print disabled:opacity-50 shadow-sm`}
-                          title="POST /api/migrate-default-images-to-blob: Upload all default images in src/assets/images to Vercel Blob, replace references in data/catalog.json, and save back to Blob"
+                          title="Upload all default images in the catalog to WordPress Media Library, replace catalog references, and save back to WordPress"
                         >
                           <Upload size={12} className={isMigratingDefaultImages ? "animate-spin text-blue-400" : "text-blue-400"} />
-                          <span>{isMigratingDefaultImages ? "Migrating..." : "Migrate Default Images to Blob"}</span>
+                          <span>{isMigratingDefaultImages ? "Migrating..." : "Migrate Default Images to WordPress"}</span>
                         </button>
 
                         <button
@@ -4370,10 +4384,10 @@ export default function WordPressConsole({
                           onClick={handleFixLegacyImages}
                           disabled={isMigratingImages}
                           className={`text-xs px-2.5 py-0.5 bg-purple-950/50 border border-purple-500/40 text-purple-300 hover:bg-purple-900/60 font-bold uppercase flex items-center gap-1.5 transition-colors cursor-pointer ${isInospace ? 'rounded-none' : 'rounded-full'} no-print disabled:opacity-50`}
-                          title="Scan and upload all /src/assets/ local images to Vercel Blob CDN to fix 404s in incognito mode"
+                          title="Scan catalog for legacy URLs or base64 and migrate them to WordPress Media"
                         >
                           <Database size={12} className={isMigratingImages ? "animate-spin text-purple-400" : "text-purple-400"} />
-                          <span>{isMigratingImages ? "Fixing Images..." : "Fix Legacy Images"}</span>
+                          <span>{isMigratingImages ? "Fixing Images..." : "Fix Legacy Image URLs"}</span>
                         </button>
                       </div>
                     )}
@@ -11650,7 +11664,7 @@ export default function WordPressConsole({
                   isInospace={isInospace}
                   onFixLegacyImages={handleFixLegacyImages}
                   isMigratingImages={isMigratingImages}
-                  onMigrateDefaultImagesToBlob={handleMigrateDefaultImagesToBlob}
+                  onMigrateDefaultImagesToWordPress={handleMigrateDefaultImagesToWordPress}
                   isMigratingDefaultImages={isMigratingDefaultImages}
                 />
               )}
@@ -12353,7 +12367,7 @@ export default function WordPressConsole({
         </div>
       )}
 
-      {/* DEFAULT IMAGES TO BLOB MIGRATION SUMMARY DIALOG */}
+      {/* DEFAULT IMAGES TO WORDPRESS MIGRATION SUMMARY DIALOG */}
       {defaultImagesMigrationSummary && (
         <div className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#121212] border border-neutral-800 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -12365,10 +12379,10 @@ export default function WordPressConsole({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white uppercase tracking-wider">
-                    Default Images to Blob Migration Summary
+                    Default Images to WordPress Migration Summary
                   </h3>
                   <p className="text-xs text-neutral-400 mt-0.5">
-                    POST /api/migrate-default-images-to-blob response summary
+                    WordPress Media Library upload summary
                   </p>
                 </div>
               </div>
@@ -12415,9 +12429,9 @@ export default function WordPressConsole({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-300">
-                    Filename → Returned Vercel Blob URL Map ({Object.keys(defaultImagesMigrationSummary.map || {}).length})
+                    Filename → Returned WordPress URL Map ({Object.keys(defaultImagesMigrationSummary.map || {}).length})
                   </h4>
-                  <span className="text-[10px] text-neutral-500 font-mono">Saved in data/catalog.json</span>
+                  <span className="text-[10px] text-neutral-500 font-mono">Saved in WordPress Catalog</span>
                 </div>
 
                 <div className="border border-neutral-800 rounded-lg overflow-hidden bg-black/60 max-h-64 overflow-y-auto divide-y divide-neutral-900">
@@ -12441,7 +12455,7 @@ export default function WordPressConsole({
                             setTimeout(() => setCopiedBlobKey(null), 2000);
                           }}
                           className="p-1 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                          title="Copy Blob URL"
+                          title="Copy WordPress URL"
                         >
                           {copiedBlobKey === filename ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                         </button>

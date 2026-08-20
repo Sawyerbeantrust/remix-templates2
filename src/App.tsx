@@ -22,7 +22,6 @@ import { PRODUCTS } from './data/products';
 import { Product, CartItem, InquiryFormData, FeaturedCategory } from './types';
 import { getCategoryFromQuery } from './utils/seoKeywords';
 import { normalizeCategorySlug, formatCategoryLabel } from './utils/categoryUtils';
-import { migrateLegacyAssetsToBlob } from './utils/migrateLegacyImages';
 import { stripHtml } from './utils/stripHtml';
 import { ShieldCheck, Calendar, PhoneCall, HelpCircle, ArrowRight, Download, Send, Coins, FileText, CheckCircle2, Award, Hammer, Sparkles, Building2, Eye, X, Settings, ChevronDown, ChevronUp, ZoomIn, Map, MapPin, ZoomOut, RotateCcw, Plus, Minus, Move, ArrowUp, MessageCircle, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, Bot } from 'lucide-react';
 
