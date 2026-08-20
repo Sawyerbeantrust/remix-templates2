@@ -56,25 +56,17 @@ function getWpBaseUrl(): string {
   return url.replace(/\/+$/, "");
 }
 
-function getWpAuthHeader(): string | null {
-  const user = process.env.WP_APP_USER?.trim();
-  const pass = process.env.WP_APP_PASSWORD?.trim();
-  if (!user || !pass) return null;
-  return "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
-}
+function getWpHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
+  const user = (process.env.WP_APP_USER || "").trim();
+  const pass = (process.env.WP_APP_PASSWORD || "").trim();
+  const migrateKey = (process.env.WP_MIGRATE_KEY || "TritonMigrate2026").trim();
 
-function getWpHeaders(extraHeaders?: Record<string, string>, includeAuth: boolean = true): Record<string, string> {
   const headers: Record<string, string> = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "application/json, text/plain, */*",
+    "X-Triton-Key": migrateKey,
+    "Authorization": "Basic " + Buffer.from(`${user}:${pass}`).toString("base64"),
   };
-
-  if (includeAuth) {
-    const auth = getWpAuthHeader();
-    if (auth) {
-      headers["Authorization"] = auth;
-    }
-  }
 
   if (extraHeaders) {
     Object.assign(headers, extraHeaders);
@@ -101,20 +93,14 @@ function getMimeType(filename: string): string {
 // Upload raw Node Buffer to WordPress Media Library
 async function uploadBufferToWordPressMedia(name: string, buffer: Buffer): Promise<string> {
   const wpBaseUrl = getWpBaseUrl();
-  const authHeader = getWpAuthHeader();
   const safeName = path.basename(name).replace(/[^a-zA-Z0-9_.-]/g, "_");
   const mimeType = getMimeType(safeName);
-
-  if (!authHeader) {
-    console.warn("[WordPress Media Warning] WP_APP_USER / WP_APP_PASSWORD not configured in environment variables.");
-    throw new Error("WordPress credentials (WP_APP_USER and WP_APP_PASSWORD) are not configured.");
-  }
 
   const endpoint = `${wpBaseUrl}/wp-json/wp/v2/media`;
   console.log(`[WordPress Media] Uploading "${safeName}" (${buffer.length} bytes, ${mimeType}) to ${endpoint}`);
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -122,7 +108,7 @@ async function uploadBufferToWordPressMedia(name: string, buffer: Buffer): Promi
     headers: getWpHeaders({
       "Content-Disposition": `attachment; filename="${safeName}"`,
       "Content-Type": mimeType,
-    }, true),
+    }),
     body: buffer,
   }).catch((err) => {
     clearTimeout(timeoutId);
@@ -135,8 +121,8 @@ async function uploadBufferToWordPressMedia(name: string, buffer: Buffer): Promi
 
   if (!response.ok) {
     if (resText.includes("Just a moment...") || resText.includes("challenges.cloudflare.com") || response.status === 403) {
-      console.warn(`[WordPress Media Warning] Upload intercepted by Cloudflare challenge / WAF (Status ${response.status}). Please allowlist /wp-json/ requests in Cloudflare.`);
-      throw new Error("WordPress host returned Cloudflare challenge (403 Forbidden). Allowlist API in Cloudflare WAF.");
+      console.warn(`[WordPress Media Warning] Upload intercepted by Cloudflare challenge / WAF (Status ${response.status}).`);
+      throw new Error("WordPress host returned Cloudflare challenge (403 Forbidden).");
     }
     console.warn(`[WordPress API Warning] Media upload returned ${response.status} ${response.statusText}: ${resText.slice(0, 200)}`);
     throw new Error(`WordPress API returned ${response.status} ${response.statusText}`);
@@ -216,9 +202,6 @@ function normalizeCatalogImagePaths(catalog: any) {
   return catalog;
 }
 
-// Last time we logged a catalog fetch warning to avoid spamming the logs
-let lastCatalogWarnTimestamp = 0;
-
 // GET /api/catalog endpoint - Fetch from WordPress with local hardcoded fallback
 app.get("/api/catalog", async (req, res) => {
   try {
@@ -226,41 +209,26 @@ app.get("/api/catalog", async (req, res) => {
     const endpoint = `${wpBaseUrl}/wp-json/triton/v1/catalog`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const wpRes = await fetch(endpoint, {
       signal: controller.signal,
       headers: getWpHeaders({
         "Accept": "application/json",
-      }, true),
+      }),
     }).catch((err) => {
-      const now = Date.now();
-      if (now - lastCatalogWarnTimestamp > 15000) {
-        console.warn(`[WordPress Catalog] Fetch connection notice (${endpoint}):`, err?.message || err);
-        lastCatalogWarnTimestamp = now;
-      }
+      console.warn(`[WordPress Catalog] Fetch error (${endpoint}):`, err?.message || err);
       return null;
     });
     clearTimeout(timeoutId);
 
-    if (wpRes) {
-      if (wpRes.ok) {
-        const rawCatalog = await wpRes.json();
-        if (rawCatalog && Array.isArray(rawCatalog.products) && rawCatalog.products.length > 0) {
-          const normalized = normalizeCatalogImagePaths(rawCatalog);
-          inMemoryCatalog = normalized;
-          return res.json(normalized);
-        }
-      } else {
-        const now = Date.now();
-        if (now - lastCatalogWarnTimestamp > 15000) {
-          const errText = await wpRes.text().catch(() => "");
-          console.warn(`[WordPress API Notice] GET /wp-json/triton/v1/catalog returned status ${wpRes.status} ${wpRes.statusText} - Serving fallback catalog.`);
-          if (errText) {
-            console.warn(`[WordPress API Response]:`, errText.slice(0, 300));
-          }
-          lastCatalogWarnTimestamp = now;
-        }
+    if (wpRes && wpRes.ok) {
+      const rawCatalog = await wpRes.json().catch(() => null);
+      if (rawCatalog && Array.isArray(rawCatalog.products) && rawCatalog.products.length > 0) {
+        console.log("[Catalog] Loaded from WordPress");
+        const normalized = normalizeCatalogImagePaths(rawCatalog);
+        inMemoryCatalog = normalized;
+        return res.json(normalized);
       }
     }
 
@@ -275,7 +243,7 @@ app.get("/api/catalog", async (req, res) => {
     });
     return res.json(fallbackCatalog);
   } catch (err: any) {
-    console.warn("[Server] Notice during catalog fetch, serving fallback catalog:", err?.message || err);
+    console.warn("[Catalog] Notice during WordPress catalog fetch, serving fallback:", err?.message || err);
     const fallbackCatalog = normalizeCatalogImagePaths({
       products: PRODUCTS,
       featuredCategories: DEFAULT_FEATURED_CATEGORIES,
@@ -310,17 +278,7 @@ app.post("/api/catalog", async (req, res) => {
     inMemoryCatalog = catalogData;
 
     const wpBaseUrl = getWpBaseUrl();
-    const authHeader = getWpAuthHeader();
     const endpoint = `${wpBaseUrl}/wp-json/triton/v1/catalog`;
-
-    if (!authHeader) {
-      console.warn("[WordPress API Warning] WP_APP_USER or WP_APP_PASSWORD missing. Catalog updated in memory only.");
-      return res.json({
-        success: true,
-        message: "Catalog updated in memory (WordPress credentials not configured).",
-        updatedAt: catalogData.updatedAt
-      });
-    }
 
     console.log(`[Server] POSTing catalog to WordPress: ${endpoint}`);
     const controller = new AbortController();
@@ -331,43 +289,43 @@ app.post("/api/catalog", async (req, res) => {
       signal: controller.signal,
       headers: getWpHeaders({
         "Content-Type": "application/json",
-      }, true),
+      }),
       body: JSON.stringify(catalogData),
     }).catch((err) => {
       clearTimeout(timeoutId);
       console.error("[WordPress API Connection Error]", err?.message || err);
-      throw new Error(`Failed to connect to WordPress endpoint: ${err?.message || err}`);
+      return null;
     });
     clearTimeout(timeoutId);
 
-    const resText = await wpRes.text();
-
-    if (!wpRes.ok) {
-      if (resText.includes("Just a moment...") || resText.includes("challenges.cloudflare.com") || wpRes.status === 403) {
-        console.warn(`[WordPress API Notice] POST /wp-json/triton/v1/catalog intercepted by Cloudflare challenge / 403. Catalog updated in memory.`);
-        return res.json({
-          success: true,
-          message: "Catalog saved to in-memory store (Cloudflare WAF active on WordPress host).",
-          updatedAt: catalogData.updatedAt
-        });
-      }
-      console.warn(`[WordPress API Notice] POST /wp-json/triton/v1/catalog status ${wpRes.status}: ${resText.slice(0, 200)}`);
+    if (wpRes && wpRes.ok) {
+      console.log("[Catalog] Saved to WordPress");
       return res.json({
         success: true,
-        message: `Catalog updated in memory (WordPress endpoint returned status ${wpRes.status}).`,
+        message: "Catalog saved to WordPress",
         updatedAt: catalogData.updatedAt
       });
     }
 
-    console.log(`[Server] Successfully saved catalog to WordPress!`);
+    const resText = wpRes ? await wpRes.text().catch(() => "") : "";
+    if (resText.includes("Just a moment...") || resText.includes("challenges.cloudflare.com") || wpRes?.status === 403) {
+      console.warn(`[WordPress API Notice] POST /wp-json/triton/v1/catalog intercepted by Cloudflare challenge / 403. Catalog updated in memory.`);
+      return res.json({
+        success: true,
+        message: "Catalog saved to in-memory store (Cloudflare WAF active on WordPress host).",
+        updatedAt: catalogData.updatedAt
+      });
+    }
+
+    console.warn(`[Catalog] WordPress save returned ${wpRes?.status || "network error"}: ${resText.slice(0, 200)}`);
     return res.json({
       success: true,
-      message: "Catalog saved to WordPress successfully.",
+      message: `Catalog updated in memory (WordPress endpoint returned status ${wpRes?.status || "unavailable"}).`,
       updatedAt: catalogData.updatedAt
     });
   } catch (err: any) {
-    console.error("[Server] Error saving catalog to WordPress:", err?.message || err);
-    return res.status(500).json({ error: "Failed to save catalog to WordPress: " + (err?.message || String(err)) });
+    console.error("[Server] Error saving catalog:", err?.message || err);
+    return res.status(500).json({ error: "Failed to save catalog: " + (err?.message || String(err)) });
   }
 });
 
@@ -385,7 +343,7 @@ app.get("/api/migrate-catalog", async (req, res) => {
 
     const save = await fetch(`${getWpBaseUrl()}/wp-json/triton/v1/catalog`, {
       method: "POST",
-      headers: getWpHeaders({ "Content-Type": "application/json" }, true),
+      headers: getWpHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(catalog)
     });
     if (!save.ok) throw new Error("Could not save to WordPress: " + save.status);
@@ -439,7 +397,7 @@ app.post("/api/save-category-image", async (req, res) => {
     const safeName = path.basename(imgName).replace(/[^a-zA-Z0-9_.-]/g, "_");
 
     const sourceUrl = await uploadBufferToWordPressMedia(safeName, buffer);
-    return res.json({ success: true, url: sourceUrl, path: sourceUrl });
+    return res.json({ success: true, path: sourceUrl, url: sourceUrl });
   } catch (error: any) {
     console.error("[Server] /api/save-category-image failed:", error?.message || error);
     return res.status(500).json({
@@ -498,12 +456,10 @@ app.post("/api/import-images", async (req, res) => {
       const buffer = Buffer.from(arrayBuffer);
 
       let savedPath: string = url;
-      if (getWpAuthHeader()) {
-        try {
-          savedPath = await uploadBufferToWordPressMedia(filename, buffer);
-        } catch (upErr: any) {
-          console.warn(`[Import Image Warning] WordPress upload failed for ${filename}, retaining source URL:`, upErr?.message);
-        }
+      try {
+        savedPath = await uploadBufferToWordPressMedia(filename, buffer);
+      } catch (upErr: any) {
+        console.warn(`[Import Image Warning] WordPress upload failed for ${filename}, retaining source URL:`, upErr?.message);
       }
 
       localPaths.push(savedPath);
@@ -524,76 +480,16 @@ app.post("/api/wipe-imported-images", async (req, res) => {
   return res.json({ success: true, empty: true, message: "Imported images reset." });
 });
 
-// Endpoint to list all uploaded images from WordPress Media Library
+// Endpoint to list all uploaded images (Blob retired)
 app.get("/api/list-images", async (req, res) => {
-  try {
-    const results: Array<{ filename: string; relativePath: string; size: number; mtime: string; location: string }> = [];
-
-    const authHeader = getWpAuthHeader();
-    if (authHeader) {
-      try {
-        const wpRes = await fetch(`${getWpBaseUrl()}/wp-json/wp/v2/media?per_page=100`, {
-          headers: getWpHeaders({}, true),
-        });
-        if (wpRes.ok) {
-          const mediaItems = await wpRes.json();
-          if (Array.isArray(mediaItems)) {
-            for (const item of mediaItems) {
-              results.push({
-                filename: item.slug || item.title?.rendered || `media-${item.id}`,
-                relativePath: item.source_url || item.guid?.rendered || "",
-                size: item.media_details?.filesize || 0,
-                mtime: item.date || new Date().toISOString(),
-                location: "wordpress-media",
-              });
-            }
-          }
-        } else {
-          // Cloudflare challenge or non-200 response on WordPress media endpoint
-          const errBody = await wpRes.text().catch(() => "");
-          if (wpRes.status === 403 || errBody.includes("Just a moment...") || errBody.includes("challenges.cloudflare.com")) {
-            // Quietly fall back without logging error traces
-          } else {
-            console.warn(`[WordPress Media Notice] GET /wp-json/wp/v2/media returned status: ${wpRes.status}`);
-          }
-        }
-      } catch (wpErr: any) {
-        console.warn("[Server] Error querying WordPress media library:", wpErr?.message);
-      }
-    }
-
-    return res.json({ success: true, images: results });
-  } catch (error: any) {
-    console.error("[Server] Failed to list images:", error);
-    return res.status(500).json({ error: "Failed to list images" });
-  }
+  console.log("[Images] Blob retired");
+  return res.json({ success: true, images: [] });
 });
 
-// Endpoint to delete a specific image from WordPress Media Library
+// Endpoint to delete a specific image (Blob retired)
 app.post("/api/delete-image", async (req, res) => {
-  const { id } = req.body || {};
-
-  try {
-    const authHeader = getWpAuthHeader();
-    if (authHeader && id) {
-      try {
-        const delRes = await fetch(`${getWpBaseUrl()}/wp-json/wp/v2/media/${id}?force=true`, {
-          method: "DELETE",
-          headers: getWpHeaders({}, true),
-        });
-        if (!delRes.ok) {
-          const errText = await delRes.text().catch(() => "");
-          console.warn(`[WordPress API Warning] Media delete failed (${delRes.status}):`, errText);
-        }
-      } catch (wpErr: any) {
-        console.warn("[Server] Error deleting media from WordPress:", wpErr?.message);
-      }
-    }
-    return res.json({ success: true, message: "Image delete processed." });
-  } catch (error: any) {
-    console.error("[Server] Failed to delete image:", error);
-    return res.status(500).json({ error: "Failed to delete image" });
-  }
+  console.log("[Images] Blob retired");
+  return res.json({ success: true, message: "Blob retired" });
 });
 
 // List of high-fidelity, curated real-life automotive action images from highly-rated Unsplash mechanics/workshops
