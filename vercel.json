@@ -4,7 +4,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api"
+      "destination": "server.ts"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "server.ts"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "server.ts"
     },
     {
       "source": "/(.*)",
