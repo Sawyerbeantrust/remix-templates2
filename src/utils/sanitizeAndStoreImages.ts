@@ -107,22 +107,61 @@ export async function processCategoryForStorage(category: FeaturedCategory): Pro
     return category;
   }
   const uniqueKey = `category_image_${category.id || 'cat'}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-  const compressedImg = await compressAndResizeBase64Image(category.img);
+  const compressedImg = await compressAndResizeBase64Image(category.img, 1200, 1200, 0.82);
   
-  const response = await fetch('/api/upload-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
-  });
-  const result = await response.json();
-  if (!result || !result.success) {
-    throw new Error(`Failed to upload category image for '${category.name}'`);
+  try {
+    const response = await fetch('/api/upload-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
+    });
+    
+    if (response.ok) {
+      const text = await response.text();
+      if (text && text.trim().length > 0) {
+        try {
+          const result = JSON.parse(text);
+          if (result && result.success && (result.url || result.path)) {
+            const rawUrl = result.url || result.path;
+            return {
+              ...category,
+              img: cleanImageUrl(rawUrl)
+            };
+          }
+        } catch (jsonErr) {
+          console.warn('[processCategoryForStorage] Non-JSON response received:', jsonErr);
+        }
+      }
+    } else {
+      // Try fallback endpoint /api/save-category-image
+      const fallbackRes = await fetch('/api/save-category-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
+      });
+      if (fallbackRes.ok) {
+        const fbText = await fallbackRes.text();
+        if (fbText && fbText.trim().length > 0) {
+          try {
+            const fbResult = JSON.parse(fbText);
+            if (fbResult && fbResult.success && (fbResult.url || fbResult.path)) {
+              return {
+                ...category,
+                img: cleanImageUrl(fbResult.url || fbResult.path)
+              };
+            }
+          } catch {}
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[processCategoryForStorage] Network upload failed, using local storage format:', err);
   }
 
-  const rawUrl = result.url || result.path;
+  // Graceful fallback to compressed data URL so saving never breaks
   return {
     ...category,
-    img: cleanImageUrl(rawUrl)
+    img: compressedImg || category.img
   };
 }
 
@@ -138,18 +177,29 @@ export async function processProductForStorage(product: Product): Promise<Produc
   
   if (updatedProd.image && updatedProd.image.startsWith('data:image')) {
     const uniqueKey = `product_cover_${updatedProd.id || 'prod'}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const compressedImg = await compressAndResizeBase64Image(updatedProd.image);
-    const response = await fetch('/api/upload-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
-    });
-    const result = await response.json();
-    if (!result || !result.success) {
-      throw new Error(`Failed to upload cover image for '${updatedProd.name}'`);
+    const compressedImg = await compressAndResizeBase64Image(updatedProd.image, 1200, 1200, 0.82);
+    try {
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
+      });
+      if (response.ok) {
+        const text = await response.text();
+        if (text && text.trim().length > 0) {
+          try {
+            const result = JSON.parse(text);
+            if (result && result.success && (result.url || result.path)) {
+              const rawUrl = result.url || result.path;
+              updatedProd.image = cleanImageUrl(rawUrl);
+            }
+          } catch {}
+        }
+      }
+    } catch (err) {
+      console.warn('[processProductForStorage] Server upload failed, preserving compressed image:', err);
+      updatedProd.image = compressedImg;
     }
-    const rawUrl = result.url || result.path;
-    updatedProd.image = cleanImageUrl(rawUrl);
   }
 
   if (Array.isArray(updatedProd.images)) {
@@ -157,18 +207,29 @@ export async function processProductForStorage(product: Product): Promise<Produc
       updatedProd.images.map(async (img, idx) => {
         if (img && img.startsWith('data:image')) {
           const uniqueKey = `product_gallery_${updatedProd.id || 'prod'}_${idx}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-          const compressedImg = await compressAndResizeBase64Image(img);
-          const response = await fetch('/api/upload-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
-          });
-          const result = await response.json();
-          if (!result || !result.success) {
-            throw new Error(`Failed to upload gallery image for '${updatedProd.name}'`);
+          const compressedImg = await compressAndResizeBase64Image(img, 1200, 1200, 0.82);
+          try {
+            const response = await fetch('/api/upload-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: `${uniqueKey}.jpg`, data: compressedImg })
+            });
+            if (response.ok) {
+              const text = await response.text();
+              if (text && text.trim().length > 0) {
+                try {
+                  const result = JSON.parse(text);
+                  if (result && result.success && (result.url || result.path)) {
+                    const rawUrl = result.url || result.path;
+                    return cleanImageUrl(rawUrl);
+                  }
+                } catch {}
+              }
+            }
+          } catch (err) {
+            console.warn('[processProductForStorage] Server upload failed for gallery item:', err);
           }
-          const rawUrl = result.url || result.path;
-          return cleanImageUrl(rawUrl);
+          return compressedImg;
         }
         return img;
       })

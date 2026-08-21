@@ -11,8 +11,8 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: "20mb" }));
-app.use(express.urlencoded({ limit: "20mb", extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Static route aliases for assets - ensure /assets/images/*, /images/*, and /uploads/* are served seamlessly
 const publicUploads = path.join(process.cwd(), "public", "uploads");

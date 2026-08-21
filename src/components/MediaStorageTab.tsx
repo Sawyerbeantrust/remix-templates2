@@ -318,11 +318,15 @@ export default function MediaStorageTab({
               });
 
               if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
+                const errText = await res.text().catch(() => '');
+                let errData: any = {};
+                try { if (errText) errData = JSON.parse(errText); } catch {}
                 throw new Error(errData.error || `Upload failed with HTTP ${res.status}`);
               }
 
-              const data = await res.json();
+              const resText = await res.text().catch(() => '');
+              let data: any = {};
+              try { if (resText) data = JSON.parse(resText); } catch {}
               const finalPath = data.path || data.url;
               if (!finalPath) {
                 throw new Error("Server did not return a valid media path");
