@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
 import { stripHtml } from '../utils/stripHtml';
-import { ShoppingBag, Eye, CheckCircle2, ShieldCheck, Settings, Award, RefreshCw, Calendar, ArrowLeftRight } from 'lucide-react';
+import { ShoppingBag, Eye, CheckCircle2, ShieldCheck, Settings, Award, RefreshCw, Calendar, ArrowLeftRight, Heart } from 'lucide-react';
 import ResponsiveImage from './ResponsiveImage';
 
 interface ProductCardProps {
@@ -14,6 +14,8 @@ interface ProductCardProps {
   isCentralFlash?: boolean;
   onToggleCompare?: (product: Product) => void;
   isInCompare?: boolean;
+  onToggleWishlist?: (product: Product) => void;
+  isInWishlist?: boolean;
 }
 
 export default function ProductCard({
@@ -25,6 +27,8 @@ export default function ProductCard({
   isCentralFlash,
   onToggleCompare,
   isInCompare = false,
+  onToggleWishlist,
+  isInWishlist = false,
 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const [theme, setTheme] = useState<'triton' | 'inospace'>('triton');
@@ -191,6 +195,24 @@ export default function ProductCard({
           </div>
         </div>
 
+        {/* Top-right persistent wishlist toggle badge on mobile & desktop */}
+        {onToggleWishlist && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWishlist(product);
+            }}
+            className={`absolute top-3 left-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md ${
+              isInWishlist
+                ? 'bg-[#ff0000] text-white'
+                : 'bg-black/60 text-white/80 hover:text-white hover:bg-black/80 backdrop-blur-sm'
+            }`}
+            title={isInWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+          >
+            <Heart size={14} className={isInWishlist ? 'fill-current' : ''} />
+          </button>
+        )}
+
         {/* Hover action bar overlay - hidden below md to avoid mobile hover lockouts */}
         <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hidden md:flex items-center justify-center gap-3">
           <button
@@ -207,6 +229,15 @@ export default function ProductCard({
               title={isInCompare ? 'Remove from compare' : 'Add to compare matrix'}
             >
               <ArrowLeftRight size={18} strokeWidth={1.5} />
+            </button>
+          )}
+          {onToggleWishlist && (
+            <button
+              onClick={() => onToggleWishlist(product)}
+              className={`w-11 h-11 flex items-center justify-center ${isInWishlist ? 'bg-[#ff0000] text-white border border-[#ff0000]' : 'bg-black/60 border border-white/60 text-white hover:bg-white hover:text-black'} transition-all duration-300 font-medium cursor-pointer shadow-xl rounded-full`}
+              title={isInWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+            >
+              <Heart size={18} strokeWidth={1.5} className={isInWishlist ? 'fill-current' : ''} />
             </button>
           )}
           <button

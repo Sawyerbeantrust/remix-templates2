@@ -13,6 +13,7 @@ import ContactModal from './components/ContactModal';
 import FaqModal from './components/FaqModal';
 import CompareModal from './components/CompareModal';
 import AssistantChatModal from './components/AssistantChatModal';
+import WishlistModal from './components/WishlistModal';
 import ResponsiveImage from './components/ResponsiveImage';
 import CategoryPreviewImage from './components/CategoryPreviewImage';
 import { handleImageElementError } from './utils/imageFallback';
@@ -24,7 +25,7 @@ import { Product, CartItem, InquiryFormData, FeaturedCategory } from './types';
 import { getCategoryFromQuery } from './utils/seoKeywords';
 import { normalizeCategorySlug, formatCategoryLabel } from './utils/categoryUtils';
 import { stripHtml } from './utils/stripHtml';
-import { ShieldCheck, Calendar, PhoneCall, HelpCircle, ArrowRight, Download, Send, Coins, FileText, CheckCircle2, Award, Hammer, Sparkles, Building2, Eye, X, Settings, ChevronDown, ChevronUp, ZoomIn, Map, MapPin, ZoomOut, RotateCcw, Plus, Minus, Move, ArrowUp, MessageCircle, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, Bot } from 'lucide-react';
+import { ShieldCheck, Calendar, PhoneCall, HelpCircle, ArrowRight, Download, Send, Coins, FileText, CheckCircle2, Award, Hammer, Sparkles, Building2, Eye, X, Settings, ChevronDown, ChevronUp, ZoomIn, Map, MapPin, ZoomOut, RotateCcw, Plus, Minus, Move, ArrowUp, MessageCircle, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, Bot, Heart } from 'lucide-react';
 
 const normalizeProductCategory = (p: Product): Product => {
   let nameStr = p.name || '';
@@ -549,6 +550,46 @@ export default function App() {
   });
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
+
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
+    const saved = safeLocalStorage.getItem('triton_wishlist_storage');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.error("Error loading wishlist:", e);
+      }
+    }
+    return [];
+  });
+  const [isWishlistOpen, setIsWishlistOpen] = useState<boolean>(false);
+
+  const handleToggleWishlist = (product: Product) => {
+    setWishlist(prev => {
+      let next: Product[];
+      if (prev.some(p => p.id === product.id)) {
+        next = prev.filter(p => p.id !== product.id);
+      } else {
+        next = [...prev, product];
+      }
+      safeLocalStorage.setItem('triton_wishlist_storage', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleRemoveFromWishlist = (productId: string) => {
+    setWishlist(prev => {
+      const next = prev.filter(p => p.id !== productId);
+      safeLocalStorage.setItem('triton_wishlist_storage', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleClearWishlist = () => {
+    setWishlist([]);
+    safeLocalStorage.removeItem('triton_wishlist_storage');
+  };
 
   const handleToggleCompare = (product: Product) => {
     setCompareList(prev => {
@@ -1946,6 +1987,8 @@ export default function App() {
         compareList={compareList}
         onOpenCompare={() => setIsCompareOpen(true)}
         onOpenAssistant={() => setIsAssistantOpen(true)}
+        wishlist={wishlist}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
       />
 
       {/* CORE HERO SECTION */}
@@ -2271,8 +2314,22 @@ export default function App() {
                         return null;
                       })()}
                       
-                      {/* Floating Quick Zoom button */}
-                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-2">
+                      {/* Floating Action Buttons */}
+                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleWishlist(product);
+                          }}
+                          className={`p-2 rounded-full transition-all duration-300 shadow-md hover:scale-110 flex items-center justify-center cursor-pointer ${
+                            wishlist.some(w => w.id === product.id)
+                              ? 'bg-[#ff0000] text-white opacity-100'
+                              : 'bg-black/75 text-white/80 hover:text-white hover:bg-black/90 opacity-0 group-hover:opacity-100'
+                          }`}
+                          title={wishlist.some(w => w.id === product.id) ? "Remove from Saved Wishlist" : "Save to Wishlist"}
+                        >
+                          <Heart size={14} className={wishlist.some(w => w.id === product.id) ? 'fill-current' : ''} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2858,12 +2915,24 @@ export default function App() {
             </div>
 
             {/* Sticky Actions Footer */}
-            <div className="p-5 bg-blue-50/10 border-t border-slate-150 flex justify-end gap-3.5 shrink-0">
+            <div className="p-5 bg-blue-50/10 border-t border-slate-150 flex flex-wrap items-center justify-end gap-3 shrink-0">
               <button
                 onClick={() => setQuickViewProduct(null)}
                 className="px-5 py-2.5 border border-slate-350 bg-white text-slate-700 text-xs sm:text-sm font-bold rounded-xl hover:bg-slate-50 transition cursor-pointer mr-auto"
               >
                 Close Specs
+              </button>
+              <button
+                onClick={() => handleToggleWishlist(quickViewProduct!)}
+                className={`px-4 py-2.5 border text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm flex items-center gap-1.5 uppercase tracking-wider ${
+                  wishlist.some(w => w.id === quickViewProduct!.id)
+                    ? 'bg-red-50 text-[#ff0000] border-red-300'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                }`}
+                title={wishlist.some(w => w.id === quickViewProduct!.id) ? "Remove from wishlist" : "Save to wishlist"}
+              >
+                <Heart size={16} className={wishlist.some(w => w.id === quickViewProduct!.id) ? 'fill-current text-[#ff0000]' : ''} />
+                <span>{wishlist.some(w => w.id === quickViewProduct!.id) ? 'Saved' : 'Wishlist'}</span>
               </button>
               <button
                 onClick={() => handleDownloadPdf(quickViewProduct!)}
@@ -3160,6 +3229,21 @@ export default function App() {
         onAddToCart={handleAddToCart}
         allProducts={products}
         onAddToCompare={handleAddToCompare}
+        language={language}
+        theme={theme}
+      />
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        wishlist={wishlist}
+        onRemoveFromWishlist={handleRemoveFromWishlist}
+        onClearWishlist={handleClearWishlist}
+        onAddToCart={handleAddToCart}
+        onOpenQuickView={(p) => {
+          setIsWishlistOpen(false);
+          setQuickViewProduct(p);
+          setActiveImageIndex(0);
+        }}
         language={language}
         theme={theme}
       />

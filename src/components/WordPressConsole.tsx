@@ -5765,6 +5765,69 @@ export default function WordPressConsole({
                               </div>
                             </div>
 
+                            {/* Category SEO Meta Details (seoTitle and seoDescription) */}
+                            <div className="space-y-3 pt-2 border-t border-neutral-800/80">
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <label className="block text-[10px] font-mono text-[#999999] uppercase tracking-wider">
+                                    Category SEO Title (Meta Title)
+                                  </label>
+                                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold ${
+                                    (targetCat.seoTitle || '').length >= 50 && (targetCat.seoTitle || '').length <= 65
+                                      ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50'
+                                      : (targetCat.seoTitle || '').length > 65
+                                      ? 'bg-amber-950/60 text-amber-400 border border-amber-900/50'
+                                      : 'text-neutral-500 font-mono'
+                                  }`}>
+                                    {(targetCat.seoTitle || '').length} / 60 chars
+                                  </span>
+                                </div>
+                                <input
+                                  type="text"
+                                  placeholder={`${targetCat.name} | Heavy Duty Automotive Equipment | Triton SA`}
+                                  value={targetCat.seoTitle || ''}
+                                  onChange={(e) => {
+                                    const updated = currentFeaturedCategories.map((c) =>
+                                      c.id === targetCat.id ? { ...c, seoTitle: e.target.value } : c
+                                    );
+                                    updateFeaturedCategories(updated);
+                                    setIsCatDetailsDirty(true);
+                                  }}
+                                  className="w-full bg-neutral-950 text-neutral-200 border border-neutral-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#ff0000] transition"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <label className="block text-[10px] font-mono text-[#999999] uppercase tracking-wider">
+                                    Category SEO Description (Meta Description)
+                                  </label>
+                                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold ${
+                                    (targetCat.seoDescription || '').length >= 120 && (targetCat.seoDescription || '').length <= 160
+                                      ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50'
+                                      : (targetCat.seoDescription || '').length > 160
+                                      ? 'bg-amber-950/60 text-amber-400 border border-amber-900/50'
+                                      : 'text-neutral-500 font-mono'
+                                  }`}>
+                                    {(targetCat.seoDescription || '').length} / 160 chars
+                                  </span>
+                                </div>
+                                <textarea
+                                  rows={2}
+                                  placeholder={`Explore commercial grade ${targetCat.name.toLowerCase()} in South Africa with SABS & CE certified guarantees and nationwide delivery.`}
+                                  value={targetCat.seoDescription || ''}
+                                  onChange={(e) => {
+                                    const updated = currentFeaturedCategories.map((c) =>
+                                      c.id === targetCat.id ? { ...c, seoDescription: e.target.value } : c
+                                    );
+                                    updateFeaturedCategories(updated);
+                                    setIsCatDetailsDirty(true);
+                                  }}
+                                  className="w-full bg-neutral-950 text-neutral-200 border border-neutral-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#ff0000] transition"
+                                />
+                              </div>
+                            </div>
+
                             {/* Preview */}
                             <div className="space-y-2 pt-2">
                               <label className="block text-[10px] font-mono text-[#999999] uppercase tracking-wider">
@@ -5914,6 +5977,22 @@ export default function WordPressConsole({
                                           <button
                                             type="button"
                                             onClick={() => {
+                                              const updated = currentFeaturedCategories.map((c) =>
+                                                c.id === targetCat.id ? { ...c, seoTitle: categoryAuditResult.recommendedTitle } : c
+                                              );
+                                              updateFeaturedCategories(updated);
+                                              setIsCatDetailsDirty(true);
+                                              setSeoNotification({ type: 'success', text: 'Meta Title applied to category!' });
+                                              setTimeout(() => setSeoNotification(null), 3000);
+                                            }}
+                                            className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                                            title="Apply as Category SEO Title"
+                                          >
+                                            <CheckCircle size={11} /> Apply
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
                                               navigator.clipboard.writeText(categoryAuditResult.recommendedTitle);
                                               setSeoNotification({ type: 'success', text: 'Meta Title copied to clipboard!' });
                                               setTimeout(() => setSeoNotification(null), 3000);
@@ -5942,6 +6021,22 @@ export default function WordPressConsole({
                                           <div className="flex-1 bg-black border border-neutral-900 rounded-lg p-2.5 font-sans text-[11px] leading-relaxed text-neutral-300">
                                             {categoryAuditResult.recommendedDescription}
                                           </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const updated = currentFeaturedCategories.map((c) =>
+                                                c.id === targetCat.id ? { ...c, seoDescription: categoryAuditResult.recommendedDescription } : c
+                                              );
+                                              updateFeaturedCategories(updated);
+                                              setIsCatDetailsDirty(true);
+                                              setSeoNotification({ type: 'success', text: 'Meta Description applied to category!' });
+                                              setTimeout(() => setSeoNotification(null), 3000);
+                                            }}
+                                            className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                                            title="Apply as Category SEO Description"
+                                          >
+                                            <CheckCircle size={11} /> Apply
+                                          </button>
                                           <button
                                             type="button"
                                             onClick={() => {

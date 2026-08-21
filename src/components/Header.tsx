@@ -23,6 +23,8 @@ interface HeaderProps {
   compareList?: Product[];
   onOpenCompare?: () => void;
   onOpenAssistant?: () => void;
+  wishlist?: Product[];
+  onOpenWishlist?: () => void;
 }
 
 export default function Header({
@@ -44,6 +46,8 @@ export default function Header({
   compareList = [],
   onOpenCompare,
   onOpenAssistant,
+  wishlist = [],
+  onOpenWishlist,
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -424,10 +428,15 @@ export default function Header({
             </button>
 
             <button
-               className={`hidden md:flex relative p-1 text-[#666666] ${theme === 'inospace' ? 'hover:text-[#e31b23]' : 'hover:text-[#1e3a5f]'} hover:scale-110 transition-all cursor-pointer`}
+               id="header-wishlist-btn"
+               onClick={() => onOpenWishlist?.()}
+               className={`hidden md:flex relative p-1 text-[#666666] ${theme === 'inospace' ? 'hover:text-[#e31b23]' : 'hover:text-[#ff0000]'} hover:scale-110 transition-all cursor-pointer`}
+               title={language === 'af' ? 'Gunstelinge & Wenslys' : 'Saved Equipment Wishlist'}
              >
-               <Heart size={20} strokeWidth={1.5} />
-               <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#e74c3c] text-white text-[10px] flex items-center justify-center rounded-full font-bold">0</span>
+               <Heart size={20} strokeWidth={1.5} className={wishlist.length > 0 ? 'text-[#ff0000] fill-[#ff0000]' : ''} />
+               <span className={`absolute -top-1 -right-1 w-4 h-4 ${wishlist.length > 0 ? 'bg-[#ff0000]' : 'bg-[#e74c3c]'} text-white text-[10px] flex items-center justify-center rounded-full font-bold transition-transform duration-200 ${wishlist.length > 0 ? 'scale-110' : ''}`}>
+                 {wishlist.length}
+               </span>
             </button>
 
             {/* Cart Trigger with improved touch target */}
@@ -622,6 +631,20 @@ export default function Header({
                   </span>
                   <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${compareList.length > 0 ? 'bg-[#ff0000] text-white' : 'bg-neutral-200 text-neutral-600'}`}>
                     {compareList.length}
+                  </span>
+                </a>
+
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onOpenWishlist?.(); }}
+                  className={`flex items-center justify-between px-5 py-4 text-sm font-semibold text-[#333333] border-b border-[#f0f0f0] hover:bg-[#f5f5f5] hover:text-[#ff0000] transition-colors`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Heart size={16} className="text-[#ff0000] fill-[#ff0000]" />
+                    {language === 'af' ? 'Gunstelinge & Wenslys' : 'Saved Equipment Wishlist'}
+                  </span>
+                  <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${wishlist.length > 0 ? 'bg-[#ff0000] text-white' : 'bg-neutral-200 text-neutral-600'}`}>
+                    {wishlist.length}
                   </span>
                 </a>
 

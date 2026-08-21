@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, MapPin, Phone, Mail, Building, Send, CheckCircle2, Clock, Map, ClipboardList, ZoomIn, ZoomOut, Compass } from 'lucide-react';
 import { CartItem } from '../types';
+import { handleImageElementError } from '../utils/imageFallback';
 const mapImage = '/images/killarney_gardens_map_1781354004848.jpg';
 
 interface ContactModalProps {
@@ -431,7 +432,7 @@ export default function ContactModal({ isOpen, onClose, cart = [], language = 'e
                   <div className="space-y-1">
                     <label className="text-[10px] text-[#999999] tracking-widest uppercase font-bold">{currentT.email_label}</label>
                     <input 
-                      type="type" 
+                      type="email" 
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -752,6 +753,7 @@ export default function ContactModal({ isOpen, onClose, cart = [], language = 'e
                       src={mapImage} 
                       alt="Cape Town Depot Roadmap Location" 
                       referrerPolicy="no-referrer"
+                      onError={(e) => handleImageElementError(e)}
                       className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500" 
                     />
 
@@ -863,6 +865,7 @@ export default function ContactModal({ isOpen, onClose, cart = [], language = 'e
                           src={mapImage} 
                           alt="Magnified Cape Town Depot Map Location" 
                           referrerPolicy="no-referrer"
+                          onError={(e) => handleImageElementError(e)}
                           className="w-full h-full object-contain max-h-[62vh] transition-transform duration-500 group-hover:scale-105"
                         />
 

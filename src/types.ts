@@ -71,5 +71,7 @@ export interface FeaturedCategory {
   count: string;
   img: string;
   status?: 'publish' | 'draft';
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
