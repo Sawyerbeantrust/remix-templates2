@@ -259,63 +259,91 @@ app.post("/api/delete-image", async (req, res) => {
 
 // 5) GET /api/catalog
 app.get("/api/catalog", async (req, res) => {
-  try {
-    const endpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/triton/v1/catalog`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL || "").replace(/\/+$/, "");
+  const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
+  const authHeader = "Basic " + Buffer.from(`${process.env.WP_APP_USER}:${process.env.WP_APP_PASSWORD}`).toString("base64");
 
+  const defaultCatalog = {
+    products: PRODUCTS,
+    featuredCategories: DEFAULT_FEATURED_CATEGORIES,
+    categoriesList: DEFAULT_CATEGORIES_LIST,
+  };
+
+  try {
     const wpRes = await fetch(endpoint, {
-      signal: controller.signal,
       headers: {
-        Authorization: wpAuth,
+        Authorization: authHeader,
         Accept: "application/json",
       },
     }).catch(() => null);
-    clearTimeout(timeoutId);
+
+    const status = wpRes ? wpRes.status : "network_error";
 
     if (wpRes && wpRes.ok) {
       const data = await wpRes.json().catch(() => null);
       if (data && typeof data === "object" && Array.isArray(data.products) && data.products.length > 0) {
+        const count = data.products.length;
+        console.log("[Catalog] GET from WP: status " + status + ", products " + count);
         return res.status(200).json(data);
       }
     }
 
-    const fallbackCatalog = {
-      products: PRODUCTS,
-      featuredCategories: DEFAULT_FEATURED_CATEGORIES,
-      categoriesList: DEFAULT_CATEGORIES_LIST,
-    };
-    return res.status(200).json(fallbackCatalog);
+    console.log("[Catalog] GET from WP: status " + status + ", products 0");
+
+    // Otherwise (empty, null, or error): take built-in default catalog, POST to WP to SEED it, then return default catalog
+    try {
+      const seedRes = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(defaultCatalog),
+      }).catch(() => null);
+      const seedStatus = seedRes ? seedRes.status : "network_error";
+      console.log("[Catalog] POST to WP (seed): status " + seedStatus);
+    } catch (seedErr) {
+      console.warn("[Catalog] Seed notice:", seedErr);
+    }
+
+    return res.status(200).json(defaultCatalog);
   } catch (err: any) {
-    const fallbackCatalog = {
-      products: PRODUCTS,
-      featuredCategories: DEFAULT_FEATURED_CATEGORIES,
-      categoriesList: DEFAULT_CATEGORIES_LIST,
-    };
-    return res.status(200).json(fallbackCatalog);
+    console.log("[Catalog] GET from WP: status error, products 0");
+    return res.status(200).json(defaultCatalog);
   }
 });
 
 // 6) POST /api/catalog
 app.post("/api/catalog", async (req, res) => {
   try {
-    const endpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/triton/v1/catalog`;
+    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL || "").replace(/\/+$/, "");
+    const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
+    const authHeader = "Basic " + Buffer.from(`${process.env.WP_APP_USER}:${process.env.WP_APP_PASSWORD}`).toString("base64");
+
     const wpRes = await fetch(endpoint, {
       method: "POST",
       headers: {
-        Authorization: wpAuth,
+        Authorization: authHeader,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(req.body),
     });
 
-    if (!wpRes.ok) {
-      const errText = await wpRes.text().catch(() => "");
-      return res.status(200).json({ success: false, error: `Failed to save catalog to WordPress (${wpRes.status}): ${errText}` });
+    const status = wpRes.status;
+    console.log("[Catalog] POST to WP: status " + status);
+
+    if (wpRes.ok) {
+      return res.status(200).json({ success: true });
     }
 
-    return res.status(200).json({ success: true });
+    const errText = await wpRes.text().catch(() => "");
+    console.error("[Catalog] POST to WP failed: status " + status + ", body: " + errText);
+    return res.status(200).json({
+      success: false,
+      error: `Failed to save catalog to WordPress (status ${status}): ${errText}`,
+    });
   } catch (err: any) {
+    console.error("[Catalog] POST to WP exception:", err);
     return res.status(200).json({ success: false, error: err?.message || String(err) });
   }
 });
