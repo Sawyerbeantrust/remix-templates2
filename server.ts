@@ -36,6 +36,12 @@ const DEFAULT_FEATURED_CATEGORIES = [
   { id: "cat-chassis-straightener", name: "CHASSIS STRAIGHTENER", count: "2 Products", img: "/assets/images/workshop_tools_2.jpg" },
   { id: "cat-filter-media", name: "FILTER MEDIA", count: "10 Products", img: "/assets/images/filters_1.jpg" },
   { id: "cat-telescopic-ladders", name: "TELESCOPIC LADDERS", count: "5 Products", img: "/assets/images/ladder_1.jpg" },
+  { id: "cat-sa-parking-lifts", name: "S A PARKING STORAGE LIFTS", count: "6 Products", img: "/assets/images/car_lift_3.jpg" },
+  { id: "cat-20-ton-bus-lifts", name: "20 TON BUS LIFTS", count: "2 Products", img: "/assets/images/car_lift_4.jpg" },
+  { id: "cat-triton", name: "TRITON", count: "20 Products", img: "/assets/images/car_lift_2.jpg" },
+  { id: "cat-hydraulic-oil", name: "HYDRAULIC OIL 46GR 10 LITRES", count: "1 Product", img: "/assets/images/workshop_tools_2.jpg" },
+  { id: "cat-forklift-ramps", name: "FORKLIFT LOADING RAMPS", count: "3 Products", img: "/assets/images/car_lift_5.jpg" },
+  { id: "cat-parking-lifts", name: "PARKING LIFTS", count: "5 Products", img: "/assets/images/car_lift_3.jpg" }
 ];
 
 const DEFAULT_CATEGORIES_LIST = [
