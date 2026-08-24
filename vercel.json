@@ -1,36 +1,14 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "server.ts"
-    },
-    {
-      "source": "/sitemap.xml",
-      "destination": "server.ts"
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "server.ts"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } },
+    { "src": "server.ts", "use": "@vercel/node" }
   ],
-  "headers": [
-    {
-      "source": "/index.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server.ts" },
+    { "src": "/sitemap.xml", "dest": "server.ts" },
+    { "src": "/robots.txt", "dest": "server.ts" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
