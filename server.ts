@@ -90,53 +90,6 @@ function detectContentType(dataUri: string, filename: string): string {
   }
 }
 
-const CATALOG_FILE_PATH = path.join(process.cwd(), "public", "data", "catalog.json");
-
-function loadCatalogFromDisk() {
-  try {
-    if (fs.existsSync(CATALOG_FILE_PATH)) {
-      const raw = fs.readFileSync(CATALOG_FILE_PATH, "utf8");
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object" && Array.isArray(parsed.products) && parsed.products.length > 0) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn("[Catalog] Warning reading local catalog file:", err);
-  }
-  return null;
-}
-
-function saveCatalogToDisk(catalog: any) {
-  try {
-    const dir = path.dirname(CATALOG_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(CATALOG_FILE_PATH, JSON.stringify(catalog, null, 2), "utf8");
-    return true;
-  } catch (err) {
-    console.warn("[Catalog] Warning saving local catalog file:", err);
-    return false;
-  }
-}
-
-function saveImageLocally(buffer: Buffer, imgName: string): string {
-  const cleanName = imgName.replace(/[^a-zA-Z0-9_.-]/g, "_");
-  const localDirs = [
-    path.join(process.cwd(), "public", "assets", "images"),
-    path.join(process.cwd(), "src", "assets", "images"),
-    path.join(process.cwd(), "public", "images"),
-  ];
-  for (const d of localDirs) {
-    try {
-      if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-      fs.writeFileSync(path.join(d, cleanName), buffer);
-    } catch {}
-  }
-  return `/assets/images/${cleanName}`;
-}
-
 // 1) POST /api/upload-image (body { name, data })
 app.post("/api/upload-image", async (req, res) => {
   try {
@@ -152,43 +105,37 @@ app.post("/api/upload-image", async (req, res) => {
     const base64Data = imgData.replace(/^data:[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
-    // Always save locally first as reliable storage
-    const localPath = saveImageLocally(buffer, imgName);
+    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
+    const endpoint = `${wpBase}/wp-json/wp/v2/media`;
 
-    try {
-      const endpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/wp/v2/media`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const wpRes = await fetch(endpoint, {
-        method: "POST",
-        headers: getWpHeaders({
-          "Content-Disposition": `attachment; filename="${imgName}"`,
-          "Content-Type": contentType,
-        }),
-        body: buffer,
-        signal: controller.signal,
-      }).catch(() => null);
-      clearTimeout(timeout);
+    const wpRes = await fetch(endpoint, {
+      method: "POST",
+      headers: getWpHeaders({
+        "Content-Disposition": `attachment; filename="${imgName}"`,
+        "Content-Type": contentType,
+      }),
+      body: buffer,
+    });
 
-      if (wpRes && wpRes.ok) {
-        const json = await wpRes.json().catch(() => null);
-        if (json && json.source_url) {
-          return res.status(200).json({
-            success: true,
-            path: json.source_url,
-            url: json.source_url,
-            id: json.id,
-          });
-        }
-      }
-    } catch {}
+    if (!wpRes.ok) {
+      const errText = await wpRes.text().catch(() => "");
+      console.error("[Upload Image] WP upload failed:", wpRes.status, errText);
+      return res.status(200).json({
+        success: false,
+        error: `WordPress media upload failed (${wpRes.status}): ${errText}`,
+      });
+    }
 
+    const json = await wpRes.json();
+    const sourceUrl = json.source_url || json.guid?.rendered || "";
     return res.status(200).json({
       success: true,
-      path: localPath,
-      url: localPath,
+      path: sourceUrl,
+      url: sourceUrl,
+      id: json.id,
     });
   } catch (error: any) {
+    console.error("[Upload Image] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error) });
   }
 });
@@ -208,43 +155,37 @@ app.post("/api/save-category-image", async (req, res) => {
     const base64Data = imgData.replace(/^data:[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
-    // Always save locally first as reliable storage
-    const localPath = saveImageLocally(buffer, imgName);
+    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
+    const endpoint = `${wpBase}/wp-json/wp/v2/media`;
 
-    try {
-      const endpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/wp/v2/media`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const wpRes = await fetch(endpoint, {
-        method: "POST",
-        headers: getWpHeaders({
-          "Content-Disposition": `attachment; filename="${imgName}"`,
-          "Content-Type": contentType,
-        }),
-        body: buffer,
-        signal: controller.signal,
-      }).catch(() => null);
-      clearTimeout(timeout);
+    const wpRes = await fetch(endpoint, {
+      method: "POST",
+      headers: getWpHeaders({
+        "Content-Disposition": `attachment; filename="${imgName}"`,
+        "Content-Type": contentType,
+      }),
+      body: buffer,
+    });
 
-      if (wpRes && wpRes.ok) {
-        const json = await wpRes.json().catch(() => null);
-        if (json && json.source_url) {
-          return res.status(200).json({
-            success: true,
-            path: json.source_url,
-            url: json.source_url,
-            id: json.id,
-          });
-        }
-      }
-    } catch {}
+    if (!wpRes.ok) {
+      const errText = await wpRes.text().catch(() => "");
+      console.error("[Category Image] WP upload failed:", wpRes.status, errText);
+      return res.status(200).json({
+        success: false,
+        error: `WordPress category image upload failed (${wpRes.status}): ${errText}`,
+      });
+    }
 
+    const json = await wpRes.json();
+    const sourceUrl = json.source_url || json.guid?.rendered || "";
     return res.status(200).json({
       success: true,
-      path: localPath,
-      url: localPath,
+      path: sourceUrl,
+      url: sourceUrl,
+      id: json.id,
     });
   } catch (error: any) {
+    console.error("[Category Image] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error) });
   }
 });
@@ -252,50 +193,39 @@ app.post("/api/save-category-image", async (req, res) => {
 // 3) GET /api/list-images
 app.get("/api/list-images", async (req, res) => {
   try {
-    const endpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/wp/v2/media?per_page=100`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
+    const endpoint = `${wpBase}/wp-json/wp/v2/media?per_page=100`;
     const wpRes = await fetch(endpoint, {
       headers: getWpHeaders(),
-      signal: controller.signal,
-    }).catch(() => null);
-    clearTimeout(timeout);
+    });
 
-    if (wpRes && wpRes.ok) {
-      const items = await wpRes.json().catch(() => null);
-      if (Array.isArray(items)) {
-        const images = items.map((it: any) => ({
-          id: it.id,
-          filename: it.title?.rendered || it.slug || "image",
-          url: it.source_url,
-          relativePath: it.source_url,
-          size: it.media_details?.filesize || 0,
-          date: it.date,
-        }));
-        return res.status(200).json({ success: true, images });
-      }
-    }
-
-    // Fallback to locally stored images
-    const localDir = path.join(process.cwd(), "public", "assets", "images");
-    let localImages: any[] = [];
-    if (fs.existsSync(localDir)) {
-      const files = fs.readdirSync(localDir);
-      localImages = files.filter(f => /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(f)).map((file, idx) => {
-        const stats = fs.statSync(path.join(localDir, file));
-        return {
-          id: idx + 1000,
-          filename: file,
-          url: `/assets/images/${file}`,
-          relativePath: `/assets/images/${file}`,
-          size: stats.size,
-          date: stats.mtime.toISOString(),
-        };
+    if (!wpRes.ok) {
+      const errText = await wpRes.text().catch(() => "");
+      console.error("[List Images] WP list failed:", wpRes.status, errText);
+      return res.status(200).json({
+        success: false,
+        error: `WordPress list media failed (${wpRes.status}): ${errText}`,
+        images: [],
       });
     }
 
-    return res.status(200).json({ success: true, images: localImages });
+    const items = await wpRes.json();
+    if (!Array.isArray(items)) {
+      return res.status(200).json({ success: true, images: [] });
+    }
+
+    const images = items.map((it: any) => ({
+      id: it.id,
+      filename: it.title?.rendered || it.slug || "image",
+      url: it.source_url,
+      relativePath: it.source_url,
+      size: it.media_details?.filesize || 0,
+      date: it.date,
+    }));
+
+    return res.status(200).json({ success: true, images });
   } catch (error: any) {
+    console.error("[List Images] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error), images: [] });
   }
 });
@@ -305,63 +235,62 @@ app.post("/api/delete-image", async (req, res) => {
   try {
     const { id, url, path: assetPath } = req.body || {};
     const targetUrl = url || assetPath || "";
+    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
 
     if (id) {
-      const delEndpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/wp/v2/media/${id}?force=true`;
-      try {
-        await fetch(delEndpoint, {
-          method: "DELETE",
-          headers: getWpHeaders(),
-        }).catch(() => null);
-      } catch {}
+      const delEndpoint = `${wpBase}/wp-json/wp/v2/media/${id}?force=true`;
+      const delRes = await fetch(delEndpoint, {
+        method: "DELETE",
+        headers: getWpHeaders(),
+      });
+      if (!delRes.ok) {
+        const errText = await delRes.text().catch(() => "");
+        console.error("[Delete Image] WP delete failed:", delRes.status, errText);
+        return res.status(200).json({
+          success: false,
+          error: `WordPress delete media failed (${delRes.status}): ${errText}`,
+        });
+      }
       return res.status(200).json({ success: true });
     }
 
     if (targetUrl) {
-      // Remove from local disk if it was a local file
-      const filename = path.basename(targetUrl.split('?')[0]);
-      if (filename) {
-        const localPaths = [
-          path.join(process.cwd(), "public", "assets", "images", filename),
-          path.join(process.cwd(), "src", "assets", "images", filename),
-          path.join(process.cwd(), "public", "images", filename),
-        ];
-        for (const lp of localPaths) {
-          if (fs.existsSync(lp)) {
-            try { fs.unlinkSync(lp); } catch {}
+      const listEndpoint = `${wpBase}/wp-json/wp/v2/media?per_page=100`;
+      const listRes = await fetch(listEndpoint, {
+        headers: getWpHeaders(),
+      });
+
+      if (listRes.ok) {
+        const items = await listRes.json().catch(() => null);
+        if (Array.isArray(items)) {
+          const matched = items.find((it: any) =>
+            it.source_url === targetUrl ||
+            it.guid?.rendered === targetUrl ||
+            it.link === targetUrl ||
+            (it.source_url && path.basename(it.source_url) === path.basename(targetUrl))
+          );
+          if (matched && matched.id) {
+            const delEndpoint = `${wpBase}/wp-json/wp/v2/media/${matched.id}?force=true`;
+            const delRes = await fetch(delEndpoint, {
+              method: "DELETE",
+              headers: getWpHeaders(),
+            });
+            if (!delRes.ok) {
+              const errText = await delRes.text().catch(() => "");
+              return res.status(200).json({
+                success: false,
+                error: `WordPress delete media failed (${delRes.status}): ${errText}`,
+              });
+            }
+            return res.status(200).json({ success: true });
           }
         }
       }
-
-      try {
-        const listEndpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/wp/v2/media?per_page=100`;
-        const listRes = await fetch(listEndpoint, {
-          headers: getWpHeaders(),
-        }).catch(() => null);
-
-        if (listRes && listRes.ok) {
-          const items = await listRes.json().catch(() => null);
-          if (Array.isArray(items)) {
-            const matched = items.find((it: any) =>
-              it.source_url === targetUrl ||
-              it.guid?.rendered === targetUrl ||
-              it.link === targetUrl ||
-              (it.source_url && path.basename(it.source_url) === path.basename(targetUrl))
-            );
-            if (matched && matched.id) {
-              const delEndpoint = `${process.env.WP_BASE_URL || WP_BASE_URL}/wp-json/wp/v2/media/${matched.id}?force=true`;
-              await fetch(delEndpoint, {
-                method: "DELETE",
-                headers: getWpHeaders(),
-              }).catch(() => null);
-            }
-          }
-        }
-      } catch {}
     }
 
     return res.status(200).json({ success: true });
   } catch (error: any) {
+    console.error("[Delete Image] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error) });
   }
 });
@@ -371,46 +300,32 @@ app.get("/api/catalog", async (req, res) => {
   const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL || "").replace(/\/+$/, "");
   const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
 
-  const diskCatalog = loadCatalogFromDisk();
-  const defaultCatalog = diskCatalog || {
+  const defaultCatalog = {
     products: PRODUCTS,
     featuredCategories: DEFAULT_FEATURED_CATEGORIES,
     categoriesList: DEFAULT_CATEGORIES_LIST,
   };
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
     const wpRes = await fetch(endpoint, {
       headers: getWpHeaders(),
-      signal: controller.signal,
-    }).catch(() => null);
-    clearTimeout(timeout);
+    });
 
     if (wpRes && wpRes.ok) {
-      const contentType = wpRes.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const data = await wpRes.json().catch(() => null);
-        if (data && typeof data === "object" && Array.isArray(data.products) && data.products.length > 0) {
-          if (!data.categoriesList || !Array.isArray(data.categoriesList) || data.categoriesList.length === 0) {
-            data.categoriesList = DEFAULT_CATEGORIES_LIST;
-          }
-          console.log("[Catalog] GET from WP: products=" + (data.products || []).length + " catList=" + (data.categoriesList || []).length);
-          saveCatalogToDisk(data);
-          return res.status(200).json(data);
+      const data = await wpRes.json().catch(() => null);
+      if (data && typeof data === "object" && Array.isArray(data.products) && data.products.length > 0) {
+        if (!data.categoriesList || !Array.isArray(data.categoriesList) || data.categoriesList.length === 0) {
+          data.categoriesList = DEFAULT_CATEGORIES_LIST;
         }
+        console.log("[Catalog] GET from WP: products=" + (data.products || []).length + " catList=" + (data.categoriesList || []).length);
+        return res.status(200).json(data);
       }
     }
 
-    if (wpRes && wpRes.status === 403) {
-      console.log("[Catalog] WordPress REST endpoint is Cloudflare protected (403). Using persistent local catalog.");
-    } else {
-      console.log("[Catalog] GET from WP: status=" + (wpRes ? wpRes.status : "offline") + ", using persistent local catalog.");
-    }
-
+    console.log("[Catalog] GET from WP fallback to default catalog.");
     return res.status(200).json(defaultCatalog);
   } catch (err: any) {
-    console.log("[Catalog] GET from WP fallback, returning local catalog.");
+    console.log("[Catalog] GET from WP error, falling back to default catalog:", err?.message || err);
     return res.status(200).json(defaultCatalog);
   }
 });
@@ -418,40 +333,35 @@ app.get("/api/catalog", async (req, res) => {
 // 6) POST /api/catalog
 app.post("/api/catalog", async (req, res) => {
   try {
+    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL || "").replace(/\/+$/, "");
+    const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
+
     const payload = { ...req.body };
     if (!payload.categoriesList || !Array.isArray(payload.categoriesList) || payload.categoriesList.length === 0) {
       payload.categoriesList = DEFAULT_CATEGORIES_LIST;
     }
 
-    // 1. Immediately persist to local disk so data is never lost
-    saveCatalogToDisk(payload);
-    console.log("[Catalog] Saved updated catalog to persistent local storage.");
+    const wpRes = await fetch(endpoint, {
+      method: "POST",
+      headers: getWpHeaders({
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(payload),
+    });
 
-    // 2. Attempt sync to WordPress in background without breaking on Cloudflare
-    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL || "").replace(/\/+$/, "");
-    const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
+    const status = wpRes.status;
+    console.log("[Catalog] POST to WP status:", status);
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const wpRes = await fetch(endpoint, {
-        method: "POST",
-        headers: getWpHeaders({
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      }).catch(() => null);
-      clearTimeout(timeout);
-
-      if (wpRes) {
-        console.log("[Catalog] POST to WP: status=" + wpRes.status);
-      }
-    } catch (wpErr) {
-      console.log("[Catalog] Notice: WP sync skipped (offline or protected).");
+    if (wpRes.ok) {
+      return res.status(200).json({ success: true });
     }
 
-    return res.status(200).json({ success: true, savedLocally: true });
+    const errText = await wpRes.text().catch(() => "");
+    console.error("[Catalog] POST to WP failed: status=" + status + ", body: " + errText);
+    return res.status(200).json({
+      success: false,
+      error: `Failed to save catalog to WordPress (status ${status}): ${errText}`,
+    });
   } catch (err: any) {
     console.error("[Catalog] POST to catalog error:", err);
     return res.status(200).json({ success: false, error: err?.message || String(err) });
