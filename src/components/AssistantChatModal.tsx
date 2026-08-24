@@ -28,6 +28,10 @@ function renderFormattedMessage(text: string, onSelectProduct?: (productId: stri
       {lines.map((line, lineIdx) => {
         const trimmed = line.trim();
 
+        if (!trimmed) {
+          return <div key={lineIdx} className="h-1" />;
+        }
+
         // Check if line is a markdown image line e.g. ![thumbnail](url)
         const imgMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
         if (imgMatch) {
@@ -46,11 +50,11 @@ function renderFormattedMessage(text: string, onSelectProduct?: (productId: stri
           );
         }
 
-        // Check if line contains markdown link e.g. [View product](url)
-        const linkMatch = trimmed.match(/\[(.*?)\]\((.*?)\)/);
-        if (linkMatch && trimmed.startsWith('[')) {
-          const label = linkMatch[1];
-          const url = linkMatch[2];
+        // Check if line is solely a full-line link button e.g. [View product](url)
+        const fullLinkMatch = trimmed.match(/^\[(.*?)\]\((.*?)\)$/);
+        if (fullLinkMatch) {
+          const label = fullLinkMatch[1];
+          const url = fullLinkMatch[2];
           let productId = '';
           if (url.includes('product=')) {
             productId = url.split('product=')[1];
@@ -76,22 +80,53 @@ function renderFormattedMessage(text: string, onSelectProduct?: (productId: stri
           );
         }
 
-        // Parse bold text **[Product Name]** or **Text**
-        let formattedLine: React.ReactNode = trimmed;
-        if (trimmed.includes('**')) {
-          const parts = trimmed.split(/(\*\*.*?\*\*)/g);
-          formattedLine = parts.map((part, pIdx) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-              const content = part.slice(2, -2);
-              return <strong key={pIdx} className="font-bold text-white" style={{ fontSize: `${zoomLevel * 13}px` }}>{content}</strong>;
-            }
-            return part;
-          });
-        }
+        // Parse inline markdown links [text](url) and bold **text** in mid-line content
+        const tokens = trimmed.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*)/g);
+        const formattedLine = tokens.map((token, tokenIdx) => {
+          if (!token) return null;
 
-        if (!trimmed) {
-          return <div key={lineIdx} className="h-1" />;
-        }
+          // Check if token is a markdown link: [label](url)
+          const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+          if (linkMatch) {
+            const label = linkMatch[1];
+            const url = linkMatch[2];
+            let productId = '';
+            if (url.includes('product=')) {
+              productId = url.split('product=')[1];
+            }
+
+            return (
+              <a
+                key={tokenIdx}
+                href={url}
+                onClick={(e) => {
+                  if (productId && onSelectProduct) {
+                    e.preventDefault();
+                    onSelectProduct(productId);
+                  }
+                }}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#ff4d4d] hover:text-[#ff8080] underline font-semibold transition-colors cursor-pointer inline-flex items-center gap-0.5 mx-0.5"
+              >
+                {label}
+              </a>
+            );
+          }
+
+          // Check if token is bold: **content**
+          const boldMatch = token.match(/^\*\*([^*]+)\*\*$/);
+          if (boldMatch) {
+            const content = boldMatch[1];
+            return (
+              <strong key={tokenIdx} className="font-bold text-white" style={{ fontSize: `${zoomLevel * 13}px` }}>
+                {content}
+              </strong>
+            );
+          }
+
+          return token;
+        });
 
         return (
           <p key={lineIdx} className="leading-relaxed text-neutral-200">

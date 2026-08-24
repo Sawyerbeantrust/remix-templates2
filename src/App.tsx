@@ -27,6 +27,8 @@ import { normalizeCategorySlug, formatCategoryLabel } from './utils/categoryUtil
 import { stripHtml } from './utils/stripHtml';
 import { ShieldCheck, Calendar, PhoneCall, HelpCircle, ArrowRight, Download, Send, Coins, FileText, CheckCircle2, Award, Hammer, Sparkles, Building2, Eye, X, Settings, ChevronDown, ChevronUp, ZoomIn, Map, MapPin, ZoomOut, RotateCcw, Plus, Minus, Move, ArrowUp, MessageCircle, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, Bot, Heart } from 'lucide-react';
 
+const WHATSAPP_NUMBER = "27768252078";
+
 const normalizeProductCategory = (p: Product): Product => {
   let nameStr = p.name || '';
   let descStr = p.description || '';
@@ -1304,7 +1306,6 @@ export default function App() {
 
   // Prefilled WhatsApp link helper
   const getWhatsAppUrl = () => {
-    const phoneNumber = "27768252078"; // South Africa WhatsApp mobile number
     let text = "";
     
     if (quickViewProduct) {
@@ -1319,7 +1320,7 @@ export default function App() {
              `Page Link: ${window.location.href}`;
     }
     
-    return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
   };
 
   // Add to cart function - WooCommerce simulator
@@ -3278,7 +3279,7 @@ export default function App() {
           <button
             id="floating-compare-pill"
             onClick={() => setIsCompareOpen(true)}
-            className="hidden md:flex items-center gap-2.5 px-4 py-3 bg-[#111111] border-2 border-[#ff0000] text-white rounded-full shadow-2xl hover:bg-[#ff0000] transition-all duration-300 cursor-pointer group shrink-0"
+            className="flex items-center gap-2.5 px-4 py-3 bg-[#111111] border-2 border-[#ff0000] text-white rounded-full shadow-2xl hover:bg-[#ff0000] transition-all duration-300 cursor-pointer group shrink-0"
             title="Open Equipment Comparison Matrix"
           >
             <ArrowLeftRight size={18} className="text-[#ff0000] group-hover:text-white transition-colors" />
