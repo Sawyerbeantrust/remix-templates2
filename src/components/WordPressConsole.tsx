@@ -114,7 +114,14 @@ const normalizeProductCategory = (p: Product): Product => {
   };
 };
 
-export const PROJECT_ASSET_IMAGES = [
+export interface ProjectAssetImage {
+  path: string;
+  label: string;
+  category: string;
+  isCustom?: boolean;
+}
+
+export const PROJECT_ASSET_IMAGES: ProjectAssetImage[] = [
   { path: '/assets/images/car_lift_1.jpg', label: 'Car Lift 1 (Standard 2-Post)', category: 'car-lift' },
   { path: '/assets/images/car_lift_2.jpg', label: 'Car Lift 2 (Gantry Baseless)', category: 'car-lift' },
   { path: '/assets/images/car_lift_3.jpg', label: 'Car Lift 3 (4-Post/Storage)', category: 'car-lift' },
@@ -5502,8 +5509,8 @@ export default function WordPressConsole({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const updated = currentFeaturedCategories.map((c) =>
-                                      c.id === targetCat.id ? { ...c, status: 'publish' } : c
+                                    const updated: FeaturedCategory[] = currentFeaturedCategories.map((c) =>
+                                      c.id === targetCat.id ? { ...c, status: 'publish' as const } : c
                                     );
                                     updateFeaturedCategories(updated);
                                     setIsCatDetailsDirty(true);
@@ -5520,8 +5527,8 @@ export default function WordPressConsole({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const updated = currentFeaturedCategories.map((c) =>
-                                      c.id === targetCat.id ? { ...c, status: 'draft' } : c
+                                    const updated: FeaturedCategory[] = currentFeaturedCategories.map((c) =>
+                                      c.id === targetCat.id ? { ...c, status: 'draft' as const } : c
                                     );
                                     updateFeaturedCategories(updated);
                                     setIsCatDetailsDirty(true);
@@ -9374,7 +9381,7 @@ export default function WordPressConsole({
                               <button
                                 type="button"
                                 disabled={isGeneratingProductSeo}
-                                onClick={handleGenerateProductSeo}
+                                onClick={() => handleGenerateProductSeo()}
                                 className="px-3.5 py-1.5 bg-yellow-500 hover:bg-yellow-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-black font-sans font-extrabold text-[10px] uppercase rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                               >
                                 {isGeneratingProductSeo ? (

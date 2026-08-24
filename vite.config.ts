@@ -18,14 +18,6 @@ export default defineConfig(() => {
       fs: {
         allow: ['..'],
       },
-      // ADD THIS PROXY BLOCK to fix the /assets/images path
-      proxy: {
-        '/assets/images': {
-          target: 'http://localhost:5173',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/assets\/images/, '/images'),
-        },
-      },
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: {
         usePolling: process.env.DISABLE_HMR === 'true' ? true : false,

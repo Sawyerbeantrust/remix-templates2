@@ -18,6 +18,7 @@ export interface Product {
   seoTitle?: string;
   seoDescription?: string;
   seoFocusKeyword?: string;
+  seoScore?: number;
   badgeType?: 'instock' | 'backorder' | 'leadtime_24_48' | 'leadtime_custom';
   leadTimeValue?: string;
   rawCategoryName?: string;
