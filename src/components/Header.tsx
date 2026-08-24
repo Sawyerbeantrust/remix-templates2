@@ -143,7 +143,7 @@ export default function Header({
               onClick={() => onThemeChange?.(theme === 'inospace' ? 'triton' : 'inospace')}
               className="flex items-center bg-[#111111] hover:bg-neutral-800 border border-neutral-800 rounded px-2.5 py-0.5 select-none cursor-pointer transition-colors" 
               id="theme-switcher"
-              title={`Active Theme: ${theme === 'inospace' ? 'Inospace' : 'Triton'} (Click to switch)`}
+              title="Switch showroom theme"
             >
               <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
                 <div className={`w-1.5 h-1.5 rounded-full ${theme === 'inospace' ? 'bg-[#e31b23] animate-pulse' : 'bg-[#1e3a5f] animate-pulse'}`} />

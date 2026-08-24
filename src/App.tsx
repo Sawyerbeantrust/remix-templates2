@@ -651,7 +651,10 @@ export default function App() {
     safeLocalStorage.setItem('cape_town_equipment_lang', lang);
   };
 
-  const [theme, setTheme] = useState<'triton' | 'inospace'>('inospace');
+  const [theme, setTheme] = useState<'triton' | 'inospace'>(() => {
+    const saved = safeLocalStorage.getItem('cape_town_equipment_theme');
+    return (saved === 'triton' || saved === 'inospace') ? saved : 'inospace';
+  });
 
   const handleThemeChange = (newTheme: 'triton' | 'inospace') => {
     setTheme(newTheme);
@@ -3274,19 +3277,22 @@ export default function App() {
       />
 
       {/* Floating Bottom Action Bar (Centered Inline) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 max-w-[95vw]">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 sm:gap-3 max-w-[95vw]">
         {currentView === 'store' && (
           <button
             id="floating-compare-pill"
             onClick={() => setIsCompareOpen(true)}
-            className="flex items-center gap-2.5 px-4 py-3 bg-[#111111] border-2 border-[#ff0000] text-white rounded-full shadow-2xl hover:bg-[#ff0000] transition-all duration-300 cursor-pointer group shrink-0"
+            className="flex items-center gap-2 md:gap-2.5 px-3 md:px-4 py-3 bg-[#111111] border-2 border-[#ff0000] text-white rounded-full shadow-2xl hover:bg-[#ff0000] transition-all duration-300 cursor-pointer group shrink-0"
             title="Open Equipment Comparison Matrix"
           >
             <ArrowLeftRight size={18} className="text-[#ff0000] group-hover:text-white transition-colors" />
-            <span className="text-xs font-bold uppercase tracking-wider font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider font-sans hidden md:inline">
               {language === 'af' ? 'Vergelyk Matriks' : 'Compare Matrix'} ({compareList.length})
             </span>
-            <span className="w-2 h-2 rounded-full bg-[#ff0000] group-hover:bg-white animate-ping" />
+            <span className="flex items-center justify-center px-1.5 py-0.5 text-[10px] font-black bg-[#ff0000] group-hover:bg-white text-white group-hover:text-[#ff0000] rounded-full md:hidden">
+              {compareList.length}
+            </span>
+            <span className="w-2 h-2 rounded-full bg-[#ff0000] group-hover:bg-white animate-ping hidden md:inline-block" />
           </button>
         )}
 
