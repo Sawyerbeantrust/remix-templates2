@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Maximize2, Minimize2, Image as ImageIcon } from 'lucide-react';
 import { useResolvedImage } from '../hooks/useResolvedImage';
-import { getFilenameFromPath, DEFAULT_FALLBACK_IMAGE } from '../utils/imageFallback';
+import { getFilenameFromPath, DEFAULT_FALLBACK_IMAGE, IMAGE_MAP } from '../utils/imageFallback';
 
 interface ResponsiveImageProps {
   src: string;
@@ -139,6 +139,14 @@ export default function ResponsiveImage({
         setFallbackStep(2);
         setCurrentSrc(`/images/${filename}`);
         return;
+      }
+      if (fallbackStep === 2) {
+        setFallbackStep(3);
+        const mapped = IMAGE_MAP[filename];
+        if (mapped && mapped !== currentSrc) {
+          setCurrentSrc(mapped);
+          return;
+        }
       }
     }
 
