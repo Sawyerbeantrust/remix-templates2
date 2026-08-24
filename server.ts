@@ -9,19 +9,44 @@ dotenv.config();
 
 const WP_BASE_URL = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za").replace(/\/+$/, "");
 
+function extractCleanError(status: number, rawText: string): string {
+  if (!rawText) return `HTTP ${status}`;
+  if (rawText.includes("<title>Just a moment...</title>") || rawText.includes("challenges.cloudflare.com") || rawText.includes("cf-chl")) {
+    return `Cloudflare security challenge (HTTP ${status}). Ensure CF_BYPASS_SECRET is set in environment and configured in Cloudflare WAF.`;
+  }
+  if (rawText.startsWith("<!DOCTYPE") || rawText.startsWith("<html")) {
+    const titleMatch = rawText.match(/<title>([^<]*)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+      return `WordPress returned HTML error (HTTP ${status}): ${titleMatch[1].trim()}`;
+    }
+    return `WordPress returned HTML page (HTTP ${status})`;
+  }
+  return rawText.slice(0, 300);
+}
+
 function getWpHeaders(extra?: Record<string, string>): Record<string, string> {
   const user = (process.env.WP_APP_USER || "").trim();
   const pass = (process.env.WP_APP_PASSWORD || "").trim();
   const auth = "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
   const migrateKey = (process.env.WP_MIGRATE_KEY || "TritonMigrate2026").trim();
+  const cfBypassSecret = (process.env.CF_BYPASS_SECRET || process.env.VERCEL_SECRET || "").trim();
 
-  return {
+  const headers: Record<string, string> = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "application/json, text/plain, */*",
     "Authorization": auth,
     "X-Triton-Key": migrateKey,
     ...extra,
   };
+
+  if (process.env.CF_BYPASS_SECRET) {
+    headers["X-CF-Bypass-Secret"] = process.env.CF_BYPASS_SECRET;
+  }
+  if (cfBypassSecret && !headers["X-Vercel-Secret"]) {
+    headers["X-Vercel-Secret"] = cfBypassSecret;
+  }
+
+  return headers;
 }
 
 const app = express();
@@ -119,10 +144,11 @@ app.post("/api/upload-image", async (req, res) => {
 
     if (!wpRes.ok) {
       const errText = await wpRes.text().catch(() => "");
-      console.error("[Upload Image] WP upload failed:", wpRes.status, errText);
+      const cleanErr = extractCleanError(wpRes.status, errText);
+      console.warn(`[Upload Image] WP upload status: ${wpRes.status} - ${cleanErr}`);
       return res.status(200).json({
         success: false,
-        error: `WordPress media upload failed (${wpRes.status}): ${errText}`,
+        error: cleanErr,
       });
     }
 
@@ -135,7 +161,7 @@ app.post("/api/upload-image", async (req, res) => {
       id: json.id,
     });
   } catch (error: any) {
-    console.error("[Upload Image] Error:", error?.message || error);
+    console.warn("[Upload Image] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error) });
   }
 });
@@ -169,10 +195,11 @@ app.post("/api/save-category-image", async (req, res) => {
 
     if (!wpRes.ok) {
       const errText = await wpRes.text().catch(() => "");
-      console.error("[Category Image] WP upload failed:", wpRes.status, errText);
+      const cleanErr = extractCleanError(wpRes.status, errText);
+      console.warn(`[Category Image] WP upload status: ${wpRes.status} - ${cleanErr}`);
       return res.status(200).json({
         success: false,
-        error: `WordPress category image upload failed (${wpRes.status}): ${errText}`,
+        error: cleanErr,
       });
     }
 
@@ -185,7 +212,7 @@ app.post("/api/save-category-image", async (req, res) => {
       id: json.id,
     });
   } catch (error: any) {
-    console.error("[Category Image] Error:", error?.message || error);
+    console.warn("[Category Image] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error) });
   }
 });
@@ -201,15 +228,16 @@ app.get("/api/list-images", async (req, res) => {
 
     if (!wpRes.ok) {
       const errText = await wpRes.text().catch(() => "");
-      console.error("[List Images] WP list failed:", wpRes.status, errText);
+      const cleanErr = extractCleanError(wpRes.status, errText);
+      console.warn(`[List Images] WP media list status ${wpRes.status} (${cleanErr}) - returning fallback empty list`);
       return res.status(200).json({
-        success: false,
-        error: `WordPress list media failed (${wpRes.status}): ${errText}`,
+        success: true,
         images: [],
+        note: cleanErr,
       });
     }
 
-    const items = await wpRes.json();
+    const items = await wpRes.json().catch(() => []);
     if (!Array.isArray(items)) {
       return res.status(200).json({ success: true, images: [] });
     }
@@ -225,8 +253,8 @@ app.get("/api/list-images", async (req, res) => {
 
     return res.status(200).json({ success: true, images });
   } catch (error: any) {
-    console.error("[List Images] Error:", error?.message || error);
-    return res.status(200).json({ success: false, error: error?.message || String(error), images: [] });
+    console.warn("[List Images] Error:", error?.message || error);
+    return res.status(200).json({ success: true, images: [], error: error?.message || String(error) });
   }
 });
 
@@ -245,10 +273,11 @@ app.post("/api/delete-image", async (req, res) => {
       });
       if (!delRes.ok) {
         const errText = await delRes.text().catch(() => "");
-        console.error("[Delete Image] WP delete failed:", delRes.status, errText);
+        const cleanErr = extractCleanError(delRes.status, errText);
+        console.warn(`[Delete Image] WP delete status: ${delRes.status} - ${cleanErr}`);
         return res.status(200).json({
           success: false,
-          error: `WordPress delete media failed (${delRes.status}): ${errText}`,
+          error: cleanErr,
         });
       }
       return res.status(200).json({ success: true });
@@ -277,9 +306,10 @@ app.post("/api/delete-image", async (req, res) => {
             });
             if (!delRes.ok) {
               const errText = await delRes.text().catch(() => "");
+              const cleanErr = extractCleanError(delRes.status, errText);
               return res.status(200).json({
                 success: false,
-                error: `WordPress delete media failed (${delRes.status}): ${errText}`,
+                error: cleanErr,
               });
             }
             return res.status(200).json({ success: true });
@@ -290,7 +320,7 @@ app.post("/api/delete-image", async (req, res) => {
 
     return res.status(200).json({ success: true });
   } catch (error: any) {
-    console.error("[Delete Image] Error:", error?.message || error);
+    console.warn("[Delete Image] Error:", error?.message || error);
     return res.status(200).json({ success: false, error: error?.message || String(error) });
   }
 });
@@ -341,29 +371,37 @@ app.post("/api/catalog", async (req, res) => {
       payload.categoriesList = DEFAULT_CATEGORIES_LIST;
     }
 
+    const extraHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const incomingSecret = (req.headers["x-cf-bypass-secret"] as string) || (req.headers["x-vercel-secret"] as string) || (req.headers["cf-bypass-secret"] as string);
+    if (incomingSecret) {
+      extraHeaders["X-CF-Bypass-Secret"] = incomingSecret;
+      extraHeaders["X-Vercel-Secret"] = incomingSecret;
+    }
+
     const wpRes = await fetch(endpoint, {
       method: "POST",
-      headers: getWpHeaders({
-        "Content-Type": "application/json",
-      }),
+      headers: getWpHeaders(extraHeaders),
       body: JSON.stringify(payload),
     });
 
     const status = wpRes.status;
-    console.log("[Catalog] POST to WP status:", status);
 
     if (wpRes.ok) {
+      console.log("[Catalog] POST to WP success: status=" + status);
       return res.status(200).json({ success: true });
     }
 
     const errText = await wpRes.text().catch(() => "");
-    console.error("[Catalog] POST to WP failed: status=" + status + ", body: " + errText);
+    const cleanErr = extractCleanError(status, errText);
+    console.warn(`[Catalog] POST to WP returned status ${status}: ${cleanErr}`);
     return res.status(200).json({
       success: false,
-      error: `Failed to save catalog to WordPress (status ${status}): ${errText}`,
+      error: `WordPress catalog update (${status}): ${cleanErr}`,
     });
   } catch (err: any) {
-    console.error("[Catalog] POST to catalog error:", err);
+    console.warn("[Catalog] POST to catalog error:", err?.message || err);
     return res.status(200).json({ success: false, error: err?.message || String(err) });
   }
 });

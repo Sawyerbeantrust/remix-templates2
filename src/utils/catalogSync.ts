@@ -35,9 +35,15 @@ export async function syncCatalogToServer(
 ): Promise<boolean> {
   try {
     const catsList = categoriesList && categoriesList.length > 0 ? categoriesList : getStoredCategoriesList();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
+    if (cfSecret) {
+      headers['X-Vercel-Secret'] = cfSecret;
+    }
+
     const response = await fetch('/api/catalog', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         products,
         featuredCategories,

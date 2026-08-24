@@ -383,9 +383,15 @@ export default function App() {
           if (hasLegacyAssets) {
             console.log('[Catalog Migration] Detected legacy /images/ paths. Auto-corrected to /src/assets/images/ and syncing to /api/catalog...');
             try {
+              const migrationHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+              const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
+              if (cfSecret) {
+                migrationHeaders['X-Vercel-Secret'] = cfSecret;
+              }
+
               await fetch('/api/catalog', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: migrationHeaders,
                 body: JSON.stringify({
                   products: correctedProds,
                   featuredCategories: correctedCats,
@@ -428,9 +434,15 @@ export default function App() {
         safeLocalStorage.setItem('triton_products_db', JSON.stringify(products));
         safeLocalStorage.setItem('triton_featured_categories_db_v3', JSON.stringify(featuredCategories));
 
+        const catalogHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+        const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
+        if (cfSecret) {
+          catalogHeaders['X-Vercel-Secret'] = cfSecret;
+        }
+
         const response = await fetch('/api/catalog', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: catalogHeaders,
           body: JSON.stringify({
             products,
             featuredCategories
