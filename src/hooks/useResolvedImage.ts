@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const CATEGORY_PLACEHOLDER = '/assets/images/spray_booth_1.jpg';
+const CATEGORY_PLACEHOLDER = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600';
 
 export function normalizeImageKey(urlOrKey: string): string {
   if (!urlOrKey || typeof urlOrKey !== 'string') return urlOrKey;

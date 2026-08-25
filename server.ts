@@ -76,25 +76,28 @@ async function fetchWpSafe(url: string, options: RequestInit = {}, timeoutMs = 5
 
 function getWpHeaders(extra?: Record<string, string>): Record<string, string> {
   const user = (process.env.WP_APP_USER || "").trim();
-  const pass = (process.env.WP_APP_PASSWORD || "").trim();
+  const pass = (process.env.WP_APP_PASSWORD || "").replace(/\s+/g, "").trim();
   const token = (process.env.WP_AUTH_TOKEN || "").trim();
-  const auth = token
-    ? (token.startsWith("Bearer ") ? token : `Bearer ${token}`)
-    : (user || pass ? "Basic " + Buffer.from(`${user}:${pass}`).toString("base64") : "");
-  const migrateKey = (process.env.WP_MIGRATE_KEY || "TritonMigrate2026").trim();
+
+  let auth = "";
+  if (user || pass) {
+    auth = "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+  } else if (token) {
+    auth = token.startsWith("Bearer ") || token.startsWith("Basic ") ? token : `Basic ${token}`;
+  } else {
+    auth = "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+  }
+
   const cfBypassSecret = (process.env.CF_BYPASS_SECRET || process.env.VERCEL_SECRET || "").trim();
   const userAgent = (process.env.WP_USER_AGENT || "TritonShowroomSync/2.0 (sync@car-lifts.co.za)").trim();
 
   const headers: Record<string, string> = {
     "User-Agent": userAgent,
     "Accept": "application/json, text/plain, */*",
-    "X-Triton-Key": migrateKey,
+    "Authorization": auth,
+    "X-Triton-Key": "TritonMigrate2026",
     ...extra,
   };
-
-  if (auth) {
-    headers["Authorization"] = auth;
-  }
 
   if (process.env.CF_BYPASS_SECRET) {
     headers["X-CF-Bypass-Secret"] = process.env.CF_BYPASS_SECRET;
@@ -122,20 +125,20 @@ app.use("/images", express.static(path.join(process.cwd(), "public", "images")))
 app.use("/images", express.static(path.join(process.cwd(), "src", "assets", "images")));
 
 const DEFAULT_FEATURED_CATEGORIES = [
-  { id: "cat-auto-spray", name: "AUTOMOTIVE SPRAY BOOTHS", count: "12 Products", img: "/assets/images/spray_booth_1.jpg" },
-  { id: "cat-car-lifts", name: "CAR LIFTS", count: "8 Products", img: "/assets/images/car_lift_1.jpg" },
-  { id: "cat-mig-welders", name: "MIG WELDERS DIRECT", count: "15 Products", img: "/assets/images/welding_2.jpg" },
-  { id: "cat-infrared-heaters", name: "BUDGET INFRARED HEATERS", count: "4 Products", img: "/assets/images/workshop_tools_1.jpg" },
-  { id: "cat-bus-spray-booths", name: "BUS SPRAY BOOTHS", count: "3 Products", img: "/assets/images/spray_booth_2.jpg" },
-  { id: "cat-chassis-straightener", name: "CHASSIS STRAIGHTENER", count: "2 Products", img: "/assets/images/workshop_tools_2.jpg" },
-  { id: "cat-filter-media", name: "FILTER MEDIA", count: "10 Products", img: "/assets/images/filters_1.jpg" },
-  { id: "cat-telescopic-ladders", name: "TELESCOPIC LADDERS", count: "5 Products", img: "/assets/images/ladder_1.jpg" },
-  { id: "cat-sa-parking-lifts", name: "S A PARKING STORAGE LIFTS", count: "6 Products", img: "/assets/images/car_lift_3.jpg" },
-  { id: "cat-20-ton-bus-lifts", name: "20 TON BUS LIFTS", count: "2 Products", img: "/assets/images/car_lift_4.jpg" },
-  { id: "cat-triton", name: "TRITON", count: "20 Products", img: "/assets/images/car_lift_2.jpg" },
-  { id: "cat-hydraulic-oil", name: "HYDRAULIC OIL 46GR 10 LITRES", count: "1 Product", img: "/assets/images/workshop_tools_2.jpg" },
-  { id: "cat-forklift-ramps", name: "FORKLIFT LOADING RAMPS", count: "3 Products", img: "/assets/images/car_lift_5.jpg" },
-  { id: "cat-parking-lifts", name: "PARKING LIFTS", count: "5 Products", img: "/assets/images/car_lift_3.jpg" }
+  { id: "cat-auto-spray", name: "AUTOMOTIVE SPRAY BOOTHS", count: "12 Products", img: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-car-lifts", name: "CAR LIFTS", count: "8 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-mig-welders", name: "MIG WELDERS DIRECT", count: "15 Products", img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-infrared-heaters", name: "BUDGET INFRARED HEATERS", count: "4 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-bus-spray-booths", name: "BUS SPRAY BOOTHS", count: "3 Products", img: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-chassis-straightener", name: "CHASSIS STRAIGHTENER", count: "2 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-filter-media", name: "FILTER MEDIA", count: "10 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-telescopic-ladders", name: "TELESCOPIC LADDERS", count: "5 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-sa-parking-lifts", name: "S A PARKING STORAGE LIFTS", count: "6 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-20-ton-bus-lifts", name: "20 TON BUS LIFTS", count: "2 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-triton", name: "TRITON", count: "20 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-hydraulic-oil", name: "HYDRAULIC OIL 46GR 10 LITRES", count: "1 Product", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-forklift-ramps", name: "FORKLIFT LOADING RAMPS", count: "3 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-parking-lifts", name: "PARKING LIFTS", count: "5 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" }
 ];
 
 const DEFAULT_CATEGORIES_LIST = [
@@ -206,6 +209,11 @@ async function uploadBufferToWordPress(buffer: Buffer, originalName: string, con
     }),
     body: buffer,
   }, 15000);
+
+  console.log("[Upload] WP response:", wpRes.status);
+  if (wpRes.status === 401) {
+    console.log("[Upload] WP response body (401):", wpRes.text || wpRes.data || wpRes.error);
+  }
 
   if (wpRes.ok && (wpRes.status === 200 || wpRes.status === 201) && wpRes.data) {
     const wpJson = wpRes.data;
@@ -1718,7 +1726,7 @@ function generateLocalAssistantResponse(message: string, history: any[] = []) {
       const firstSpecKey = Object.keys(p.specifications || {})[0];
       const keySpec = firstSpecKey ? `${firstSpecKey}: ${p.specifications[firstSpecKey]}` : (p.modelCode || p.category);
       const priceStr = `R ${p.price.toLocaleString("en-ZA")}`;
-      const imgUrl = p.image || "/assets/images/welding_helmet.jpg";
+      const imgUrl = p.image || "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600";
       const pUrl = `https://car-lifts.co.za/?product=${p.id}`;
 
       return `**${p.name}**\n![thumbnail](${imgUrl})\n${priceStr} | ${keySpec}\n[View product](${pUrl})`;
@@ -1757,7 +1765,7 @@ async function handleAssistantChat(req: express.Request, res: express.Response) 
           modelCode: p.modelCode,
           category: p.category,
           price: `R ${p.price.toLocaleString("en-ZA")}`,
-          thumbnailUrl: p.image || "/assets/images/welding_helmet.jpg",
+          thumbnailUrl: p.image || "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
           productUrl: `https://car-lifts.co.za/?product=${p.id}`,
           oneLineKeySpec: keySpec,
           description: p.description,

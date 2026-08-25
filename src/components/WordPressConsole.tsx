@@ -125,46 +125,27 @@ export interface ProjectAssetImage {
 }
 
 export const PROJECT_ASSET_IMAGES: ProjectAssetImage[] = [
-  { path: '/assets/images/car_lift_1.jpg', label: 'Car Lift 1 (Standard 2-Post)', category: 'car-lift' },
-  { path: '/assets/images/car_lift_2.jpg', label: 'Car Lift 2 (Gantry Baseless)', category: 'car-lift' },
-  { path: '/assets/images/car_lift_3.jpg', label: 'Car Lift 3 (4-Post/Storage)', category: 'car-lift' },
-  { path: '/assets/images/car_lift_4.jpg', label: 'Car Lift 4 (Heavy Bus Columns)', category: 'car-lift' },
-  { path: '/assets/images/car_lift_5.jpg', label: 'Car Lift 5 (Mid-Rise Scissor)', category: 'car-lift' },
-  { path: '/assets/images/two_post_car_lift_1781792717809.jpg', label: 'Triton 2-Post Premium Lift', category: 'car-lift' },
   { path: '/assets/images/modern_workshop_car_lift_1780988724101.png', label: 'Modern Workshop Car Lift Scene', category: 'car-lift' },
-  { path: '/assets/images/spray_booth_1.jpg', label: 'Spray Booth 1 (Commercial Downdraft)', category: 'spray-booth' },
-  { path: '/assets/images/spray_booth_2.jpg', label: 'Spray Booth 2 (Aviation Prep)', category: 'spray-booth' },
-  { path: '/assets/images/spray_booth_3.jpg', label: 'Spray Booth 3 (Open Face Industrial)', category: 'spray-booth' },
-  { path: '/assets/images/spray_booth_4.jpg', label: 'Spray Booth 4 (High-Volume Extraction)', category: 'spray-booth' },
-  { path: '/assets/images/wheel_care_1.jpg', label: 'Wheel Care 1 (Heavy Duty Balancer)', category: 'wheel-care' },
-  { path: '/assets/images/wheel_care_2.jpg', label: 'Wheel Care 2 (Automatic Changer)', category: 'wheel-care' },
-  { path: '/assets/images/welding_1.jpg', label: 'Welding 1 (MIG Machine)', category: 'welder' },
-  { path: '/assets/images/welding_2.jpg', label: 'Welding 2 (TIG Inverter)', category: 'welder' },
-  { path: '/assets/images/welding_3.jpg', label: 'Welding 3 (Plasma Cutter)', category: 'welder' },
-  { path: '/assets/images/welding_helmet.jpg', label: 'Welding Helmet (Auto-Darkening)', category: 'welder' },
-  { path: '/assets/images/filters_1.jpg', label: 'Filters 1 (Carbon Air Extraction)', category: 'workshop-equipment' },
-  { path: '/assets/images/ladder_1.jpg', label: 'Ladder 1 (Aluminum Telescopic)', category: 'workshop-equipment' },
-  { path: '/assets/images/protective_clothing.jpg', label: 'Protective Clothing (Hazmat Paint Suit)', category: 'workshop-equipment' },
-  { path: '/assets/images/workshop_tools_1.jpg', label: 'Workshop Tools 1 (Tool Chest)', category: 'workshop-equipment' },
-  { path: '/assets/images/workshop_tools_2.jpg', label: 'Workshop Tools 2 (Pneumatic Wrench)', category: 'workshop-equipment' },
-  { path: '/assets/images/killarney_gardens_map_1781354004848.jpg', label: 'Killarney Gardens Workshop Map', category: 'workshop-equipment' }
+  { path: '/assets/images/killarney_gardens_map_1781354004848.jpg', label: 'Killarney Gardens Workshop Map', category: 'workshop-equipment' },
+  { path: '/assets/images/garage_equipment_hero_1783937551956.jpg', label: 'Triton Garage Equipment Hero', category: 'workshop-equipment' },
+  { path: '/assets/images/garage_equipment_welder_hero_1783939957746.jpg', label: 'Triton Welder Hero Showcase', category: 'welder' },
 ];
 
 export const DEFAULT_FEATURED_CATEGORIES: FeaturedCategory[] = [
-  { id: "cat-auto-spray", name: "AUTOMOTIVE SPRAY BOOTHS", count: "12 Products", img: "/assets/images/spray_booth_1.jpg" },
-  { id: "cat-car-lifts", name: "CAR LIFTS", count: "8 Products", img: "/assets/images/car_lift_1.jpg" },
-  { id: "cat-mig-welders", name: "MIG WELDERS DIRECT", count: "15 Products", img: "/assets/images/welding_2.jpg" },
-  { id: "cat-infrared-heaters", name: "BUDGET INFRARED HEATERS", count: "4 Products", img: "/assets/images/workshop_tools_1.jpg" },
-  { id: "cat-bus-spray-booths", name: "BUS SPRAY BOOTHS", count: "3 Products", img: "/assets/images/spray_booth_2.jpg" },
-  { id: "cat-chassis-straightener", name: "CHASSIS STRAIGHTENER", count: "2 Products", img: "/assets/images/workshop_tools_2.jpg" },
-  { id: "cat-filter-media", name: "FILTER MEDIA", count: "10 Products", img: "/assets/images/filters_1.jpg" },
-  { id: "cat-telescopic-ladders", name: "TELESCOPIC LADDERS", count: "5 Products", img: "/assets/images/ladder_1.jpg" },
-  { id: "cat-sa-parking-lifts", name: "S A PARKING STORAGE LIFTS", count: "6 Products", img: "/assets/images/car_lift_3.jpg" },
-  { id: "cat-20-ton-bus-lifts", name: "20 TON BUS LIFTS", count: "2 Products", img: "/assets/images/car_lift_4.jpg" },
-  { id: "cat-triton", name: "TRITON", count: "20 Products", img: "/assets/images/car_lift_2.jpg" },
-  { id: "cat-hydraulic-oil", name: "HYDRAULIC OIL 46GR 10 LITRES", count: "1 Product", img: "/assets/images/workshop_tools_2.jpg" },
-  { id: "cat-forklift-ramps", name: "FORKLIFT LOADING RAMPS", count: "3 Products", img: "/assets/images/car_lift_5.jpg" },
-  { id: "cat-parking-lifts", name: "PARKING LIFTS", count: "5 Products", img: "/assets/images/car_lift_3.jpg" }
+  { id: "cat-auto-spray", name: "AUTOMOTIVE SPRAY BOOTHS", count: "12 Products", img: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-car-lifts", name: "CAR LIFTS", count: "8 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-mig-welders", name: "MIG WELDERS DIRECT", count: "15 Products", img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-infrared-heaters", name: "BUDGET INFRARED HEATERS", count: "4 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-bus-spray-booths", name: "BUS SPRAY BOOTHS", count: "3 Products", img: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-chassis-straightener", name: "CHASSIS STRAIGHTENER", count: "2 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-filter-media", name: "FILTER MEDIA", count: "10 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-telescopic-ladders", name: "TELESCOPIC LADDERS", count: "5 Products", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-sa-parking-lifts", name: "S A PARKING STORAGE LIFTS", count: "6 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-20-ton-bus-lifts", name: "20 TON BUS LIFTS", count: "2 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-triton", name: "TRITON", count: "20 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-hydraulic-oil", name: "HYDRAULIC OIL 46GR 10 LITRES", count: "1 Product", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-forklift-ramps", name: "FORKLIFT LOADING RAMPS", count: "3 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" },
+  { id: "cat-parking-lifts", name: "PARKING LIFTS", count: "5 Products", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600" }
 ];
 
 export const normalizeCategoryImagePath = (img?: string): string => {
@@ -1604,13 +1585,13 @@ export default function WordPressConsole({
       let img = slugToImageMap[slug];
       if (!img) {
         if (slug === 'spray-booth') {
-          img = "/assets/images/spray_booth_1.jpg";
+          img = "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600";
         } else if (slug === 'car-lift') {
-          img = "/assets/images/car_lift_1.jpg";
+          img = "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600";
         } else if (slug === 'wheel-care') {
-          img = "/assets/images/workshop_tools_1.jpg";
+          img = "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600";
         } else {
-          img = "/assets/images/car_lift_1.jpg";
+          img = "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600";
         }
       }
 

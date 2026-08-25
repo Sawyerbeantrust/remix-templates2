@@ -8,12 +8,12 @@ export const PRODUCTS: Product[] = [
     description: "Automatically changes from standard light state to shade dark state DIN 9 - 13 when an arc is struck. Features absolute high UV/IR filtering to protect eyes completely.",
     category: "workshop-equipment",
     price: 478,
-    image: "/assets/images/welding_helmet.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_helmet.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_3.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Shades Scope": "DIN 9 - DIN 13 manually variable",
@@ -37,12 +37,12 @@ export const PRODUCTS: Product[] = [
     description: "MIG/MAG/MMA/TIG 3-in-1 DC inverter welding machine. Fully compatible with gas and gasless flux cored applications, designed for workshops and locksmiths demanding versatile output.",
     category: "workshop-equipment",
     price: 4995,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting / Amperage": "20 to 200A (MIG) / 20 to 160A (Electrodes)",
@@ -66,12 +66,12 @@ export const PRODUCTS: Product[] = [
     description: "Universal replacement MIG welding gun compatible with Mig 175 and Mig 195 wire feed units. Durable manual feed trigger holds absolute continuous wire and gas flow.",
     category: "workshop-equipment",
     price: 517,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Total Length": "2.0 Meters (6.5 ft)",
@@ -94,12 +94,12 @@ export const PRODUCTS: Product[] = [
     description: "Single phase flux wire and gas-shielded dual welder. Ideal for auto body panels, hobbyists, and compact workshops requiring clean welds on thin steel materials.",
     category: "workshop-equipment",
     price: 3126,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Input Voltage": "230 V Single phase",
@@ -123,12 +123,12 @@ export const PRODUCTS: Product[] = [
     description: "Premium self-shielded mild steel flux cored wire. Eliminates the need for external shield gas tanks, producing gorgeous vertical-up and lap welds with absolute wind resistance.",
     category: "workshop-equipment",
     price: 226,
-    image: "/assets/images/welding_1.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Wire Diameter": "0.9 mm single spool",
@@ -151,12 +151,12 @@ export const PRODUCTS: Product[] = [
     description: "Copper-coated solid mild steel wire for general purpose workshop welding. Requires external Carbon Dioxide (CO2) or Argon-based shield gases to produce neat high-strength joins.",
     category: "workshop-equipment",
     price: 250,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Wire Diameter": "0.8 mm",
@@ -179,12 +179,12 @@ export const PRODUCTS: Product[] = [
     description: "Stiff general-purpose aluminium alloy filler wire. Provides superior shear strength and exceptional seawater corrosion immunity, ideal for marine hulls and structural aluminum repairs.",
     category: "workshop-equipment",
     price: 469,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Wire Gauge": "1.0 mm thickness",
@@ -207,12 +207,12 @@ export const PRODUCTS: Product[] = [
     description: "Remote amperage and current control pedal for heavy-duty TIG welding machines. Anti-slip rubber foot pad provides reliable tactile response during critical welds.",
     category: "workshop-equipment",
     price: 1495,
-    image: "/assets/images/welding_3.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Weight": "2.6 kg",
@@ -235,12 +235,12 @@ export const PRODUCTS: Product[] = [
     description: "Fully professional AC/DC high-frequency TIG and stick inverter welder. Pure square wave generation enables exceptional, scale-free welds on structural aluminum, stainless steel, and mild steel.",
     category: "workshop-equipment",
     price: 11200,
-    image: "/assets/images/welding_3.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Output Amperage": "5 to 200 Amps adjustable",
@@ -264,12 +264,12 @@ export const PRODUCTS: Product[] = [
     description: "Medical and workshop high-precision infrared digital thermometer. Delivers rapid, accurate surface and body temperature scans within 1 second without physical contact.",
     category: "workshop-equipment",
     price: 590,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Scan Distance": "3 to 5 cm non-contact spacing template",
@@ -293,12 +293,12 @@ export const PRODUCTS: Product[] = [
     description: "Replacement high-durability conical gas shrouds and nozzles for MB15 and standard MIG guns. Restricts ambient air infiltration to achieve highly uniform shielding around raw pools.",
     category: "workshop-equipment",
     price: 59,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Type": "Conical gas shield cups",
@@ -321,12 +321,12 @@ export const PRODUCTS: Product[] = [
     description: "High-strength anodized aluminum collapsible ladder. Compact design collapses down to 68cm, making it incredibly easy to transport in small passenger vehicle boots.",
     category: "workshop-equipment",
     price: 1340,
-    image: "/assets/images/ladder_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/ladder_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Max Height": "2.6 Meters fully extended",
@@ -350,12 +350,12 @@ export const PRODUCTS: Product[] = [
     description: "Medium extension collapsible telescopic ladder. Made of sturdy aluminum, highly portable, retracts to a compact 73cm for easy transport.",
     category: "workshop-equipment",
     price: 1550,
-    image: "/assets/images/ladder_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/ladder_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Max Height": "3.2 Meters fully extended",
@@ -380,12 +380,12 @@ export const PRODUCTS: Product[] = [
     description: "Prestige tall telescoping extension ladder reaching 3.8 meters. Features rigid locks, extra-wide stabilizing feet, and lightweight aircraft-grade aluminum profile.",
     category: "workshop-equipment",
     price: 1750,
-    image: "/assets/images/ladder_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/ladder_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Extended Span": "3.8 Meters max reach",
@@ -409,12 +409,12 @@ export const PRODUCTS: Product[] = [
     description: "Highly space-efficient vertical parking lift designed to double residential garage limits. Supports intermediate leg sharing columns to install high-density multi-car setups.",
     category: "car-lift",
     price: 28500,
-    image: "/assets/images/car_lift_1.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Payload": "2700 kg (2.7 Tons) rating",
@@ -438,12 +438,12 @@ export const PRODUCTS: Product[] = [
     description: "Revolutionary angular tilting design custom-built for garages with restricted 3.0m ceiling limits. Parks two luxury sedans by tilting the top vehicle.",
     category: "car-lift",
     price: 29900,
-    image: "/assets/images/car_lift_1.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Weight Capacity": "2000 kg designed for sedans",
@@ -467,12 +467,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy duty 4-post parking station capable of lifting broad SUVs, pickups, and work vans. Self-standing structure does not require active floor anchor bolting.",
     category: "car-lift",
     price: 61800,
-    image: "/assets/images/car_lift_3.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Rated Lifting": "3600 kg certified capacity",
@@ -496,12 +496,12 @@ export const PRODUCTS: Product[] = [
     description: "Unbeatable price-to-performance spray booth matching budget workshops. Offers substantial internal space, rear wall extraction, and a high-performance 17,000 m³/h air exhaust blower.",
     category: "spray-booth",
     price: 89500,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "Entry Level Spray Booth",
@@ -546,12 +546,12 @@ export const PRODUCTS: Product[] = [
     description: "Excellent down-draft heated spray booth. Incorporates custom floor basement grids, side exhaust channels, and a powerful Italian Riello diesel burner for rapid drying.",
     category: "spray-booth",
     price: 107250,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "SB2 Full-Down Draft Spray Booth",
@@ -586,12 +586,12 @@ export const PRODUCTS: Product[] = [
     description: "Adhesive-backed protective shielding roll for interior spray booth walls. Catures wet overspray and paint mist, stripping away quickly to reveal clean, light-reflective walls.",
     category: "workshop-equipment",
     price: 3797,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll Dimensions": "1225 mm wide × 500 Meters line",
@@ -614,12 +614,12 @@ export const PRODUCTS: Product[] = [
     description: "Extrelemy dense, double-ply protective floor protection sheet. Guards premium tiling and floor systems from impact denting, chemicals, and paint spills during major workshop builds.",
     category: "workshop-equipment",
     price: 2688,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Weight / Density": "Dense multi-ply fibrous card board",
@@ -642,12 +642,12 @@ export const PRODUCTS: Product[] = [
     description: "Fully customized, heavy-duty drive-through spray booth tailored to bus fleets, trains, and articulated commercial vehicles. Integrated with variable speed frequency drives and high-capacity heating.",
     category: "spray-booth",
     price: 0,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "External Cabin Size": "20100 × 5800 × 5800 mm",
@@ -671,12 +671,12 @@ export const PRODUCTS: Product[] = [
     description: "Upmarket heated spray booth offering a full down-draft input and extract filtration system with full baking cycles, side shadow-free LED light grids, and Riello burner components.",
     category: "spray-booth",
     price: 159500,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "SB3 Popular Down-Draft Spray Booth with Side Lights",
@@ -711,12 +711,12 @@ export const PRODUCTS: Product[] = [
     description: "Envirosafe waterborne spray booth. Highly recommended for eco-aware workshops using water-soluble automotive coatings; releases fewer airborne toxins and improves workplace health.",
     category: "spray-booth",
     price: 165000,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "SB7 Waterborne Spray Booth with Air-Jet System",
@@ -752,12 +752,12 @@ export const PRODUCTS: Product[] = [
     description: "Advanced entry-level heated paint booth designed for surface mounting directly on normal workshop concrete floors; requires no concrete pit excavation whatsoever.",
     category: "spray-booth",
     price: 115000,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "External Cabin Dimensions": "8400 × 4100 × 3400 mm (L×W×H)",
@@ -781,12 +781,12 @@ export const PRODUCTS: Product[] = [
     description: "Custom-designed heavy vehicle prep cabin ideal for transit operators, municipal workshops, auto-body repairers, and bus paint centers.",
     category: "spray-booth",
     price: 0,
-    image: "/assets/images/spray_booth_3.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Build Scale": "Fully bespoke - sized to match heavy-service truck/coach capacities",
@@ -809,12 +809,12 @@ export const PRODUCTS: Product[] = [
     description: "Designed for heavy long-distance vehicles, large delivery trucks, and high-top commercial fleets. Features dual centrifugal YDW air blowers and robust baking heating.",
     category: "spray-booth",
     price: 0,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Internal Cabin Size": "12000 × 5000 × 5000 mm (L×W×H)",
@@ -842,12 +842,12 @@ export const PRODUCTS: Product[] = [
     description: "Mid-sized truck spray booth designed to handle long wheelbase buses, utility trucks, and medium articulating transport trailers with high airflow extraction.",
     category: "spray-booth",
     price: 0,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "SB15 Semi-Down Draft Heavy Truck Spray Booth",
@@ -897,12 +897,12 @@ export const PRODUCTS: Product[] = [
     description: "High-end commercial heavy vehicle cabin for maximum articulation trucks, passenger bus fleets, and heavy equipment. Includes high volume air flow rate and professional Riello RL34 heating.",
     category: "spray-booth",
     price: 0,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Internal Cabin Size": "18000 × 5000 × 5000 mm (L×W×H)",
@@ -930,12 +930,12 @@ export const PRODUCTS: Product[] = [
     description: "Optimized side-draft airflow design for extra-wide commercial trucks and automotive fleets. Ensures paint particles are cleanly drawn away from panels horizontally.",
     category: "spray-booth",
     price: 0,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "SB12-SD Side Draft Heavy Truck Spray Booth",
@@ -983,12 +983,12 @@ export const PRODUCTS: Product[] = [
     description: "Revolutionary walkthrough disinfection chamber. Features bispectral thermal imaging thermometer, white light audio alarms, and ultrasonic atomization spray system.",
     category: "spray-booth",
     price: 88000,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "External Dimensions": "2200 × 1250 × 2300 mm (LxWxH)",
@@ -1011,12 +1011,12 @@ export const PRODUCTS: Product[] = [
     description: "Walkthrough sanitizer chamber equipped with high-pressure micro-mist fogging nozzles to neutralize surface contaminants on clothing and skin.",
     category: "spray-booth",
     price: 35000,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Dimension Frame": "2450 × 1200 × 550 mm (LxWxH)",
@@ -1039,12 +1039,12 @@ export const PRODUCTS: Product[] = [
     description: "Bespoke entry-level sanitizer booth package. Includes active channel profile, low-pressure pump, misting nozzles, and automated sensor lines.",
     category: "spray-booth",
     price: 7499,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Pump Capacity": "5 Liter/minute constant rate",
@@ -1067,12 +1067,12 @@ export const PRODUCTS: Product[] = [
     description: "Sanitizer misting equipment package without structural frame. Excellent for retrofitting existing doorways or workshops.",
     category: "spray-booth",
     price: 4799,
-    image: "/assets/images/spray_booth_4.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_4.jpg",
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Pump Rate": "5L/min constant flow",
@@ -1093,12 +1093,12 @@ export const PRODUCTS: Product[] = [
     description: "The absolute largest heavy vehicle spray booth in the Triton fleet. Sized for max-length passenger bus designs, multi-axle freight trailers, and massive aerospace/military assemblies.",
     category: "spray-booth",
     price: 245000,
-    image: "/assets/images/spray_booth_1.jpg",
+    image: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/spray_booth_1.jpg",
-      "/assets/images/spray_booth_2.jpg",
-      "/assets/images/spray_booth_3.jpg",
-      "/assets/images/spray_booth_4.jpg"
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Product Type": "SB20 Semi-Down Draft Heavy Truck Spray Booth",
@@ -1148,12 +1148,12 @@ export const PRODUCTS: Product[] = [
     description: "Set of 4 synchronized mobile columns with 5-ton lifting limit each. Connect together to form a highly versatile heavy commercial bus/truck fleet lift.",
     category: "car-lift",
     price: 185000,
-    image: "/assets/images/car_lift_4.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_4.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Total Lift Capacity": "20,000 kg (20 Tons) synchronized set",
@@ -1176,12 +1176,12 @@ export const PRODUCTS: Product[] = [
     description: "Professional-grade synchronized mobile lift columns for heavy municipal networks, multi-chassis coach fleets, and loaded flatbed trailers.",
     category: "car-lift",
     price: 220000,
-    image: "/assets/images/car_lift_4.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_4.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Payload": "30,000 kg (30 Tons) absolute set limit",
@@ -1203,12 +1203,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy duty 4-post parking and service lift with standard 220V single-phase electrical layouts. A highly robust option for home restorers and mid-clearance commercial shops.",
     category: "car-lift",
     price: 119000,
-    image: "/assets/images/car_lift_3.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Payload": "4000 kg (4 Tons) maximum limit",
@@ -1232,12 +1232,12 @@ export const PRODUCTS: Product[] = [
     description: "Double point manual release baseplate lift. Solid carriage guide structures and single-phase 220V motor make it exceptionally convenient for lower workshop ceilings.",
     category: "car-lift",
     price: 52500,
-    image: "/assets/images/two_post_car_lift_1781792717809.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/two_post_car_lift_1781792717809.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Payload": "4000 kg (4 Tons) rating",
@@ -1261,12 +1261,12 @@ export const PRODUCTS: Product[] = [
     description: "Unique dual flat deck parking hoist. Solid drive-through runways allow double car storage options on residential or office parking lots.",
     category: "car-lift",
     price: 48000,
-    image: "/assets/images/car_lift_1.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Weight capacity": "2500 kg rating",
@@ -1289,12 +1289,12 @@ export const PRODUCTS: Product[] = [
     description: "Space-saving moveable mid-rise scissor hoist. Ideal for quick tires, wheel-wells, detailing shops, and rapid fleet prep stations.",
     category: "car-lift",
     price: 44900,
-    image: "/assets/images/car_lift_5.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_5.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Capacity": "2700 kg (2.7 Tons)",
@@ -1317,12 +1317,12 @@ export const PRODUCTS: Product[] = [
     description: "Full elevation 3-ton active scissor hoist. Completely surface mounted to avoid foundation pit excavation, offering clean drive-over capability and high clearance.",
     category: "car-lift",
     price: 51400,
-    image: "/assets/images/car_lift_5.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_5.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Limit": "3000 kg (3 Tons)",
@@ -1345,12 +1345,12 @@ export const PRODUCTS: Product[] = [
     description: "Mid-rise scissor lift reaching up to 1000mm. Perfect for quick brakes, body workshops, paint prep lanes, and tire centers.",
     category: "car-lift",
     price: 38000,
-    image: "/assets/images/car_lift_5.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_5.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting limit": "3000 kg rating",
@@ -1373,12 +1373,12 @@ export const PRODUCTS: Product[] = [
     description: "Standard 4-post car stacker hoist. Perfect for space conversion under tall residential or commercial ceilings.",
     category: "car-lift",
     price: 41500,
-    image: "/assets/images/car_lift_3.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Weight Capacity": "3000 kg ratings",
@@ -1401,12 +1401,12 @@ export const PRODUCTS: Product[] = [
     description: "Rare portable single column vertical hoist. Move it like a pallet jack to any clear workshop corner to lift sports vehicles up to 1.8 meters.",
     category: "car-lift",
     price: 55000,
-    image: "/assets/images/car_lift_1.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Payload": "3000 kg limit",
@@ -1429,12 +1429,12 @@ export const PRODUCTS: Product[] = [
     description: "Premium baseless gantry clear-floor lift. Includes single-side manual safety-lock override, clear vehicle walk-through, and dual high-volume safety rams.",
     category: "car-lift",
     price: 54000,
-    image: "/assets/images/car_lift_2.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_3.jpg",
-      "/assets/images/car_lift_4.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting Payload": "4000 kg certified limit",
@@ -1457,12 +1457,12 @@ export const PRODUCTS: Product[] = [
     description: "Reliable 4-ton baseline car lift with double-side manual release locks. Symmetric arms and thick floor plates ensure high stability in workshop service bays.",
     category: "car-lift",
     price: 52500,
-    image: "/assets/images/two_post_car_lift_1781792717809.jpg",
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/two_post_car_lift_1781792717809.jpg",
-      "/assets/images/car_lift_1.jpg",
-      "/assets/images/car_lift_2.jpg",
-      "/assets/images/car_lift_3.jpg"
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Lifting weight": "4000 kg capacity limit",
@@ -1485,12 +1485,12 @@ export const PRODUCTS: Product[] = [
     description: "Specialist wheel alignment 4-post vehicle lift. Built-in rear slip plates and turntable pockets. Comes with a secondary 2-ton hydraulic scissor rolling jack.",
     category: "wheel-care",
     price: 145900,
-    image: "/assets/images/wheel_care_2.jpg",
+    image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/wheel_care_2.jpg",
-      "/assets/images/wheel_care_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Main Lift Capacity": "4000 kg (4.0 Tons)",
@@ -1513,12 +1513,12 @@ export const PRODUCTS: Product[] = [
     description: "Premium floor-integrated/surface alignment scissor lift. Delivers superior center access for professional 3D camera systems, matching neat workshops.",
     category: "wheel-care",
     price: 108000,
-    image: "/assets/images/wheel_care_2.jpg",
+    image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/wheel_care_2.jpg",
-      "/assets/images/wheel_care_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Weight capacity": "3500 kg to 4200 kg settings",
@@ -1541,12 +1541,12 @@ export const PRODUCTS: Product[] = [
     description: "High durability single-phase dual MIG welder with 100% copper windings. Delivers reliable, smooth wires feeds under gas-shielded or gasless flux-cored operations.",
     category: "workshop-equipment",
     price: 2952,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Output Amperage": "30 to 170 Amps DC output",
@@ -1569,12 +1569,12 @@ export const PRODUCTS: Product[] = [
     description: "3-in-1 synergic welding machine supporting MIG, MMA, and TIG operations. Direct digital line feedback keeps current incredibly stable.",
     category: "workshop-equipment",
     price: 5600,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Welding Capabilities": "MIG (Gas/No Gas), MMA Arc, TIG DC lift-arc",
@@ -1596,12 +1596,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy 5kg industrial spool of self-shielded core flux wire. Designed for gasless welding of architectural cladding, sheet metal, and outdoor repairs.",
     category: "workshop-equipment",
     price: 790,
-    image: "/assets/images/welding_1.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Spool Net Weight": "5.0 kg wire spool",
@@ -1623,12 +1623,12 @@ export const PRODUCTS: Product[] = [
     description: "Copper-coated solid steel welding wire for high-strength mild steel fabrications. Requires external Carbon Dioxide (CO2) or Argon gas shield.",
     category: "workshop-equipment",
     price: 295,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Wire Diameter": "0.8 mm on standard spool",
@@ -1650,12 +1650,12 @@ export const PRODUCTS: Product[] = [
     description: "Precision machined copper contact tips for guiding 0.9mm wire and transferring high-current smoothly.",
     category: "workshop-equipment",
     price: 48,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Contact Diameter": "0.9 mm guide hole",
@@ -1677,12 +1677,12 @@ export const PRODUCTS: Product[] = [
     description: "Quiet replacement motorized wire feeder compatible with Mig 175 and Mig 195. Solid gears feed steel and flux wire without slip.",
     category: "workshop-equipment",
     price: 579,
-    image: "/assets/images/welding_3.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Input Voltage": "DC 12V direct line",
@@ -1705,12 +1705,12 @@ export const PRODUCTS: Product[] = [
     description: "Premium lightweight air-cooled TIG torch with integrated manual gas control valve. High flexibility cable permits precision welding joints.",
     category: "workshop-equipment",
     price: 850,
-    image: "/assets/images/welding_3.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Amperage Capacity": "200 Amps maximum rating",
@@ -1733,12 +1733,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy duty dry glass-fiber paint mist filtering media. Catches overspray and paint mists efficiently under high exhaust pressure.",
     category: "workshop-equipment",
     price: 1995,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll Dimensions": "1.2m wide x 20m layout line",
@@ -1761,12 +1761,12 @@ export const PRODUCTS: Product[] = [
     description: "Sticky-layered non-woven synthetic ceiling media for final intake filtration. Creates perfect laminar airflow inside heating cabins.",
     category: "workshop-equipment",
     price: 5970,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll Scale": "1.6m wide x 20m continuous roll",
@@ -1788,12 +1788,12 @@ export const PRODUCTS: Product[] = [
     description: "Industrial mobile dock ramp. Forklifts drive straight from level workshop floors into freight container trucks with ease, adjusted via hand pump.",
     category: "workshop-equipment",
     price: 75000,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Overall Length": "11.0 Meters",
@@ -1816,12 +1816,12 @@ export const PRODUCTS: Product[] = [
     description: "Electric-hydraulic pump replacement matching standard 2-post and 4-post car lifts. Equipped with robust steel reservoir.",
     category: "workshop-equipment",
     price: 6250,
-    image: "/assets/images/workshop_tools_2.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Power Motor": "2.2 kW high speed motor",
@@ -1844,12 +1844,12 @@ export const PRODUCTS: Product[] = [
     description: "Highly refined VG46 anti-wear hydraulic oil. Extends pump and cylinder filter limits in high pressure car hoists.",
     category: "workshop-equipment",
     price: 650,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Fluid volume": "10 Liters tub",
@@ -1871,12 +1871,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy duty car body collision alignment bench. Complete with 10-ton dual pulling towers, unibody clamps, deep reach hooks, and a mobile tool cart.",
     category: "workshop-equipment",
     price: 59000,
-    image: "/assets/images/workshop_tools_2.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Platform Dimension": "5200 × 2200 × 550 mm (L×W×H)",
@@ -1899,12 +1899,12 @@ export const PRODUCTS: Product[] = [
     description: "Gold halogen infrared heater with adjustable tripod sand, wall mounting fixtures, and remote controllers. Delivers immediate radiant heat for workshops and patios.",
     category: "workshop-equipment",
     price: 2190,
-    image: "/assets/images/workshop_tools_2.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Supported Power": "2 Power settings: 1000W / 2000W output",
@@ -1927,12 +1927,12 @@ export const PRODUCTS: Product[] = [
     description: "Low-odor high-strength anchoring resin. Vital for securing heavy 2-post and 4-post car lift baseposts into workshop concrete floors safely.",
     category: "workshop-equipment",
     price: 490,
-    image: "/assets/images/workshop_tools_2.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Cartridge Volume": "300 ml cartridge",
@@ -1954,12 +1954,12 @@ export const PRODUCTS: Product[] = [
     description: "Primary lofted polyester pre-filtering pad roll. Intended to trap large paint particles and protecting fan engines.",
     category: "workshop-equipment",
     price: 4490,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Dimensions Roll": "2.0m wide x 30.0m length",
@@ -1981,12 +1981,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy protective safety overalls with integrated hood and waistbands. Safeguards clothes and skin from overspray, solvents, and dust.",
     category: "workshop-equipment",
     price: 98,
-    image: "/assets/images/protective_clothing.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/protective_clothing.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Material Grade": "Heavy non-woven static-resistant fabric",
@@ -2008,12 +2008,12 @@ export const PRODUCTS: Product[] = [
     description: "Medium size protective film roll for paint cabin windows and side wall panels. Simple roll-and-peel static cling layers trap mists completely.",
     category: "workshop-equipment",
     price: 2868,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll size dimensions": "925 mm wide × 500 Meters",
@@ -2035,12 +2035,12 @@ export const PRODUCTS: Product[] = [
     description: "Shorter paint arrestor media roll for lower-volume garages or side wall exhaust outlets.",
     category: "workshop-equipment",
     price: 885,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll dimensions": "0.76m wide x 14m length",
@@ -2062,12 +2062,12 @@ export const PRODUCTS: Product[] = [
     description: "Longer G3 floor arrestor roll. Excellent for high-speed commercial shops with continuous paint cycles.",
     category: "workshop-equipment",
     price: 2190,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Dimensions Roll": "0.76m wide x 35m length",
@@ -2088,12 +2088,12 @@ export const PRODUCTS: Product[] = [
     description: "Yellow painter tape with static-clinging protective film sheets. Accelerates precise maskings around trim, bumber lines and glass panels.",
     category: "workshop-equipment",
     price: 85,
-    image: "/assets/images/welding_helmet.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_helmet.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_3.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Film coverage size": "55cm wide x 33m fold-out sheets",
@@ -2115,12 +2115,12 @@ export const PRODUCTS: Product[] = [
     description: "Extra-wide foldout masking film roll pre-fitted with cream tape. Perfect for covering whole panels, roofs, and truck doors during spray repairs.",
     category: "workshop-equipment",
     price: 150,
-    image: "/assets/images/welding_helmet.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_helmet.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_3.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Film dimensions": "2.7m wide expanded x 16m roll length",
@@ -2141,12 +2141,12 @@ export const PRODUCTS: Product[] = [
     description: "Premium styrene-free high-load pure vinylester chemical adhesive. Essential anchor for overhead lifts or underwater applications.",
     category: "workshop-equipment",
     price: 525,
-    image: "/assets/images/workshop_tools_2.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Tube Capacity": "410 ml large tube line",
@@ -2168,12 +2168,12 @@ export const PRODUCTS: Product[] = [
     description: "CE certified Type 5/6 liquid chemical protective overall suit. Offers complete, breathable skin guarding against fine aerosols and spray mists.",
     category: "workshop-equipment",
     price: 129,
-    image: "/assets/images/protective_clothing.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/protective_clothing.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Compliance Quality": "Type 5 / Type 6 EN13034 protection compliant",
@@ -2195,12 +2195,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy duty platform freight conveyor to carry machinery and heavy tools between workshop floors. Customisable sizes to match different building heights.",
     category: "workshop-equipment",
     price: 79000,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "System Drive": "Hydraulic cylinders + high weight steel lift chains chain drives",
@@ -2222,12 +2222,12 @@ export const PRODUCTS: Product[] = [
     description: "Primary G3 dry fiberglass mist filter roll. Catches auto paint mists safely.",
     category: "workshop-equipment",
     price: 1330,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll dimensions": "0.8m wide x 20m length",
@@ -2248,12 +2248,12 @@ export const PRODUCTS: Product[] = [
     description: "Precision iron and steel knurled wire feed roller. Fits Mig 175 and Mig 195 drive gear assemblies for continuous regular feeds.",
     category: "workshop-equipment",
     price: 195,
-    image: "/assets/images/welding_3.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Driver sizing": "0.6 mm and 0.8 mm dual grooves in one",
@@ -2276,12 +2276,12 @@ export const PRODUCTS: Product[] = [
     description: "Advanced 5-in-1 multi-process welding machine. Supporting MIG, MAG, MMA, Lift TIG, and Plasma cutting. Integrated clear LED display.",
     category: "workshop-equipment",
     price: 6480,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Output Amps Ranges": "MIG 20-200A / TIG 20-185A / Plasma CUT 20-40A",
@@ -2303,12 +2303,12 @@ export const PRODUCTS: Product[] = [
     description: "Dual-voltage commercial inverter plasma cutter. Cuts stainless, iron, and aluminums cleanly with zero deformation.",
     category: "workshop-equipment",
     price: 3490,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Cutting Thickness limits": "Up to 12 mm maximum plate thickness",
@@ -2331,12 +2331,12 @@ export const PRODUCTS: Product[] = [
     description: "Fully synergic 160 amp combination kit. Matches correct wire feed speed to active amperage automatically, suited to automotive sheets.",
     category: "workshop-equipment",
     price: 3295,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Output Amps Range": "20 to 160 Amps output",
@@ -2358,12 +2358,12 @@ export const PRODUCTS: Product[] = [
     description: "Professional synergic 200 amp 4-in-1 combination. High-current output lets workshops weld thick channels and custom structural sheets.",
     category: "workshop-equipment",
     price: 3995,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Output Amperage": "20 to 200 Amps DC output",
@@ -2385,12 +2385,12 @@ export const PRODUCTS: Product[] = [
     description: "Replacement consumables pack fitting PT-31 and LG-40 plasma cutting torches. Delivers clean, regular pilot arc ignition.",
     category: "workshop-equipment",
     price: 48,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_3.jpg",
-      "/assets/images/welding_helmet.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Model Compatibility": "PT-31, JG-40, and WSD-LG40 torch units",
@@ -2411,12 +2411,12 @@ export const PRODUCTS: Product[] = [
     description: "Heavy edge card board protective guards. Protects structural edges during paint and construction setups.",
     category: "workshop-equipment",
     price: 640,
-    image: "/assets/images/workshop_tools_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/filters_1.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Strip Dimensions": "1.5 Meters length x 50mm x 50mm dynamic shapes",
@@ -2438,12 +2438,12 @@ export const PRODUCTS: Product[] = [
     description: "High-width dry glass-fiber paint overspray filter. Ideal for wide floor pans and custom spray booths.",
     category: "workshop-equipment",
     price: 2495,
-    image: "/assets/images/filters_1.jpg",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Roll dimensions": "1.5m wide x 20m length",
@@ -2464,12 +2464,12 @@ export const PRODUCTS: Product[] = [
     description: "Yellow painter tape with medium-width static cling film. Ideal for rapid masking of car windows, bumpers, and doors.",
     category: "workshop-equipment",
     price: 131,
-    image: "/assets/images/welding_helmet.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_helmet.jpg",
-      "/assets/images/welding_1.jpg",
-      "/assets/images/welding_2.jpg",
-      "/assets/images/welding_3.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Unfolded coverage": "110cm wide x 33m length",
@@ -2490,12 +2490,12 @@ export const PRODUCTS: Product[] = [
     description: "Washable and reusable synthetic panel filter element. Acts as secondary dust lock in prep bays and extraction paths.",
     category: "workshop-equipment",
     price: 519,
-    image: "/assets/images/welding_2.jpg",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
     images: [
-      "/assets/images/welding_2.jpg",
-      "/assets/images/filters_1.jpg",
-      "/assets/images/workshop_tools_1.jpg",
-      "/assets/images/workshop_tools_2.jpg"
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800&h=600"
     ],
     specifications: {
       "Washable design": "Durable polyurethane synthetic matrix",

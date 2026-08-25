@@ -6,38 +6,13 @@ export const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1619642
  * Fallback mapping for missing or legacy filenames to visually-similar existing image assets
  */
 export const IMAGE_MAP: Record<string, string> = {
-  'car_lift_1.jpg': '/assets/images/car_lift_1.jpg',
-  'car_lift_2.jpg': '/assets/images/car_lift_2.jpg',
-  'car_lift_3.jpg': '/assets/images/car_lift_3.jpg',
-  'car_lift_4.jpg': '/assets/images/car_lift_4.jpg',
-  'car_lift_5.jpg': '/assets/images/car_lift_5.jpg',
-  'two_post_car_lift_1781792717809.jpg': '/assets/images/two_post_car_lift_1781792717809.jpg',
-  'two_post_car_lift.jpg': '/assets/images/car_lift_1.jpg',
-  'four_post_car_lift.jpg': '/assets/images/car_lift_3.jpg',
-  'scissor_lift.jpg': '/assets/images/car_lift_2.jpg',
-  'parking_lift.jpg': '/assets/images/car_lift_3.jpg',
-  'spray_booth_1.jpg': '/assets/images/spray_booth_1.jpg',
-  'spray_booth_2.jpg': '/assets/images/spray_booth_2.jpg',
-  'spray_booth_3.jpg': '/assets/images/spray_booth_3.jpg',
-  'spray_booth_4.jpg': '/assets/images/spray_booth_4.jpg',
-  'welding_1.jpg': '/assets/images/welding_1.jpg',
-  'welding_2.jpg': '/assets/images/welding_2.jpg',
-  'welding_3.jpg': '/assets/images/welding_3.jpg',
-  'welding_helmet.jpg': '/assets/images/welding_helmet.jpg',
-  'workshop_tools_1.jpg': '/assets/images/workshop_tools_1.jpg',
-  'workshop_tools_2.jpg': '/assets/images/workshop_tools_2.jpg',
-  'filters_1.jpg': '/assets/images/filters_1.jpg',
-  'ladder_1.jpg': '/assets/images/ladder_1.jpg',
-  'wheel_care_1.jpg': '/assets/images/wheel_care_1.jpg',
-  'wheel_care_2.jpg': '/assets/images/wheel_care_2.jpg',
-  'protective_clothing.jpg': '/assets/images/protective_clothing.jpg',
   'garage_equipment_hero_1783937551956.jpg': '/assets/images/garage_equipment_hero_1783937551956.jpg',
   'garage_equipment_welder_hero_1783939957746.jpg': '/assets/images/garage_equipment_welder_hero_1783939957746.jpg',
   'killarney_gardens_map_1781354004848.jpg': '/assets/images/killarney_gardens_map_1781354004848.jpg',
   'modern_workshop_car_lift_1780988724101.png': '/assets/images/modern_workshop_car_lift_1780988724101.png',
   'banner_test.jpg': '/assets/images/garage_equipment_hero_1783937551956.jpg',
-  'test.jpg': '/assets/images/workshop_tools_1.jpg',
-  'test_cat.png': '/assets/images/car_lift_1.jpg'
+  'test.jpg': DEFAULT_FALLBACK_IMAGE,
+  'test_cat.png': DEFAULT_FALLBACK_IMAGE
 };
 
 /**

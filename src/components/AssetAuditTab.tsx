@@ -26,56 +26,15 @@ interface AuditItem {
 }
 
 const LOCAL_ASSET_METADATA = [
-  { filename: 'car_lift_1.jpg', size: 47126, type: 'product' as const },
-  { filename: 'car_lift_2.jpg', size: 41300, type: 'product' as const },
-  { filename: 'car_lift_3.jpg', size: 69969, type: 'product' as const },
-  { filename: 'car_lift_4.jpg', size: 61080, type: 'product' as const },
-  { filename: 'car_lift_5.jpg', size: 139363, type: 'product' as const },
-  { filename: 'filters_1.jpg', size: 59019, type: 'product' as const },
   { filename: 'killarney_gardens_map_1781354004848.jpg', size: 575499, type: 'branding' as const },
-  { filename: 'ladder_1.jpg', size: 97121, type: 'product' as const },
   { filename: 'modern_workshop_car_lift_1780988724101.png', size: 755990, type: 'branding' as const },
-  { filename: 'protective_clothing.jpg', size: 51608, type: 'product' as const },
-  { filename: 'spray_booth_1.jpg', size: 81923, type: 'product' as const },
-  { filename: 'spray_booth_2.jpg', size: 81923, type: 'product' as const },
-  { filename: 'spray_booth_3.jpg', size: 47997, type: 'product' as const },
-  { filename: 'spray_booth_4.jpg', size: 47997, type: 'product' as const },
-  { filename: 'two_post_car_lift_1781792717809.jpg', size: 800483, type: 'product' as const },
-  { filename: 'welding_1.jpg', size: 60551, type: 'product' as const },
-  { filename: 'welding_2.jpg', size: 77662, type: 'product' as const },
-  { filename: 'welding_3.jpg', size: 60551, type: 'product' as const },
-  { filename: 'welding_helmet.jpg', size: 40932, type: 'product' as const },
-  { filename: 'wheel_care_1.jpg', size: 103894, type: 'product' as const },
-  { filename: 'wheel_care_2.jpg', size: 53403, type: 'product' as const },
-  { filename: 'workshop_tools_1.jpg', size: 52384, type: 'product' as const },
-  { filename: 'workshop_tools_2.jpg', size: 59019, type: 'product' as const },
+  { filename: 'garage_equipment_hero_1783937551956.jpg', size: 145000, type: 'branding' as const },
+  { filename: 'garage_equipment_welder_hero_1783939957746.jpg', size: 152000, type: 'branding' as const },
 ];
 
 const WOO_CDN_BASE = 'https://car-lifts.co.za/wp-content/uploads/2026/02';
 
-const LOCAL_TO_WOO_MAPPING: Record<string, string> = {
-  'car_lift_1.jpg': `${WOO_CDN_BASE}/car_lift_1.jpg`,
-  'car_lift_2.jpg': `${WOO_CDN_BASE}/car_lift_2.jpg`,
-  'car_lift_3.jpg': `${WOO_CDN_BASE}/car_lift_3.jpg`,
-  'car_lift_4.jpg': `${WOO_CDN_BASE}/car_lift_4.jpg`,
-  'car_lift_5.jpg': `${WOO_CDN_BASE}/car_lift_5.jpg`,
-  'filters_1.jpg': `${WOO_CDN_BASE}/filters_1.jpg`,
-  'ladder_1.jpg': `${WOO_CDN_BASE}/ladder_1.jpg`,
-  'protective_clothing.jpg': `${WOO_CDN_BASE}/protective_clothing.jpg`,
-  'spray_booth_1.jpg': `${WOO_CDN_BASE}/spray_booth_1.jpg`,
-  'spray_booth_2.jpg': `${WOO_CDN_BASE}/spray_booth_1.jpg`, // duplicates spray_booth_1
-  'spray_booth_3.jpg': `${WOO_CDN_BASE}/spray_booth_3.jpg`,
-  'spray_booth_4.jpg': `${WOO_CDN_BASE}/spray_booth_3.jpg`, // duplicates spray_booth_3
-  'two_post_car_lift_1781792717809.jpg': `${WOO_CDN_BASE}/two_post_car_lift_1781792717809.jpg`,
-  'welding_1.jpg': `${WOO_CDN_BASE}/welding_1.jpg`,
-  'welding_2.jpg': `${WOO_CDN_BASE}/welding_2.jpg`,
-  'welding_3.jpg': `${WOO_CDN_BASE}/welding_1.jpg`, // duplicates welding_1
-  'welding_helmet.jpg': `${WOO_CDN_BASE}/welding_helmet.jpg`,
-  'wheel_care_1.jpg': `${WOO_CDN_BASE}/wheel_care_1.jpg`,
-  'wheel_care_2.jpg': `${WOO_CDN_BASE}/wheel_care_2.jpg`,
-  'workshop_tools_1.jpg': `${WOO_CDN_BASE}/workshop_tools_1.jpg`,
-  'workshop_tools_2.jpg': `${WOO_CDN_BASE}/filters_1.jpg`, // duplicates filters_1
-};
+const LOCAL_TO_WOO_MAPPING: Record<string, string> = {};
 
 export default function AssetAuditTab({
   products,
@@ -132,7 +91,7 @@ export default function AssetAuditTab({
       if (uniqueProds.length > 0) {
         referencedIn.push('src/data/products.ts');
       }
-      if (filename === 'two_post_car_lift_1781792717809.jpg' || filename === 'modern_workshop_car_lift_1780988724101.png' || filename === 'car_lift_1.jpg' || filename === 'spray_booth_1.jpg') {
+      if (filename === 'modern_workshop_car_lift_1780988724101.png') {
         referencedIn.push('src/App.tsx');
       }
 
@@ -141,17 +100,8 @@ export default function AssetAuditTab({
       let recommendation = 'Keep local copy in src/assets/images for UI elements.';
 
       if (meta.type === 'product') {
-        const isDupp = ['spray_booth_2.jpg', 'spray_booth_4.jpg', 'welding_3.jpg', 'workshop_tools_2.jpg'].includes(filename);
-        if (isDupp) {
-          issue = 'Local Duplicate & Overlap';
-          const original = filename === 'spray_booth_2.jpg' ? 'spray_booth_1.jpg' :
-                           filename === 'spray_booth_4.jpg' ? 'spray_booth_3.jpg' :
-                           filename === 'welding_3.jpg' ? 'welding_1.jpg' : 'filters_1.jpg';
-          recommendation = `Redundant local copy of ${original}. Prefer WooCommerce CDN version.`;
-        } else {
-          issue = 'REST API Overlap';
-          recommendation = 'Prefer WooCommerce-hosted asset to stay in sync with remote inventory.';
-        }
+        issue = 'REST API Overlap';
+        recommendation = 'Prefer WooCommerce-hosted asset to stay in sync with remote inventory.';
       }
 
       return {
@@ -638,7 +588,7 @@ export default function AssetAuditTab({
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-blue-400 shrink-0">•</span>
-                <span>Duplicates like spray_booth_2 or welding_3 can be safely deleted.</span>
+                <span>Unused duplicate images can be safely deleted or replaced with WordPress media.</span>
               </li>
             </ul>
           </div>
