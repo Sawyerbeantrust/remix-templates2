@@ -11,6 +11,12 @@ const WP_BASE_URL = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za")
 
 function extractCleanError(status: number, rawText: string): string {
   if (!rawText) return `HTTP ${status}`;
+  try {
+    const parsed = JSON.parse(rawText);
+    if (parsed.message) {
+      return `WordPress (${status}): ${parsed.message}`;
+    }
+  } catch {}
   if (rawText.includes("<title>Just a moment...</title>") || rawText.includes("challenges.cloudflare.com") || rawText.includes("cf-chl")) {
     return `Cloudflare security challenge (HTTP ${status}). Ensure CF_BYPASS_SECRET is set in environment and configured in Cloudflare WAF.`;
   }
@@ -152,6 +158,7 @@ let memoryCatalog = {
   products: PRODUCTS,
   featuredCategories: DEFAULT_FEATURED_CATEGORIES,
   categoriesList: DEFAULT_CATEGORIES_LIST,
+  maintenanceMode: false,
 };
 
 function detectContentType(dataUri: string, filename: string): string {
@@ -175,6 +182,58 @@ function detectContentType(dataUri: string, filename: string): string {
   }
 }
 
+// Helper to upload an image buffer directly to WordPress Media Library
+async function uploadBufferToWordPress(buffer: Buffer, originalName: string, contentType: string): Promise<{
+  success: boolean;
+  id?: number;
+  url?: string;
+  path?: string;
+  filename?: string;
+  error?: string;
+  status?: number;
+  details?: string;
+}> {
+  const safeFileName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
+  const endpoint = `${wpBase}/wp-json/wp/v2/media`;
+
+  const wpRes = await fetchWpSafe(endpoint, {
+    method: "POST",
+    headers: getWpHeaders({
+      "Content-Disposition": `attachment; filename="${safeFileName}"`,
+      "Content-Type": contentType,
+      "Accept": "application/json",
+    }),
+    body: buffer,
+  }, 15000);
+
+  if (wpRes.ok && (wpRes.status === 200 || wpRes.status === 201) && wpRes.data) {
+    const wpJson = wpRes.data;
+    const sourceUrl = wpJson.source_url || wpJson.guid?.rendered || "";
+    if (sourceUrl) {
+      console.log("[Upload Image] Uploaded to WordPress Media:", sourceUrl);
+      return {
+        success: true,
+        id: wpJson.id,
+        url: sourceUrl,
+        path: sourceUrl,
+        filename: wpJson.slug || safeFileName,
+      };
+    }
+  }
+
+  const wpStatus = wpRes.status || 500;
+  const bodySnippet = wpRes.text ? wpRes.text.slice(0, 300) : (wpRes.error || "WordPress media endpoint is unreachable");
+  console.error("[Upload Image] WordPress media upload failed:", wpStatus, bodySnippet);
+
+  return {
+    success: false,
+    error: "WordPress media upload failed",
+    status: wpStatus,
+    details: bodySnippet,
+  };
+}
+
 // 1) POST /api/upload-image (body { name, data })
 app.post("/api/upload-image", async (req, res) => {
   try {
@@ -183,49 +242,49 @@ app.post("/api/upload-image", async (req, res) => {
     const imgName = name || `upload_${Date.now()}.jpg`;
 
     if (!imgData || typeof imgData !== "string") {
-      return res.status(200).json({ success: false, error: "Missing name or base64 data" });
+      return res.status(400).json({
+        success: false,
+        error: "Missing name or base64 data",
+        status: 400,
+        details: "No image data provided in request body",
+      });
     }
 
     const contentType = detectContentType(imgData, imgName);
     const base64Data = imgData.replace(/^data:[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
-    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
-    const endpoint = `${wpBase}/wp-json/wp/v2/media`;
+    const result = await uploadBufferToWordPress(buffer, imgName, contentType);
 
-    const wpRes = await fetchWpSafe(endpoint, {
-      method: "POST",
-      headers: getWpHeaders({
-        "Content-Disposition": `attachment; filename="${imgName}"`,
-        "Content-Type": contentType,
-      }),
-      body: buffer,
-    }, 8000);
-
-    if (!wpRes.ok) {
-      const cleanErr = wpRes.status > 0
-        ? extractCleanError(wpRes.status, wpRes.text)
-        : (wpRes.error || "WordPress media endpoint is unreachable");
+    if (result.success) {
       return res.status(200).json({
-        success: false,
-        error: cleanErr,
+        success: true,
+        id: result.id,
+        url: result.url,
+        path: result.path,
+        filename: result.filename,
       });
     }
 
-    const json = wpRes.data || {};
-    const sourceUrl = json.source_url || json.guid?.rendered || "";
-    return res.status(200).json({
-      success: true,
-      path: sourceUrl,
-      url: sourceUrl,
-      id: json.id,
+    const httpStatus = (result.status && result.status >= 400 && result.status <= 599) ? result.status : 500;
+    return res.status(httpStatus).json({
+      success: false,
+      error: result.error || "WordPress media upload failed",
+      status: result.status || httpStatus,
+      details: result.details,
     });
   } catch (error: any) {
-    return res.status(200).json({ success: false, error: error?.message || String(error) });
+    console.error("[Upload Image] Server error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "WordPress media upload failed",
+      status: 500,
+      details: error?.message || String(error),
+    });
   }
 });
 
-// 2) POST /api/save-category-image (identical behaviour to /api/upload-image)
+// 2) POST /api/save-category-image (body { name, data })
 app.post("/api/save-category-image", async (req, res) => {
   try {
     const { name, data, image } = req.body || {};
@@ -233,45 +292,45 @@ app.post("/api/save-category-image", async (req, res) => {
     const imgName = name || `category_${Date.now()}.jpg`;
 
     if (!imgData || typeof imgData !== "string") {
-      return res.status(200).json({ success: false, error: "Missing name or base64 data" });
+      return res.status(400).json({
+        success: false,
+        error: "Missing name or base64 data",
+        status: 400,
+        details: "No image data provided in request body",
+      });
     }
 
     const contentType = detectContentType(imgData, imgName);
     const base64Data = imgData.replace(/^data:[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
-    const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
-    const endpoint = `${wpBase}/wp-json/wp/v2/media`;
+    const result = await uploadBufferToWordPress(buffer, imgName, contentType);
 
-    const wpRes = await fetchWpSafe(endpoint, {
-      method: "POST",
-      headers: getWpHeaders({
-        "Content-Disposition": `attachment; filename="${imgName}"`,
-        "Content-Type": contentType,
-      }),
-      body: buffer,
-    }, 8000);
-
-    if (!wpRes.ok) {
-      const cleanErr = wpRes.status > 0
-        ? extractCleanError(wpRes.status, wpRes.text)
-        : (wpRes.error || "WordPress media endpoint is unreachable");
+    if (result.success) {
       return res.status(200).json({
-        success: false,
-        error: cleanErr,
+        success: true,
+        id: result.id,
+        url: result.url,
+        path: result.path,
+        filename: result.filename,
       });
     }
 
-    const json = wpRes.data || {};
-    const sourceUrl = json.source_url || json.guid?.rendered || "";
-    return res.status(200).json({
-      success: true,
-      path: sourceUrl,
-      url: sourceUrl,
-      id: json.id,
+    const httpStatus = (result.status && result.status >= 400 && result.status <= 599) ? result.status : 500;
+    return res.status(httpStatus).json({
+      success: false,
+      error: result.error || "WordPress media upload failed",
+      status: result.status || httpStatus,
+      details: result.details,
     });
   } catch (error: any) {
-    return res.status(200).json({ success: false, error: error?.message || String(error) });
+    console.error("[Save Category Image] Server error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "WordPress media upload failed",
+      status: 500,
+      details: error?.message || String(error),
+    });
   }
 });
 
@@ -368,6 +427,7 @@ app.get("/api/catalog", async (req, res) => {
     products: PRODUCTS,
     featuredCategories: DEFAULT_FEATURED_CATEGORIES,
     categoriesList: DEFAULT_CATEGORIES_LIST,
+    maintenanceMode: memoryCatalog?.maintenanceMode ?? false,
   };
 
   try {
@@ -379,6 +439,9 @@ app.get("/api/catalog", async (req, res) => {
     if (wpRes.ok && wpRes.data && Array.isArray(wpRes.data.products) && wpRes.data.products.length > 0) {
       if (!wpRes.data.categoriesList || !Array.isArray(wpRes.data.categoriesList) || wpRes.data.categoriesList.length === 0) {
         wpRes.data.categoriesList = DEFAULT_CATEGORIES_LIST;
+      }
+      if (typeof wpRes.data.maintenanceMode !== "boolean") {
+        wpRes.data.maintenanceMode = memoryCatalog?.maintenanceMode ?? false;
       }
       memoryCatalog = wpRes.data;
       return res.status(200).json(wpRes.data);
@@ -429,6 +492,9 @@ app.post("/api/catalog", async (req, res) => {
     const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
 
     const payload = { ...req.body };
+    if (typeof payload.maintenanceMode !== "boolean") {
+      payload.maintenanceMode = req.body?.maintenanceMode === true || req.body?.maintenanceMode === "true";
+    }
     if (!payload.categoriesList || !Array.isArray(payload.categoriesList) || payload.categoriesList.length === 0) {
       payload.categoriesList = DEFAULT_CATEGORIES_LIST;
     }
@@ -452,7 +518,7 @@ app.post("/api/catalog", async (req, res) => {
     }, 6000);
 
     if (wpRes.ok) {
-      return res.status(200).json({ success: true, syncedToWp: true });
+      return res.status(200).json({ success: true, syncedToWp: true, maintenanceMode: payload.maintenanceMode });
     }
 
     if (wpRes.status > 0) {
@@ -460,6 +526,7 @@ app.post("/api/catalog", async (req, res) => {
       return res.status(200).json({
         success: true,
         syncedToWp: false,
+        maintenanceMode: payload.maintenanceMode,
         warning: `Saved in application. WordPress returned (${wpRes.status}): ${cleanErr}`,
       });
     }
@@ -467,6 +534,7 @@ app.post("/api/catalog", async (req, res) => {
     return res.status(200).json({
       success: true,
       syncedToWp: false,
+      maintenanceMode: payload.maintenanceMode,
       warning: "Saved in application state. WordPress endpoint is currently offline or unreachable.",
     });
   } catch (err: any) {

@@ -43,7 +43,7 @@ export function ImageUploader({
       setSuccessMessage('Image uploaded directly to WordPress Media Library!');
       onUploadSuccess?.(wpUrl);
     } catch (err: any) {
-      const msg = err?.message || 'Failed to upload image to WordPress Media Library.';
+      const msg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
       setErrorMessage(msg);
       onUploadError?.(msg);
     } finally {

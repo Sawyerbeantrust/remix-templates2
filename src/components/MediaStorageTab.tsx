@@ -345,8 +345,9 @@ export default function MediaStorageTab({
       setTimeout(() => setUploadStatus(null), 3500);
     } catch (err: any) {
       console.error('[MediaStorageTab] Upload failed:', err);
-      setUploadStatus(`Error uploading image: ${err?.message || err}`);
-      alert(`Upload error: ${err?.message || err}`);
+      const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
+      setUploadStatus(errMsg);
+      alert(errMsg);
     } finally {
       setIsUploading(false);
       e.target.value = '';

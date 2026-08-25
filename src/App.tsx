@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { safeLocalStorage } from './utils/safeStorage';
+import { safeLocalStorage, safeSessionStorage } from './utils/safeStorage';
 import { syncCatalogToServer, fetchServerCatalog, getStoredCategoriesList } from './utils/catalogSync';
 import { autoSyncCatalogImages } from './utils/imageUpload';
 import Header from './components/Header';
 import ProductCard from './components/ProductCard';
 import CartDrawer from './components/CartDrawer';
 import WordPressConsole from './components/WordPressConsole';
+import MaintenancePage from './components/MaintenancePage';
 import LegalPoliciesModal from './components/LegalPoliciesModal';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import AboutModal from './components/AboutModal';
@@ -130,6 +131,11 @@ export default function App() {
     return (window.location.hash === '#admin' || window.location.search.includes('admin')) ? 'admin' : 'store';
   });
   const [adminClicks, setAdminClicks] = useState(0);
+
+  // Global Maintenance Mode State (persisted via WordPress MySQL & mirrored in localStorage)
+  const [maintenanceMode, setMaintenanceMode] = useState<boolean>(() => {
+    return safeLocalStorage.getItem('triton_maintenance_mode') === 'true';
+  });
 
   // Back to top navigation states and event tracking
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -320,11 +326,18 @@ export default function App() {
         const response = await fetch('/api/catalog');
         if (response.ok) {
           const catData = await response.json();
-          if (catData && Array.isArray(catData.products) && Array.isArray(catData.featuredCategories)) {
-            loadedProds = catData.products.map(normalizeProductCategory);
-            loadedCats = catData.featuredCategories;
-            loadedCatList = Array.isArray(catData.categoriesList) ? catData.categoriesList : [];
-            console.log('[Catalog] Hydrated from server');
+          if (catData) {
+            if (typeof catData.maintenanceMode === 'boolean') {
+              setMaintenanceMode(catData.maintenanceMode);
+              safeLocalStorage.setItem('triton_maintenance_mode', String(catData.maintenanceMode));
+              console.log('[Catalog] Maintenance mode status from server:', catData.maintenanceMode);
+            }
+            if (Array.isArray(catData.products) && Array.isArray(catData.featuredCategories)) {
+              loadedProds = catData.products.map(normalizeProductCategory);
+              loadedCats = catData.featuredCategories;
+              loadedCatList = Array.isArray(catData.categoriesList) ? catData.categoriesList : [];
+              console.log('[Catalog] Hydrated from server');
+            }
           }
         }
 
@@ -452,12 +465,17 @@ export default function App() {
           catalogHeaders['X-Vercel-Secret'] = cfSecret;
         }
 
+        const isMaintenance = typeof maintenanceMode === 'boolean'
+          ? maintenanceMode
+          : safeLocalStorage.getItem('triton_maintenance_mode') === 'true';
+
         const response = await fetch('/api/catalog', {
           method: 'POST',
           headers: catalogHeaders,
           body: JSON.stringify({
             products: sanitizedProducts,
-            featuredCategories: sanitizedCategories
+            featuredCategories: sanitizedCategories,
+            maintenanceMode: isMaintenance
           })
         });
 
@@ -1963,6 +1981,28 @@ export default function App() {
 
   const isTourEnabled = safeLocalStorage.getItem('showroom_walkthrough_enabled') !== 'false';
 
+  const isAdminAuthenticated = () => {
+    if (typeof window === 'undefined') return false;
+    return (
+      currentView === 'admin' ||
+      window.location.hash === '#admin' ||
+      window.location.search.includes('admin') ||
+      safeSessionStorage.getItem('admin_authenticated') === 'true'
+    );
+  };
+
+  // If maintenance mode is ON and visitor is not authenticated as administrator, show maintenance page
+  if (maintenanceMode && !isAdminAuthenticated()) {
+    return (
+      <MaintenancePage
+        onAdminAccess={() => {
+          window.location.hash = '#admin';
+          setCurrentView('admin');
+        }}
+      />
+    );
+  }
+
   if (currentView === 'admin') {
     return (
       <div className="w-full min-h-screen">
@@ -1981,6 +2021,8 @@ export default function App() {
           globalSeoDescription={globalSeoDescription}
           onGlobalSeoDescriptionChange={setGlobalSeoDescription}
           onCategoryClick={handleCategoryClick}
+          maintenanceMode={maintenanceMode}
+          onMaintenanceModeChange={(mode) => setMaintenanceMode(mode)}
         />
       </div>
     );
@@ -1990,6 +2032,41 @@ export default function App() {
     <div className="w-full min-h-screen">
       <title>{seoTitle}</title>
       <meta name="description" content={seoDescription} />
+
+      {/* Maintenance Mode Admin Notice Sticky Banner */}
+      {maintenanceMode && (
+        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black px-4 py-2 font-sans flex items-center justify-between shadow-lg sticky top-0 z-[120] border-b border-amber-700/50">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wide">
+            <span className="w-2.5 h-2.5 rounded-full bg-black animate-ping shrink-0"></span>
+            <span>MAINTENANCE MODE IS ACTIVE — Regular visitors see the maintenance screen. You have admin access.</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                window.location.hash = '#admin';
+                setCurrentView('admin');
+              }}
+              className="px-2.5 py-1 bg-black text-white text-xs font-black uppercase rounded hover:bg-neutral-900 transition-colors cursor-pointer"
+            >
+              Admin Console
+            </button>
+            <button
+              onClick={async () => {
+                setMaintenanceMode(false);
+                safeLocalStorage.setItem('triton_maintenance_mode', 'false');
+                try {
+                  await syncCatalogToServer(products, featuredCategories, undefined, false);
+                } catch (e) {}
+              }}
+              className="px-2.5 py-1 bg-white/40 hover:bg-white/60 text-black text-xs font-black uppercase rounded transition-colors cursor-pointer"
+              title="Instantly turn off maintenance mode"
+            >
+              Turn Off
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className={`min-h-screen flex flex-col font-sans transition-all duration-300 antialiased ${theme === 'inospace' ? 'bg-[#f4f5f6] text-neutral-900' : 'bg-[#0a0a0a] text-neutral-200'}`}>
       
       {/* Dynamic Header */}
@@ -3350,6 +3427,8 @@ export default function App() {
         globalSeoDescription={globalSeoDescription}
         onGlobalSeoDescriptionChange={setGlobalSeoDescription}
         onCategoryClick={handleCategoryClick}
+        maintenanceMode={maintenanceMode}
+        onMaintenanceModeChange={(mode) => setMaintenanceMode(mode)}
       />
 
       {/* Floating Back to Top Button */}

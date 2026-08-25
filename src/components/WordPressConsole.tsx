@@ -38,6 +38,8 @@ interface WordPressConsoleProps {
   globalSeoDescription?: string;
   onGlobalSeoDescriptionChange?: (val: string) => void;
   onCategoryClick?: (catName: string) => void;
+  maintenanceMode?: boolean;
+  onMaintenanceModeChange?: (active: boolean) => void;
 }
 
 const SOUTH_AFRICAN_COMPETITIVE_KEYWORDS: Record<string, { keyword: string; volume: string; difficulty: 'Low' | 'Medium' | 'High'; cpc: string; intent: string }[]> = {
@@ -194,11 +196,25 @@ export default function WordPressConsole({
   onGlobalSeoTitleChange,
   globalSeoDescription,
   onGlobalSeoDescriptionChange,
-  onCategoryClick
+  onCategoryClick,
+  maintenanceMode,
+  onMaintenanceModeChange
 }: WordPressConsoleProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
+  // Maintenance mode state
+  const [maintenanceModeState, setMaintenanceModeState] = useState<boolean>(() => {
+    if (typeof maintenanceMode === 'boolean') return maintenanceMode;
+    return safeLocalStorage.getItem('triton_maintenance_mode') === 'true';
+  });
+
+  useEffect(() => {
+    if (typeof maintenanceMode === 'boolean') {
+      setMaintenanceModeState(maintenanceMode);
+    }
+  }, [maintenanceMode]);
+
   // High fidelity theme integration
   const [internalTheme, setInternalTheme] = useState<'triton' | 'inospace'>(theme);
 
@@ -1975,7 +1991,7 @@ export default function WordPressConsole({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      addLog(`[WordPress Media] Uploading category image '${file.name}' to WordPress Media...`);
+      addLog(`[WordPress Media] Uploading category image '${file.name}'...`);
       const savedPath = await uploadImageToWordPress(file);
 
       const updated = currentFeaturedCategories.map((c) =>
@@ -1986,9 +2002,9 @@ export default function WordPressConsole({
       addLog(`📂 [Category Media] Saved category image successfully: ${savedPath}`);
     } catch (err: any) {
       console.error('Failed to upload category image:', err);
-      const errMsg = err?.message || 'Upload failed';
-      addLog(`❌ [Category Media] Upload error: ${errMsg}.`);
-      alert(`Upload error: ${errMsg}`);
+      const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
+      addLog(`❌ [Category Media] ${errMsg}`);
+      alert(errMsg);
     } finally {
       if (categoryImageFileInputRef.current) {
         categoryImageFileInputRef.current.value = '';
@@ -2480,57 +2496,10 @@ export default function WordPressConsole({
         }
       }
     } catch (err: any) {
-      console.error('Failed to upload image to server:', err);
-      addLog(`❌ [Media Library] Error saving image to disk. Using local fallback.`);
-
-      // Fallback to local Base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          const fileData = reader.result;
-          const newAsset = {
-            path: fileData,
-            label: `${file.name.replace(/\.[^/.]+$/, "")} (Local Fallback)`,
-            category: assetFilterCategory === 'all' ? 'workshop-equipment' : assetFilterCategory,
-            isCustom: true
-          };
-          const updated = [...customAssets, newAsset];
-          setCustomAssets(updated);
-          addLog(`📂 [Media Library] Saved fallback inline Base64 data URI to local storage.`);
-
-          // Auto select and save the uploaded image immediately
-          if (editedProduct) {
-            let updatedProduct = { ...editedProduct };
-            if (assetPickerTarget === 'primary') {
-              updatedProduct.image = fileData;
-              addLog(`📸 [Media Library] Auto-selected and mapped uploaded '${file.name}' as primary product image.`);
-            } else {
-              const idx = assetPickerTarget;
-              const images = [...(editedProduct.images || [])];
-              images[idx] = fileData;
-              updatedProduct.images = images;
-              addLog(`📸 [Media Library] Auto-selected and mapped uploaded '${file.name}' to gallery slot ${idx + 1}.`);
-            }
-            setEditedProduct(updatedProduct);
-            setIsAssetPickerOpen(false);
-
-            // Auto save updated product
-            const updatedProducts = currentProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p);
-            updateProducts(updatedProducts);
-            addLog(`Catalog Auto-Saved: SKU ${updatedProduct.modelCode} - '${updatedProduct.name}' updated with uploaded image.`);
-            
-            if (autoSyncOnSave) {
-              setSaveMessage('Metadata saved! Auto-sync in progress...');
-              addLog(`🔄 Auto-Sync initiated for category: '${formatCategoryLabel(updatedProduct.category)}'`);
-              triggerSync();
-            } else {
-              setSaveMessage('WooCommerce product metadata updated and synced successfully!');
-              setTimeout(() => setSaveMessage(''), 3500);
-            }
-          }
-        }
-      };
-      reader.readAsDataURL(file);
+      console.error('Failed to upload image to WordPress Media:', err);
+      const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
+      addLog(`❌ [Media Library] ${errMsg}`);
+      alert(errMsg);
     }
   };
 
@@ -2778,7 +2747,7 @@ export default function WordPressConsole({
     const file = e.target.files?.[0];
     if (file && editedProduct) {
       try {
-        addLog(`[WordPress Media] Uploading cover image '${file.name}' to WordPress Media...`);
+        addLog(`[WordPress Media] Uploading cover image '${file.name}'...`);
         const savedPath = await uploadImageToWordPress(file);
         const updated = {
           ...editedProduct,
@@ -2789,12 +2758,12 @@ export default function WordPressConsole({
         const newProducts = currentProducts.map(p => p.id === editedProduct.id ? updated : p);
         updateProducts(newProducts);
 
-        addLog(`✅ Uploaded cover image '${file.name}' to WordPress Media: ${savedPath}`);
+        addLog(`✅ Saved cover image '${file.name}': ${savedPath}`);
       } catch (err: any) {
         console.error('Failed to upload device image:', err);
-        const errMsg = err?.message || 'Upload failed';
-        addLog(`❌ [Upload] Error uploading image: ${errMsg}`);
-        alert(`Error uploading cover image: ${errMsg}`);
+        const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
+        addLog(`❌ [Upload] ${errMsg}`);
+        alert(errMsg);
       } finally {
         e.target.value = '';
       }
@@ -3991,6 +3960,44 @@ export default function WordPressConsole({
     }, 2000);
   };
 
+  const handleToggleMaintenance = async (enabled: boolean) => {
+    setMaintenanceModeState(enabled);
+    safeLocalStorage.setItem('triton_maintenance_mode', String(enabled));
+    if (onMaintenanceModeChange) {
+      onMaintenanceModeChange(enabled);
+    }
+    const statusLabel = enabled ? 'ACTIVATED' : 'DEACTIVATED';
+    addLog(`🛠️ [Maintenance Mode] ${statusLabel} — ${enabled ? 'Visitors now see maintenance page. Admins retain full access.' : 'Storefront open to all visitors.'}`);
+    setSaveMessage(`Maintenance Mode ${statusLabel}! Saved immediately to database.`);
+    setTimeout(() => setSaveMessage(''), 4000);
+
+    try {
+      const catsList = getStoredCategoriesList();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
+      if (cfSecret) headers['X-Vercel-Secret'] = cfSecret;
+
+      const res = await fetch('/api/catalog', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          products: currentProducts,
+          featuredCategories: currentFeaturedCategories,
+          categoriesList: catsList,
+          maintenanceMode: enabled
+        })
+      });
+      if (res.ok) {
+        addLog(`✅ [Maintenance Mode] State successfully saved to server & MySQL.`);
+      } else {
+        addLog(`⚠️ [Maintenance Mode] Local state saved. Server response: ${res.status}`);
+      }
+    } catch (err: any) {
+      console.error('Failed to sync maintenance mode state to server:', err);
+      addLog(`⚠️ [Maintenance Mode] Saved locally. Notice: ${err?.message || err}`);
+    }
+  };
+
   const handleAdminTabPasscodeReset = (e: React.FormEvent) => {
     e.preventDefault();
     setAdminTabPasscodeError(null);
@@ -4328,6 +4335,12 @@ export default function WordPressConsole({
                     }`}>
                       {isAuthenticated ? "Session Active" : "Authentication Required"}
                     </span>
+                    {maintenanceModeState && (
+                      <span className={`text-xs px-2.5 py-0.5 bg-amber-950/60 border border-amber-500/60 text-amber-300 font-extrabold uppercase flex items-center gap-1.5 ${isInospace ? 'rounded-none' : 'rounded'} animate-pulse shadow-sm`}>
+                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span>MAINTENANCE ACTIVE</span>
+                      </span>
+                    )}
                     {isAuthenticated && (
                       <div className="flex items-center gap-2 flex-wrap">
                         <button
@@ -6862,15 +6875,15 @@ export default function WordPressConsole({
                                             const file = e.target.files?.[0];
                                             if (file) {
                                               try {
-                                                addLog(`[WordPress Media] Uploading secondary image '${file.name}' to WordPress Media...`);
+                                                addLog(`[WordPress Media] Uploading secondary image '${file.name}'...`);
                                                 const savedPath = await uploadImageToWordPress(file);
                                                 handleUpdateAdditionalImage(imageIdx, savedPath);
-                                                addLog(`Uploaded secondary image '${file.name}' to WordPress Media: ${savedPath}`);
+                                                addLog(`✅ Saved secondary image '${file.name}': ${savedPath}`);
                                               } catch (err: any) {
                                                 console.error('Failed to upload secondary image:', err);
-                                                const errMsg = err?.message || 'Upload failed';
-                                                addLog(`❌ [Gallery Upload] Error: ${errMsg}`);
-                                                alert(`Error uploading secondary image: ${errMsg}`);
+                                                const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
+                                                addLog(`❌ [Gallery Upload] ${errMsg}`);
+                                                alert(errMsg);
                                               } finally {
                                                 e.target.value = '';
                                               }
@@ -10514,6 +10527,71 @@ export default function WordPressConsole({
                       <p className="text-xs text-neutral-400 max-w-xl font-sans">
                         Reset catalog databases to clean-slate states, manage admin security passcodes & password reset options, download and restore full site backups, and upload standard WooCommerce CSV inventory files.
                       </p>
+                    </div>
+                  </div>
+
+                  {/* PROMINENT MAINTENANCE MODE CONTROLLER CARD */}
+                  <div className="bg-[#111111] border-2 border-amber-500/40 rounded-xl p-6 shadow-2xl space-y-4" id="admin-maintenance-mode-card">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`p-2.5 rounded-lg ${maintenanceModeState ? 'bg-amber-500/20 text-amber-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                            <AlertTriangle size={22} className={maintenanceModeState ? 'animate-bounce text-amber-400' : ''} />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <h3 className="text-sm font-black uppercase text-white tracking-wider">
+                                Maintenance Mode
+                              </h3>
+                              {maintenanceModeState ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/50 uppercase flex items-center gap-1 animate-pulse">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                  ACTIVE (Visitors See Maintenance Page)
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-800 text-neutral-400 border border-neutral-700 uppercase">
+                                  OFF (Public Live Storefront)
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-neutral-300 font-sans mt-1 max-w-xl">
+                              When ON, regular visitors see a maintenance page. Admins keep full access.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Immediate Interactive ON/OFF Switch */}
+                      <div className="flex items-center gap-3 self-start sm:self-center bg-[#0a0a0a] px-4 py-2.5 rounded-xl border border-neutral-800">
+                        <span className="text-xs font-bold font-mono uppercase">
+                          {maintenanceModeState ? (
+                            <span className="text-amber-400 font-black flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                              ON
+                            </span>
+                          ) : (
+                            <span className="text-neutral-400">OFF</span>
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={maintenanceModeState}
+                          onClick={() => handleToggleMaintenance(!maintenanceModeState)}
+                          className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-black ${
+                            maintenanceModeState ? 'bg-amber-500' : 'bg-neutral-700'
+                          }`}
+                          id="btn-toggle-maintenance-mode"
+                          title="Toggle Showroom Maintenance Mode"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                              maintenanceModeState ? 'translate-x-7' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
 

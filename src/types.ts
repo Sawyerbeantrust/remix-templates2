@@ -76,3 +76,10 @@ export interface FeaturedCategory {
   seoDescription?: string;
 }
 
+export interface CatalogData {
+  products?: Product[];
+  featuredCategories?: FeaturedCategory[];
+  categoriesList?: string[];
+  maintenanceMode?: boolean;
+}
+
