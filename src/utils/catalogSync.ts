@@ -1,5 +1,6 @@
 import { Product, FeaturedCategory } from '../types';
 import { safeLocalStorage } from './safeStorage';
+import { autoSyncCatalogImages } from './imageUpload';
 
 export const DEFAULT_CATEGORIES_LIST = [
   'automotive-spray-booths',
@@ -28,12 +29,37 @@ export function getStoredCategoriesList(): string[] {
   return DEFAULT_CATEGORIES_LIST;
 }
 
+function hasBase64Images(products: Product[], featuredCategories: FeaturedCategory[]): boolean {
+  for (const p of products) {
+    if (p.image && typeof p.image === 'string' && p.image.startsWith('data:image')) return true;
+    if (Array.isArray(p.images)) {
+      for (const img of p.images) {
+        if (img && typeof img === 'string' && img.startsWith('data:image')) return true;
+      }
+    }
+  }
+  for (const c of featuredCategories) {
+    if (c.img && typeof c.img === 'string' && c.img.startsWith('data:image')) return true;
+  }
+  return false;
+}
+
 export async function syncCatalogToServer(
   products: Product[],
   featuredCategories: FeaturedCategory[],
   categoriesList?: string[]
 ): Promise<boolean> {
   try {
+    // Auto-sync any remaining base64 images to WordPress Media before sending catalog
+    const { sanitizedProducts, sanitizedCategories } = await autoSyncCatalogImages(
+      products,
+      featuredCategories
+    );
+
+    if (hasBase64Images(sanitizedProducts, sanitizedCategories)) {
+      console.log('[Catalog] Some images are still local base64. They will be uploaded to WordPress automatically on save.');
+    }
+
     const catsList = categoriesList && categoriesList.length > 0 ? categoriesList : getStoredCategoriesList();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
@@ -45,8 +71,8 @@ export async function syncCatalogToServer(
       method: 'POST',
       headers,
       body: JSON.stringify({
-        products,
-        featuredCategories,
+        products: sanitizedProducts,
+        featuredCategories: sanitizedCategories,
         categoriesList: catsList
       })
     });

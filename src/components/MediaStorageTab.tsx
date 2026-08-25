@@ -7,6 +7,7 @@ import {
 import { Product, FeaturedCategory } from '../types';
 import { useResolvedImage } from '../hooks/useResolvedImage';
 import { handleImageElementError } from '../utils/imageFallback';
+import { uploadImageToWordPress } from '../utils/imageUpload';
 
 function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
   const resolved = useResolvedImage(url, '/placeholder.jpg');
@@ -295,87 +296,48 @@ export default function MediaStorageTab({
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    setUploadStatus('Uploading file to WordPress Media Library...');
+    setUploadStatus('Uploading to WordPress Media...');
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const reader = new FileReader();
+        const finalPath = await uploadImageToWordPress(file);
 
-        await new Promise<void>((resolve, reject) => {
-          reader.onload = async () => {
-            try {
-              const base64Data = reader.result as string;
+        addLog(`[WordPress Media] Uploaded: ${file.name} -> ${finalPath}`);
 
-              // Send to server upload endpoint
-              const res = await fetch('/api/upload-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  name: file.name,
-                  data: base64Data
-                })
-              });
-
-              if (!res.ok) {
-                const errText = await res.text().catch(() => '');
-                let errData: any = {};
-                try { if (errText) errData = JSON.parse(errText); } catch {}
-                throw new Error(errData.error || `Upload failed with HTTP ${res.status}`);
+        // Check if quick upload target assignment was selected
+        if (quickUploadAssignTarget.startsWith('prod_')) {
+          const prodId = quickUploadAssignTarget.replace('prod_', '');
+          const targetProd = products.find(p => p.id === prodId);
+          if (targetProd) {
+            const updatedProducts = products.map(p => {
+              if (p.id === prodId) {
+                const currentGallery = Array.isArray(p.images) ? p.images : [p.image];
+                return {
+                  ...p,
+                  image: finalPath,
+                  images: Array.from(new Set([finalPath, ...currentGallery]))
+                };
               }
-
-              const resText = await res.text().catch(() => '');
-              let data: any = {};
-              try { if (resText) data = JSON.parse(resText); } catch {}
-              const finalPath = data.path || data.url;
-              if (!finalPath) {
-                throw new Error("Server did not return a valid media path");
+              return p;
+            });
+            onProductsChange(updatedProducts);
+            addLog(`[Media Auto-Attach] Uploaded '${file.name}' and attached to product: ${targetProd.name}`);
+          }
+        } else if (quickUploadAssignTarget.startsWith('cat_')) {
+          const catId = quickUploadAssignTarget.replace('cat_', '');
+          const targetCat = featuredCategories.find(c => c.id === catId);
+          if (targetCat) {
+            const updatedCats = featuredCategories.map(c => {
+              if (c.id === catId) {
+                return { ...c, img: finalPath };
               }
-
-              addLog(`[WordPress Media] Uploaded: ${file.name} -> ${finalPath}`);
-
-              // Check if quick upload target assignment was selected
-              if (quickUploadAssignTarget.startsWith('prod_')) {
-                const prodId = quickUploadAssignTarget.replace('prod_', '');
-                const targetProd = products.find(p => p.id === prodId);
-                if (targetProd) {
-                  const updatedProducts = products.map(p => {
-                    if (p.id === prodId) {
-                      const currentGallery = Array.isArray(p.images) ? p.images : [p.image];
-                      return {
-                        ...p,
-                        image: finalPath,
-                        images: Array.from(new Set([finalPath, ...currentGallery]))
-                      };
-                    }
-                    return p;
-                  });
-                  onProductsChange(updatedProducts);
-                  addLog(`[Media Auto-Attach] Uploaded '${file.name}' and attached to product: ${targetProd.name}`);
-                }
-              } else if (quickUploadAssignTarget.startsWith('cat_')) {
-                const catId = quickUploadAssignTarget.replace('cat_', '');
-                const targetCat = featuredCategories.find(c => c.id === catId);
-                if (targetCat) {
-                  const updatedCats = featuredCategories.map(c => {
-                    if (c.id === catId) {
-                      return { ...c, img: finalPath };
-                    }
-                    return c;
-                  });
-                  onFeaturedCategoriesChange(updatedCats);
-                  addLog(`[Media Auto-Attach] Uploaded '${file.name}' and attached to category: ${targetCat.name}`);
-                }
-              }
-
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+              return c;
+            });
+            onFeaturedCategoriesChange(updatedCats);
+            addLog(`[Media Auto-Attach] Uploaded '${file.name}' and attached to category: ${targetCat.name}`);
+          }
+        }
       }
 
       setUploadStatus('Image(s) uploaded successfully to WordPress!');

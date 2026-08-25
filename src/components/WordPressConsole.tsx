@@ -22,6 +22,7 @@ import { stripHtml } from '../utils/stripHtml';
 import AssetAuditTab from './AssetAuditTab';
 import MediaStorageTab from './MediaStorageTab';
 import { migrateDefaultImagesToWordPress, fixLegacyImageUrls } from '../utils/migrateLegacyImages';
+import { uploadImageToWordPress } from '../utils/imageUpload';
 
 interface WordPressConsoleProps {
   isFullPage?: boolean;
@@ -1655,45 +1656,10 @@ export default function WordPressConsole({
   };
 
   const uploadImageToServer = async (file: File): Promise<string> => {
-    let dataUrl = await compressImage(file, 1200, 1200, 0.85);
-    if (!dataUrl) {
-      dataUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string || '');
-        reader.onerror = () => resolve('');
-        reader.readAsDataURL(file);
-      });
-    }
-
-    if (!dataUrl) {
-      throw new Error('Failed to read image data from device');
-    }
-
-    try {
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: file.name, data: dataUrl })
-      });
-      if (response.ok) {
-        const text = await response.text();
-        if (text && text.trim().length > 0) {
-          try {
-            const result = JSON.parse(text);
-            if (result.success && (result.path || result.url)) {
-              const finalUrl = result.path || result.url;
-              addLog(`📂 [Server upload] Saved: ${finalUrl}`);
-              return finalUrl;
-            }
-          } catch {}
-        }
-      }
-    } catch (err: any) {
-      console.warn('Server upload notice, using local data URL:', err);
-    }
-    
-    addLog(`⚠️ [Server upload] Offline/local fallback applied for '${file.name}'.`);
-    return dataUrl;
+    addLog(`[WordPress Media] Uploading '${file.name}' to WordPress Media Library...`);
+    const wpUrl = await uploadImageToWordPress(file);
+    addLog(`📂 [WordPress Media] Uploaded: ${file.name} -> ${wpUrl}`);
+    return wpUrl;
   };
 
   const updateProducts = async (newProducts: Product[]) => {
@@ -2009,28 +1975,8 @@ export default function WordPressConsole({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      let savedPath: string;
-      try {
-        savedPath = await uploadImageToServer(file);
-      } catch {
-        const compressedBase64 = await compressImage(file, 1000, 1000, 0.85);
-        try {
-          const response = await fetch('/api/save-category-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: file.name, data: compressedBase64 })
-          });
-          if (response.ok) {
-            const text = await response.text();
-            const data = text ? JSON.parse(text) : {};
-            savedPath = data.url || data.path || compressedBase64;
-          } else {
-            savedPath = compressedBase64;
-          }
-        } catch {
-          savedPath = compressedBase64;
-        }
-      }
+      addLog(`[WordPress Media] Uploading category image '${file.name}' to WordPress Media...`);
+      const savedPath = await uploadImageToWordPress(file);
 
       const updated = currentFeaturedCategories.map((c) =>
         c.id === selectedCatId ? { ...c, img: savedPath } : c
@@ -2040,8 +1986,9 @@ export default function WordPressConsole({
       addLog(`📂 [Category Media] Saved category image successfully: ${savedPath}`);
     } catch (err: any) {
       console.error('Failed to upload category image:', err);
-      const errMsg = err?.message || 'Unknown network error';
+      const errMsg = err?.message || 'Upload failed';
       addLog(`❌ [Category Media] Upload error: ${errMsg}.`);
+      alert(`Upload error: ${errMsg}`);
     } finally {
       if (categoryImageFileInputRef.current) {
         categoryImageFileInputRef.current.value = '';
@@ -2485,7 +2432,8 @@ export default function WordPressConsole({
 
   const handleUploadToLibrary = async (file: File) => {
     try {
-      const savedPath = await uploadImageToServer(file);
+      addLog(`[WordPress Media] Uploading '${file.name}' to WordPress Media Library...`);
+      const savedPath = await uploadImageToWordPress(file);
       const newAsset = {
         path: savedPath,
         label: `${file.name.replace(/\.[^/.]+$/, "")} (Uploaded)`,
@@ -2499,7 +2447,7 @@ export default function WordPressConsole({
       } catch (e) {
         console.warn('Storage limit reached or localStorage disabled', e);
       }
-      addLog(`📂 [Media Library] Saved '${file.name}' strictly to 'src/assets/images/' and added to library.`);
+      addLog(`📂 [Media Library] Saved '${file.name}' to WordPress Media: ${savedPath}`);
 
       // Auto select and save the uploaded image immediately
       if (editedProduct) {
@@ -2830,7 +2778,8 @@ export default function WordPressConsole({
     const file = e.target.files?.[0];
     if (file && editedProduct) {
       try {
-        const savedPath = await uploadImageToServer(file);
+        addLog(`[WordPress Media] Uploading cover image '${file.name}' to WordPress Media...`);
+        const savedPath = await uploadImageToWordPress(file);
         const updated = {
           ...editedProduct,
           image: savedPath
@@ -2840,10 +2789,12 @@ export default function WordPressConsole({
         const newProducts = currentProducts.map(p => p.id === editedProduct.id ? updated : p);
         updateProducts(newProducts);
 
-        addLog(`✅ Uploaded cover image '${file.name}' from device.`);
+        addLog(`✅ Uploaded cover image '${file.name}' to WordPress Media: ${savedPath}`);
       } catch (err: any) {
         console.error('Failed to upload device image:', err);
-        addLog(`❌ [Upload] Error uploading image: ${err?.message || err}`);
+        const errMsg = err?.message || 'Upload failed';
+        addLog(`❌ [Upload] Error uploading image: ${errMsg}`);
+        alert(`Error uploading cover image: ${errMsg}`);
       } finally {
         e.target.value = '';
       }
@@ -6911,11 +6862,15 @@ export default function WordPressConsole({
                                             const file = e.target.files?.[0];
                                             if (file) {
                                               try {
-                                                const savedPath = await uploadImageToServer(file);
+                                                addLog(`[WordPress Media] Uploading secondary image '${file.name}' to WordPress Media...`);
+                                                const savedPath = await uploadImageToWordPress(file);
                                                 handleUpdateAdditionalImage(imageIdx, savedPath);
-                                                addLog(`Uploaded secondary image '${file.name}' from local device.`);
+                                                addLog(`Uploaded secondary image '${file.name}' to WordPress Media: ${savedPath}`);
                                               } catch (err: any) {
                                                 console.error('Failed to upload secondary image:', err);
+                                                const errMsg = err?.message || 'Upload failed';
+                                                addLog(`❌ [Gallery Upload] Error: ${errMsg}`);
+                                                alert(`Error uploading secondary image: ${errMsg}`);
                                               } finally {
                                                 e.target.value = '';
                                               }

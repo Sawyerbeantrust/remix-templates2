@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { safeLocalStorage } from './utils/safeStorage';
 import { syncCatalogToServer, fetchServerCatalog, getStoredCategoriesList } from './utils/catalogSync';
+import { autoSyncCatalogImages } from './utils/imageUpload';
 import Header from './components/Header';
 import ProductCard from './components/ProductCard';
 import CartDrawer from './components/CartDrawer';
@@ -425,14 +426,25 @@ export default function App() {
 
     const timer = setTimeout(async () => {
       try {
-        if (hasUnresolvedImageReference(products, featuredCategories)) {
-          console.log('[Catalog] Blocked save — unresolved image reference');
+        // Auto-sync any data:image base64 to WordPress Media Library
+        const { sanitizedProducts, sanitizedCategories, replacedCount } = await autoSyncCatalogImages(
+          products,
+          featuredCategories
+        );
+
+        if (replacedCount > 0) {
+          setProducts(sanitizedProducts);
+          setFeaturedCategories(sanitizedCategories);
+        }
+
+        if (hasUnresolvedImageReference(sanitizedProducts, sanitizedCategories)) {
+          console.log('[Catalog] Some images are still local base64. They will be uploaded to WordPress automatically on save.');
           return;
         }
 
         // Keep local cache synced
-        safeLocalStorage.setItem('triton_products_db', JSON.stringify(products));
-        safeLocalStorage.setItem('triton_featured_categories_db_v3', JSON.stringify(featuredCategories));
+        safeLocalStorage.setItem('triton_products_db', JSON.stringify(sanitizedProducts));
+        safeLocalStorage.setItem('triton_featured_categories_db_v3', JSON.stringify(sanitizedCategories));
 
         const catalogHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
         const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
@@ -444,8 +456,8 @@ export default function App() {
           method: 'POST',
           headers: catalogHeaders,
           body: JSON.stringify({
-            products,
-            featuredCategories
+            products: sanitizedProducts,
+            featuredCategories: sanitizedCategories
           })
         });
 

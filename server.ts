@@ -77,7 +77,7 @@ function getWpHeaders(extra?: Record<string, string>): Record<string, string> {
     : (user || pass ? "Basic " + Buffer.from(`${user}:${pass}`).toString("base64") : "");
   const migrateKey = (process.env.WP_MIGRATE_KEY || "TritonMigrate2026").trim();
   const cfBypassSecret = (process.env.CF_BYPASS_SECRET || process.env.VERCEL_SECRET || "").trim();
-  const userAgent = (process.env.WP_USER_AGENT || "TritonCatalogSync/1.0 (Vercel Edge)").trim();
+  const userAgent = (process.env.WP_USER_AGENT || "TritonShowroomSync/2.0 (sync@car-lifts.co.za)").trim();
 
   const headers: Record<string, string> = {
     "User-Agent": userAgent,

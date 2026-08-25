@@ -225,9 +225,12 @@ export async function fixLegacyImageUrls(
         });
         if (res.ok) {
           const json = await res.json();
-          if (json.path) {
-            urlMap[legUrl] = json.path;
+          const resolvedUrl = json.url || json.path;
+          if (resolvedUrl) {
+            urlMap[legUrl] = resolvedUrl;
             fixed++;
+            console.log(`[Auto-Sync] base64 image uploaded to WordPress Media: ${resolvedUrl}`);
+            if (onProgress) onProgress(`✓ Migrated base64 data to ${resolvedUrl}`);
           }
         }
       } catch (err) {
@@ -247,10 +250,11 @@ export async function fixLegacyImageUrls(
           });
           if (res.ok) {
             const json = await res.json();
-            if (json.path) {
-              urlMap[legUrl] = json.path;
+            const resolvedUrl = json.url || json.path;
+            if (resolvedUrl) {
+              urlMap[legUrl] = resolvedUrl;
               fixed++;
-              if (onProgress) onProgress(`✓ Migrated to ${json.path}`);
+              if (onProgress) onProgress(`✓ Migrated to ${resolvedUrl}`);
             }
           }
         } else {

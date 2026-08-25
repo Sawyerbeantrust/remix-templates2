@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 import { ImagePreloader } from './ImagePreloader';
+import { uploadImageToWordPress } from '../utils/imageUpload';
 
 export interface ImageUploaderProps {
   currentImageUrl?: string;
@@ -37,63 +38,15 @@ export function ImageUploader({
     setIsUploading(true);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64Data = e.target?.result as string;
-
-        try {
-          // POST to /api/save-category-image
-          const response = await fetch('/api/save-category-image', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: file.name,
-              data: base64Data,
-            }),
-          }).catch((netErr) => {
-            throw new Error(`Network error: ${netErr?.message || 'Failed to reach server'}`);
-          });
-
-          // Ensure we parse the response as JSON and catch unexpected HTML error pages
-          const data = await response.json().catch(() => {
-            throw new Error(`Server returned status ${response.status} with non-JSON response`);
-          });
-
-          if (!response.ok || !data.success) {
-            const serverErr = data?.error || `Upload failed with status code ${response.status}`;
-            setErrorMessage(serverErr);
-            onUploadError?.(serverErr);
-            return;
-          }
-
-          const resolvedUrl = data.url || data.path;
-          setPreviewUrl(resolvedUrl);
-          setSuccessMessage('Category image uploaded and saved successfully!');
-          onUploadSuccess?.(resolvedUrl);
-        } catch (fetchErr: any) {
-          // Catch and display the error message in the UI
-          const msg = fetchErr?.message || 'Failed to upload image. Please try again.';
-          setErrorMessage(msg);
-          onUploadError?.(msg);
-        } finally {
-          setIsUploading(false);
-        }
-      };
-
-      reader.onerror = () => {
-        const msg = 'Failed to read local file.';
-        setErrorMessage(msg);
-        onUploadError?.(msg);
-        setIsUploading(false);
-      };
-
-      reader.readAsDataURL(file);
+      const wpUrl = await uploadImageToWordPress(file);
+      setPreviewUrl(wpUrl);
+      setSuccessMessage('Image uploaded directly to WordPress Media Library!');
+      onUploadSuccess?.(wpUrl);
     } catch (err: any) {
-      const msg = err?.message || 'An unexpected error occurred.';
+      const msg = err?.message || 'Failed to upload image to WordPress Media Library.';
       setErrorMessage(msg);
       onUploadError?.(msg);
+    } finally {
       setIsUploading(false);
     }
   };
