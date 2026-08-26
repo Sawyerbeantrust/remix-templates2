@@ -146,18 +146,21 @@ export default function MediaStorageTab({
         return wpImages.length > 0 ? wpImages[0].url : (fallbackUrl || DEFAULT_FALLBACK_IMAGE);
       };
 
-      const DELETED_PATTERNS = [
-        'welding_helmet', 'welding_1', 'welding_2', 'welding_3',
-        'workshop_tools_1', 'workshop_tools_2', 'filters_1', 'ladder_1',
-        'car_lift_1', 'car_lift_2', 'car_lift_3', 'car_lift_4', 'car_lift_5',
-        'spray_booth_1', 'spray_booth_2', 'spray_booth_3', 'spray_booth_4',
-        'two_post_car_lift_1781792717809', 'wheel_care_1', 'wheel_care_2', 'protective_clothing',
-        '/placeholder.jpg', 'placeholder.jpg'
-      ];
+      const KNOWN_VALID_LOCAL_ASSETS = new Set([
+        'modern_workshop_car_lift_1780988724101.png',
+        'killarney_gardens_map_1781354004848.jpg',
+        'garage_equipment_hero_1783937551956.jpg',
+        'garage_equipment_welder_hero_1783939957746.jpg'
+      ]);
 
       const isMissingOrDeleted = (imgUrl?: string) => {
         if (!imgUrl) return true;
-        return DELETED_PATTERNS.some(pat => imgUrl.includes(pat));
+        if (imgUrl.includes('placeholder')) return true;
+        if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://') || imgUrl.startsWith('data:')) {
+          return false;
+        }
+        const fn = imgUrl.split('/').pop()?.split('?')[0] || '';
+        return !KNOWN_VALID_LOCAL_ASSETS.has(fn);
       };
 
       let changedCount = 0;

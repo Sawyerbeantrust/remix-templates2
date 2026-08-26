@@ -6,6 +6,7 @@ export const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1619642
  * Fallback mapping for missing or legacy filenames to visually-similar existing image assets
  */
 export const IMAGE_MAP: Record<string, string> = {
+  'placeholder.jpg': '/placeholder.jpg',
   'garage_equipment_hero_1783937551956.jpg': '/assets/images/garage_equipment_hero_1783937551956.jpg',
   'garage_equipment_welder_hero_1783939957746.jpg': '/assets/images/garage_equipment_welder_hero_1783939957746.jpg',
   'killarney_gardens_map_1781354004848.jpg': '/assets/images/killarney_gardens_map_1781354004848.jpg',
