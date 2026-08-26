@@ -1753,8 +1753,17 @@ async function handleAssistantChat(req: express.Request, res: express.Response) 
     return res.status(400).json({ success: false, error: "Missing message parameter" });
   }
 
+  const phoneFallback = "For exact pricing/specs on that, our sales team can help directly — call 021 556 2413 and they'll sort you out.";
   const apiKey = process.env.GEMINI_API_KEY;
   console.log(`[Assistant API] Request received for: "${message.substring(0, 40)}...". GEMINI_API_KEY configured: ${!!apiKey}`);
+
+  if (!apiKey) {
+    return res.status(200).json({
+      success: true,
+      source: "fallback",
+      reply: phoneFallback
+    });
+  }
 
   const ai = getGeminiClient();
 
@@ -1836,7 +1845,7 @@ ${JSON.stringify(catalogContext, null, 2)}
       }
       formattedPrompt += `User: ${message}\nAssistant:`;
 
-      const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+      const candidateModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest"];
       let response: any = null;
 
       for (const model of candidateModels) {
@@ -1852,7 +1861,7 @@ ${JSON.stringify(catalogContext, null, 2)}
             break;
           }
         } catch (error: any) {
-          console.error("[Gemini API Error]", error.status, error.message);
+          console.error("[Gemini Error]", error?.status || "", error?.message || error);
         }
       }
 
@@ -1865,25 +1874,21 @@ ${JSON.stringify(catalogContext, null, 2)}
         });
       }
     } catch (error: any) {
-      console.error("[Gemini API Error]", error?.status || error?.message || error);
+      console.error("[Gemini Error]", error?.status || "", error?.message || error);
+      return res.status(200).json({
+        success: true,
+        source: "fallback",
+        reply: phoneFallback
+      });
     }
   }
 
-  // Fallback execution guarantees { success: true, source: "local-rules", reply: "..." }
-  try {
-    const fallbackReply = generateLocalAssistantResponse(message, history);
-    return res.status(200).json({
-      success: true,
-      source: "local-rules",
-      reply: fallbackReply || "For exact pricing/specs on that, our sales team can help directly — call 021 556 2413 and they'll sort you out."
-    });
-  } catch {
-    return res.status(200).json({
-      success: true,
-      source: "fallback",
-      reply: "For exact pricing/specs on that, our sales team can help directly — call 021 556 2413 and they'll sort you out."
-    });
-  }
+  // Fallback if no AI response was obtained
+  return res.status(200).json({
+    success: true,
+    source: "fallback",
+    reply: phoneFallback
+  });
 }
 
 app.post("/api/assistant-chat", handleAssistantChat);
