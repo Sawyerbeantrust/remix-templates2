@@ -1845,7 +1845,7 @@ ${JSON.stringify(catalogContext, null, 2)}
       }
       formattedPrompt += `User: ${message}\nAssistant:`;
 
-      const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
+      const candidateModels = ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "gemini-2.5-flash"];
       let response: any = null;
       let usedModel = "";
 
