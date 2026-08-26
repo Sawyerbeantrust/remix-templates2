@@ -6,18 +6,18 @@ import {
 } from 'lucide-react';
 import { Product, FeaturedCategory } from '../types';
 import { useResolvedImage } from '../hooks/useResolvedImage';
-import { handleImageElementError } from '../utils/imageFallback';
+import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../utils/imageFallback';
 import { uploadImageToWordPress } from '../utils/imageUpload';
 
 function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
-  const resolved = useResolvedImage(url, '/placeholder.jpg');
+  const resolved = useResolvedImage(url, DEFAULT_FALLBACK_IMAGE);
   return (
     <img
       src={resolved}
       alt={alt}
       className={className}
       referrerPolicy="no-referrer"
-      onError={(e) => handleImageElementError(e, '/placeholder.jpg')}
+      onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
     />
   );
 }
@@ -78,6 +78,137 @@ export default function MediaStorageTab({
   const [productImageType, setProductImageType] = useState<'primary' | 'gallery'>('primary');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [quickUploadAssignTarget, setQuickUploadAssignTarget] = useState<string>('library_only'); // 'library_only' | product_id | category_id
+
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+
+  // Auto-assign WP media images by matching product category
+  const handleAutoAssignWpMediaByCategory = async () => {
+    setIsAutoAssigning(true);
+    try {
+      addLog('[Auto-Assign] Fetching WordPress Media images from /api/list-images...');
+      const res = await fetch('/api/list-images');
+      let wpImages: Array<{ id?: number; filename: string; url: string }> = [];
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.images)) {
+          wpImages = data.images;
+          setServerImages(wpImages);
+        }
+      }
+
+      if (wpImages.length === 0) {
+        addLog('[Auto-Assign] Warning: No WordPress Media images found in library.');
+      }
+
+      const findWpImageForCategory = (categoryName: string, fallbackUrl?: string): string => {
+        const cat = (categoryName || '').toLowerCase();
+        
+        // 1. Car lift patterns (lift, bdna, 47981c7d, 761272858)
+        if (cat.includes('lift') || cat.includes('parking') || cat.includes('triton')) {
+          const liftImg = wpImages.find(img => {
+            const fn = img.filename.toLowerCase();
+            return fn.includes('lift') || fn.includes('bdna') || fn.includes('47981c7d') || fn.includes('761272858');
+          });
+          if (liftImg) return liftImg.url;
+        }
+
+        // 2. Spray booth patterns (photoshoot, booth, spray)
+        if (cat.includes('spray') || cat.includes('booth')) {
+          const boothImg = wpImages.find(img => {
+            const fn = img.filename.toLowerCase();
+            return fn.includes('photoshoot') || fn.includes('booth') || fn.includes('spray');
+          });
+          if (boothImg) return boothImg.url;
+        }
+
+        // 3. Filters / Workshop patterns (Washable, Filter, workshop, tools)
+        if (cat.includes('filter') || cat.includes('workshop') || cat.includes('tool') || cat.includes('chassis') || cat.includes('heater') || cat.includes('ladder') || cat.includes('oil')) {
+          const filterImg = wpImages.find(img => {
+            const fn = img.filename.toLowerCase();
+            return fn.includes('washable') || fn.includes('filter') || fn.includes('workshop') || fn.includes('tool');
+          });
+          if (filterImg) return filterImg.url;
+        }
+
+        // 4. Welder patterns
+        if (cat.includes('weld')) {
+          const weldImg = wpImages.find(img => {
+            const fn = img.filename.toLowerCase();
+            return fn.includes('weld') || fn.includes('mig') || fn.includes('tig');
+          });
+          if (weldImg) return weldImg.url;
+        }
+
+        // 5. Fallback to placeholder or first WP image
+        const placeholderImg = wpImages.find(img => img.filename.toLowerCase().includes('placeholder') || img.filename.toLowerCase().includes('woocommerce-placeholder'));
+        if (placeholderImg) return placeholderImg.url;
+        
+        return wpImages.length > 0 ? wpImages[0].url : (fallbackUrl || DEFAULT_FALLBACK_IMAGE);
+      };
+
+      const DELETED_PATTERNS = [
+        'welding_helmet', 'welding_1', 'welding_2', 'welding_3',
+        'workshop_tools_1', 'workshop_tools_2', 'filters_1', 'ladder_1',
+        'car_lift_1', 'car_lift_2', 'car_lift_3', 'car_lift_4', 'car_lift_5',
+        'spray_booth_1', 'spray_booth_2', 'spray_booth_3', 'spray_booth_4',
+        'two_post_car_lift_1781792717809', 'wheel_care_1', 'wheel_care_2', 'protective_clothing',
+        '/placeholder.jpg', 'placeholder.jpg'
+      ];
+
+      const isMissingOrDeleted = (imgUrl?: string) => {
+        if (!imgUrl) return true;
+        return DELETED_PATTERNS.some(pat => imgUrl.includes(pat));
+      };
+
+      let changedCount = 0;
+      const updatedProducts = products.map(p => {
+        let mainImg = p.image;
+        let gallery = Array.isArray(p.images) ? [...p.images] : [p.image];
+        let hasChanged = false;
+
+        if (isMissingOrDeleted(mainImg)) {
+          mainImg = findWpImageForCategory(p.category || p.name, mainImg);
+          hasChanged = true;
+        }
+
+        gallery = gallery.map(gImg => {
+          if (isMissingOrDeleted(gImg)) {
+            hasChanged = true;
+            return findWpImageForCategory(p.category || p.name, mainImg);
+          }
+          return gImg;
+        });
+
+        if (hasChanged) {
+          changedCount++;
+          return {
+            ...p,
+            image: mainImg,
+            images: gallery
+          };
+        }
+        return p;
+      });
+
+      if (changedCount > 0) {
+        onProductsChange(updatedProducts);
+        // Persist to /api/catalog
+        await fetch('/api/catalog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: updatedProducts })
+        });
+        addLog(`[Auto-Assign] Successfully updated ${changedCount} products with WordPress Media images and saved catalog.`);
+      } else {
+        addLog('[Auto-Assign] All products already have valid images.');
+      }
+    } catch (err) {
+      console.error('[Auto-Assign] Error:', err);
+      addLog(`[Auto-Assign] Error auto-assigning WordPress media: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsAutoAssigning(false);
+    }
+  };
 
   // Fetch images from WordPress Media Library API
   const fetchServerImages = async () => {
@@ -385,7 +516,7 @@ export default function MediaStorageTab({
 
       if (urlsToRemove.has(mainImg)) {
         const remainingGallery = gallery.filter(img => !urlsToRemove.has(img));
-        mainImg = remainingGallery.length > 0 ? remainingGallery[0] : '/placeholder.jpg';
+        mainImg = remainingGallery.length > 0 ? remainingGallery[0] : DEFAULT_FALLBACK_IMAGE;
       }
 
       gallery = gallery.filter(img => !urlsToRemove.has(img));
@@ -407,7 +538,7 @@ export default function MediaStorageTab({
       if (urlsToRemove.has(cat.img)) {
         return {
           ...cat,
-          img: '/images/car_lift_1.jpg'
+          img: DEFAULT_FALLBACK_IMAGE
         };
       }
       return cat;
@@ -453,6 +584,21 @@ export default function MediaStorageTab({
 
           {/* Quick Action Upload & Assign options */}
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleAutoAssignWpMediaByCategory}
+              disabled={isAutoAssigning}
+              className={`px-3 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
+                isInospace
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  : 'border-emerald-500/40 bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60'
+              } disabled:opacity-50`}
+              title="Auto-match products with missing/deleted images to WordPress Media Library assets by category"
+            >
+              <Package size={14} className={isAutoAssigning ? 'animate-spin text-emerald-400' : 'text-emerald-400'} />
+              <span>{isAutoAssigning ? 'Auto-Assigning...' : 'AUTO-ASSIGN WP MEDIA BY CATEGORY'}</span>
+            </button>
+
             {onMigrateDefaultImagesToWordPress && (
               <button
                 type="button"

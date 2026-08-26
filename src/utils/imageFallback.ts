@@ -16,7 +16,7 @@ export const IMAGE_MAP: Record<string, string> = {
 };
 
 /**
- * Extract clean filename from a path or URL (e.g. '/images/car_lift_1.jpg' -> 'car_lift_1.jpg')
+ * Extract clean filename from a path or URL (e.g. '/images/workshop_sample.jpg' -> 'workshop_sample.jpg')
  */
 export function getFilenameFromPath(urlOrPath: string): string {
   if (!urlOrPath || typeof urlOrPath !== 'string') return '';
