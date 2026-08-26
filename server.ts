@@ -1845,8 +1845,9 @@ ${JSON.stringify(catalogContext, null, 2)}
       }
       formattedPrompt += `User: ${message}\nAssistant:`;
 
-      const candidateModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest"];
+      const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
       let response: any = null;
+      let usedModel = "";
 
       for (const model of candidateModels) {
         try {
@@ -1858,6 +1859,8 @@ ${JSON.stringify(catalogContext, null, 2)}
             }
           });
           if (response && response.text) {
+            usedModel = model;
+            console.log("[Gemini] using model:", model);
             break;
           }
         } catch (error: any) {
