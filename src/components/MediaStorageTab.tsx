@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ImageIcon, Trash2, Upload, Search, RefreshCw, CheckCircle2, 
   HardDrive, ExternalLink, ShieldAlert,
-  Check, X, Database, Link, Package, Layers
+  Check, X, Database, Link, Package, Layers, Sparkles
 } from 'lucide-react';
 import { Product, FeaturedCategory } from '../types';
 import { useResolvedImage } from '../hooks/useResolvedImage';
 import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../utils/imageFallback';
 import { uploadImageToWordPress } from '../utils/imageUpload';
+import { safeLocalStorage } from '../utils/safeStorage';
 
 function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
   const resolved = useResolvedImage(url, DEFAULT_FALLBACK_IMAGE);
@@ -80,12 +81,13 @@ export default function MediaStorageTab({
   const [quickUploadAssignTarget, setQuickUploadAssignTarget] = useState<string>('library_only'); // 'library_only' | product_id | category_id
 
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Auto-assign WP media images by matching product category
+  // Auto-assign WP media images by matching product category with pools and round-robin variety
   const handleAutoAssignWpMediaByCategory = async () => {
     setIsAutoAssigning(true);
     try {
-      addLog('[Auto-Assign] Fetching WordPress Media images from /api/list-images...');
+      addLog('[Auto-Assign] Fetching WordPress Media items from /api/list-images...');
       const res = await fetch('/api/list-images');
       let wpImages: Array<{ id?: number; filename: string; url: string }> = [];
       if (res.ok) {
@@ -97,114 +99,170 @@ export default function MediaStorageTab({
       }
 
       if (wpImages.length === 0) {
-        addLog('[Auto-Assign] Warning: No WordPress Media images found in library.');
+        addLog('[Auto-Assign] Warning: No WordPress Media items found in library.');
       }
 
-      const findWpImageForCategory = (categoryName: string, fallbackUrl?: string): string => {
-        const cat = (categoryName || '').toLowerCase();
+      // 2. Build three pools by filename
+      // - LIFT pool: filenames containing "bdna", "47981c7d", "761272858" or "lift" (case-insensitive)
+      // - BOOTH pool: filenames containing "photoshoot" or "booth" (case-insensitive)
+      // - WORKSHOP pool: filenames containing "Filters", "Protecto" or "placeholder" (case-insensitive)
+      const liftPool: string[] = [];
+      const boothPool: string[] = [];
+      const workshopPool: string[] = [];
+      const allWpUrls: string[] = [];
+
+      wpImages.forEach(img => {
+        if (!img.url) return;
+        allWpUrls.push(img.url);
+        const nameAndUrl = `${img.filename || ''} ${img.url || ''}`.toLowerCase();
         
-        // 1. Car lift patterns (lift, bdna, 47981c7d, 761272858)
-        if (cat.includes('lift') || cat.includes('parking') || cat.includes('triton')) {
-          const liftImg = wpImages.find(img => {
-            const fn = img.filename.toLowerCase();
-            return fn.includes('lift') || fn.includes('bdna') || fn.includes('47981c7d') || fn.includes('761272858');
-          });
-          if (liftImg) return liftImg.url;
+        let matched = false;
+        if (nameAndUrl.includes('bdna') || nameAndUrl.includes('47981c7d') || nameAndUrl.includes('761272858') || nameAndUrl.includes('lift')) {
+          liftPool.push(img.url);
+          matched = true;
+        }
+        if (nameAndUrl.includes('photoshoot') || nameAndUrl.includes('booth')) {
+          boothPool.push(img.url);
+          matched = true;
+        }
+        if (nameAndUrl.includes('filter') || nameAndUrl.includes('protecto') || nameAndUrl.includes('placeholder')) {
+          workshopPool.push(img.url);
+          matched = true;
         }
 
-        // 2. Spray booth patterns (photoshoot, booth, spray)
-        if (cat.includes('spray') || cat.includes('booth')) {
-          const boothImg = wpImages.find(img => {
-            const fn = img.filename.toLowerCase();
-            return fn.includes('photoshoot') || fn.includes('booth') || fn.includes('spray');
-          });
-          if (boothImg) return boothImg.url;
+        // If not matched to any specific keyword, assign to workshopPool by default
+        if (!matched) {
+          workshopPool.push(img.url);
+        }
+      });
+
+      addLog(`[Auto-Assign] Pools categorized — LIFT: ${liftPool.length}, BOOTH: ${boothPool.length}, WORKSHOP: ${workshopPool.length}`);
+
+      // Helper to get pool for a given category name or product
+      const getPoolForCategory = (catString: string): string[] => {
+        const cat = (catString || '').toLowerCase();
+        if (cat === 'car-lift' || cat === 'wheel-care' || cat.includes('lift') || cat.includes('wheel') || cat.includes('parking') || cat.includes('triton')) {
+          if (liftPool.length > 0) return liftPool;
+        } else if (cat === 'spray-booth' || cat.includes('spray') || cat.includes('booth') || cat.includes('auto-spray') || cat.includes('bus-spray')) {
+          if (boothPool.length > 0) return boothPool;
+        } else {
+          if (workshopPool.length > 0) return workshopPool;
         }
 
-        // 3. Filters / Workshop patterns (Washable, Filter, workshop, tools)
-        if (cat.includes('filter') || cat.includes('workshop') || cat.includes('tool') || cat.includes('chassis') || cat.includes('heater') || cat.includes('ladder') || cat.includes('oil')) {
-          const filterImg = wpImages.find(img => {
-            const fn = img.filename.toLowerCase();
-            return fn.includes('washable') || fn.includes('filter') || fn.includes('workshop') || fn.includes('tool');
-          });
-          if (filterImg) return filterImg.url;
-        }
-
-        // 4. Welder patterns
-        if (cat.includes('weld')) {
-          const weldImg = wpImages.find(img => {
-            const fn = img.filename.toLowerCase();
-            return fn.includes('weld') || fn.includes('mig') || fn.includes('tig');
-          });
-          if (weldImg) return weldImg.url;
-        }
-
-        // 5. Fallback to placeholder or first WP image
-        const placeholderImg = wpImages.find(img => img.filename.toLowerCase().includes('placeholder') || img.filename.toLowerCase().includes('woocommerce-placeholder'));
-        if (placeholderImg) return placeholderImg.url;
-        
-        return wpImages.length > 0 ? wpImages[0].url : (fallbackUrl || DEFAULT_FALLBACK_IMAGE);
+        // Fallbacks if specific pool is empty
+        if (workshopPool.length > 0) return workshopPool;
+        if (liftPool.length > 0) return liftPool;
+        if (boothPool.length > 0) return boothPool;
+        return allWpUrls;
       };
 
-      const KNOWN_VALID_LOCAL_ASSETS = new Set([
-        'modern_workshop_car_lift_1780988724101.png',
-        'killarney_gardens_map_1781354004848.jpg',
-        'garage_equipment_hero_1783937551956.jpg',
-        'garage_equipment_welder_hero_1783939957746.jpg'
-      ]);
-
-      const isMissingOrDeleted = (imgUrl?: string) => {
-        if (!imgUrl) return true;
-        if (imgUrl.includes('placeholder')) return true;
-        if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://') || imgUrl.startsWith('data:')) {
-          return false;
-        }
-        const fn = imgUrl.split('/').pop()?.split('?')[0] || '';
-        return !KNOWN_VALID_LOCAL_ASSETS.has(fn);
+      // Helper to test if an image needs replacement
+      const needsReplacement = (url?: string): boolean => {
+        if (!url || typeof url !== 'string' || url.trim() === '') return true;
+        const lower = url.toLowerCase();
+        if (lower.startsWith('/assets/images/') || lower.startsWith('/images/')) return true;
+        if (lower.includes('woocommerce-placeholder') || lower.includes('placeholder.jpg') || lower.includes('placeholder.png') || lower === '/placeholder.jpg') return true;
+        return false;
       };
 
-      let changedCount = 0;
+      // 3. For every product whose image or any images[] entry still starts with "/assets/images/" or "/images/" or is placeholder:
+      // pick its pool by category (car-lift or wheel-care -> LIFT pool, spray-booth -> BOOTH pool, anything else -> WORKSHOP pool)
+      // assign pool[i % pool.length] round-robin so neighbouring products get DIFFERENT photos
+      // set product.image to that URL, and fill images[] with 3 URLs from the same pool.
+      let reassignedProductsCount = 0;
+      let liftCounter = 0;
+      let boothCounter = 0;
+      let workshopCounter = 0;
+
       const updatedProducts = products.map(p => {
-        let mainImg = p.image;
-        let gallery = Array.isArray(p.images) ? [...p.images] : [p.image];
-        let hasChanged = false;
+        const hasLegacyMain = needsReplacement(p.image);
+        const hasLegacyGallery = Array.isArray(p.images) && p.images.some(img => needsReplacement(img));
 
-        if (isMissingOrDeleted(mainImg)) {
-          mainImg = findWpImageForCategory(p.category || p.name, mainImg);
-          hasChanged = true;
-        }
+        if (hasLegacyMain || hasLegacyGallery || !p.images || p.images.length === 0) {
+          const pool = getPoolForCategory(p.category || p.name);
+          if (pool.length > 0) {
+            let poolIdx = 0;
+            const cat = (p.category || '').toLowerCase();
+            if (cat === 'car-lift' || cat === 'wheel-care' || cat.includes('lift') || cat.includes('wheel') || cat.includes('parking') || cat.includes('triton')) {
+              poolIdx = liftCounter++;
+            } else if (cat === 'spray-booth' || cat.includes('spray') || cat.includes('booth') || cat.includes('auto-spray') || cat.includes('bus-spray')) {
+              poolIdx = boothCounter++;
+            } else {
+              poolIdx = workshopCounter++;
+            }
 
-        gallery = gallery.map(gImg => {
-          if (isMissingOrDeleted(gImg)) {
-            hasChanged = true;
-            return findWpImageForCategory(p.category || p.name, mainImg);
+            const mainImg = pool[poolIdx % pool.length];
+            const gallery = [0, 1, 2].map(offset => pool[(poolIdx + offset) % pool.length]);
+
+            reassignedProductsCount++;
+            return {
+              ...p,
+              image: mainImg,
+              images: gallery
+            };
           }
-          return gImg;
-        });
-
-        if (hasChanged) {
-          changedCount++;
-          return {
-            ...p,
-            image: mainImg,
-            images: gallery
-          };
         }
         return p;
       });
 
-      if (changedCount > 0) {
+      // 4. For every featured category whose img still starts with "/assets/images/" or "/images/" or placeholder:
+      // assign the first pool URL not already used by another category.
+      let reassignedCategoriesCount = 0;
+      const usedCategoryUrls = new Set<string>();
+      (featuredCategories || []).forEach(cat => {
+        if (!needsReplacement(cat.img)) {
+          usedCategoryUrls.add(cat.img);
+        }
+      });
+
+      let catCounter = 0;
+      const updatedCategories = (featuredCategories || []).map(cat => {
+        if (needsReplacement(cat.img)) {
+          const pool = getPoolForCategory(cat.id + ' ' + cat.name);
+          if (pool.length > 0) {
+            let chosenUrl = pool.find(u => !usedCategoryUrls.has(u));
+            if (!chosenUrl) {
+              chosenUrl = pool[catCounter % pool.length];
+            }
+            usedCategoryUrls.add(chosenUrl);
+            catCounter++;
+            reassignedCategoriesCount++;
+            return {
+              ...cat,
+              img: chosenUrl
+            };
+          }
+        }
+        return cat;
+      });
+
+      // Update state in app & localStorage
+      if (reassignedProductsCount > 0) {
         onProductsChange(updatedProducts);
-        // Persist to /api/catalog
-        await fetch('/api/catalog', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products: updatedProducts })
-        });
-        addLog(`[Auto-Assign] Successfully updated ${changedCount} products with WordPress Media images and saved catalog.`);
-      } else {
-        addLog('[Auto-Assign] All products already have valid images.');
+        safeLocalStorage.setItem('triton_products_db', JSON.stringify(updatedProducts));
       }
+      if (reassignedCategoriesCount > 0) {
+        onFeaturedCategoriesChange(updatedCategories);
+        safeLocalStorage.setItem('triton_featured_categories_db_v3', JSON.stringify(updatedCategories));
+      }
+
+      // 6. POST the full catalog to /api/catalog (saves to WordPress)
+      await fetch('/api/catalog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          products: updatedProducts,
+          featuredCategories: updatedCategories
+        })
+      });
+
+      const toast = `${reassignedProductsCount} products + ${reassignedCategoriesCount} categories reassigned to WordPress Media`;
+      setToastMessage(toast);
+      addLog(`[Auto-Assign] ${toast}`);
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 5000);
+
     } catch (err) {
       console.error('[Auto-Assign] Error:', err);
       addLog(`[Auto-Assign] Error auto-assigning WordPress media: ${err instanceof Error ? err.message : String(err)}`);
@@ -694,6 +752,25 @@ export default function MediaStorageTab({
             </label>
           </div>
         </div>
+
+        {toastMessage && (
+          <div className={`mb-4 p-3.5 rounded-lg border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200 ${
+            isInospace
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+              : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+              <span className="text-xs font-bold">{toastMessage}</span>
+            </div>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="text-xs opacity-70 hover:opacity-100 px-2 py-0.5 rounded cursor-pointer"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         {uploadStatus && (
           <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">

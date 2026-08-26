@@ -25,11 +25,11 @@ interface AuditItem {
   resolution: 'undecided' | 'woocommerce' | 'local';
 }
 
-const LOCAL_ASSET_METADATA = [
-  { filename: 'killarney_gardens_map_1781354004848.jpg', size: 575499, type: 'branding' as const },
-  { filename: 'modern_workshop_car_lift_1780988724101.png', size: 755990, type: 'branding' as const },
-  { filename: 'garage_equipment_hero_1783937551956.jpg', size: 145000, type: 'branding' as const },
-  { filename: 'garage_equipment_welder_hero_1783939957746.jpg', size: 152000, type: 'branding' as const },
+const LOCAL_ASSET_METADATA: Array<{ filename: string; size: number; type: 'product' | 'branding' }> = [
+  { filename: 'killarney_gardens_map_1781354004848.jpg', size: 575499, type: 'branding' },
+  { filename: 'modern_workshop_car_lift_1780988724101.png', size: 755990, type: 'branding' },
+  { filename: 'garage_equipment_hero_1783937551956.jpg', size: 145000, type: 'branding' },
+  { filename: 'garage_equipment_welder_hero_1783939957746.jpg', size: 152000, type: 'branding' },
 ];
 
 const WOO_CDN_BASE = 'https://car-lifts.co.za/wp-content/uploads/2026/02';
