@@ -265,11 +265,13 @@ app.post("/api/upload-image", async (req, res) => {
     const result = await uploadBufferToWordPress(buffer, imgName, contentType);
 
     if (result.success) {
+      const sanitizedUrl = result.url ? result.url.replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za") : result.url;
+      const sanitizedPath = result.path ? result.path.replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za") : result.path;
       return res.status(200).json({
         success: true,
         id: result.id,
-        url: result.url,
-        path: result.path,
+        url: sanitizedUrl,
+        path: sanitizedPath,
         filename: result.filename,
       });
     }
@@ -451,8 +453,10 @@ app.get("/api/catalog", async (req, res) => {
       if (typeof wpRes.data.maintenanceMode !== "boolean") {
         wpRes.data.maintenanceMode = memoryCatalog?.maintenanceMode ?? false;
       }
-      memoryCatalog = wpRes.data;
-      return res.status(200).json(wpRes.data);
+      const jsonStr = JSON.stringify(wpRes.data).replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za");
+      const sanitizedData = JSON.parse(jsonStr);
+      memoryCatalog = sanitizedData;
+      return res.status(200).json(sanitizedData);
     }
 
     // Check specifically if the WordPress request failed due to 401 or 403
@@ -490,7 +494,9 @@ app.get("/api/catalog", async (req, res) => {
     console.warn("[Catalog] GET /api/catalog error:", err?.message || err);
   }
 
-  return res.status(200).json(memoryCatalog || localData);
+  const fallbackData = memoryCatalog || localData;
+  const fallbackJsonStr = JSON.stringify(fallbackData).replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za");
+  return res.status(200).json(JSON.parse(fallbackJsonStr));
 });
 
 // 6) POST /api/catalog
