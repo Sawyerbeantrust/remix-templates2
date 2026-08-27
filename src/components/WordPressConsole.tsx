@@ -362,7 +362,7 @@ export default function WordPressConsole({
   const handleFixLegacyImages = async () => {
     if (isMigratingImages) return;
     setIsMigratingImages(true);
-    addLog("üöÄ Starting legacy image URL migration to WordPress Media...");
+    addLog("\U0001f680 Starting legacy image URL migration to WordPress Media...");
     try {
       const { updatedProducts, updatedCategories, fixedCount } = await fixLegacyImageUrls(
         currentProducts,
@@ -385,17 +385,17 @@ export default function WordPressConsole({
           })
         });
         if (res.ok) {
-          addLog(`‚úÖ Successfully migrated ${fixedCount} legacy image URLs to WordPress Media and saved catalog!`);
+          addLog(`\u2705 Successfully migrated ${fixedCount} legacy image URLs to WordPress Media and saved catalog!`);
           alert(`Successfully migrated ${fixedCount} legacy image URLs to WordPress Media! Catalog updated.`);
         } else {
-          addLog(`‚ö†Ô∏è Migrated ${fixedCount} image URLs locally, but failed to save catalog to server.`);
+          addLog(`\u26a0\ufe0f Migrated ${fixedCount} image URLs locally, but failed to save catalog to server.`);
         }
       } else {
-        addLog("‚ú® No legacy or broken image URLs found in catalog. All assets are up to date!");
+        addLog("\u2728 No legacy or broken image URLs found in catalog. All assets are up to date!");
         alert("No legacy or broken image URLs found. All images are already using valid URLs!");
       }
     } catch (err: any) {
-      addLog(`‚ùå Error during legacy image migration: ${err?.message || err}`);
+      addLog(`\u274c Error during legacy image migration: ${err?.message || err}`);
       console.error("Migration error:", err);
     } finally {
       setIsMigratingImages(false);
@@ -413,7 +413,7 @@ export default function WordPressConsole({
   const handleMigrateDefaultImagesToWordPress = async () => {
     if (isMigratingDefaultImages) return;
     setIsMigratingDefaultImages(true);
-    addLog("üöÄ [WordPress Media Migration] Starting migration of default local images to WordPress...");
+    addLog("\U0001f680 [WordPress Media Migration] Starting migration of default local images to WordPress...");
     try {
       const result = await migrateDefaultImagesToWordPress(
         currentProducts,
@@ -443,18 +443,18 @@ export default function WordPressConsole({
         });
 
         if (res.ok) {
-          addLog(`‚úÖ [WordPress Media Migration Complete] Uploaded ${result.uploaded} default images to WordPress Media Library, Replaced ${result.replaced} catalog paths.`);
+          addLog(`\u2705 [WordPress Media Migration Complete] Uploaded ${result.uploaded} default images to WordPress Media Library, Replaced ${result.replaced} catalog paths.`);
           alert(`Migration Complete! Uploaded ${result.uploaded} images to WordPress and updated catalog.`);
         } else {
-          addLog(`‚ö†Ô∏è Uploaded ${result.uploaded} images, but failed to save catalog to server.`);
+          addLog(`\u26a0\ufe0f Uploaded ${result.uploaded} images, but failed to save catalog to server.`);
         }
       } else {
-        addLog("‚ú® All default images have already been migrated to WordPress Media Library!");
+        addLog("\u2728 All default images have already been migrated to WordPress Media Library!");
         alert("All default images are already migrated to WordPress!");
       }
     } catch (err: any) {
       console.error("Default image migration error:", err);
-      addLog(`‚ùå [WordPress Media Migration Error] ${err?.message || err}`);
+      addLog(`\u274c [WordPress Media Migration Error] ${err?.message || err}`);
       alert(`Migration error: ${err?.message || err}`);
     } finally {
       setIsMigratingDefaultImages(false);
@@ -769,7 +769,7 @@ export default function WordPressConsole({
     if (analyzerIsScanning) return;
     setAnalyzerIsScanning(true);
     setAnalyzerProgress(0);
-    setAnalyzerLogs([`[${new Date().toLocaleTimeString()}] üöÄ Initiating comprehensive SEO Catalog Scan...`]);
+    setAnalyzerLogs([`[${new Date().toLocaleTimeString()}] \U0001f680 Initiating comprehensive SEO Catalog Scan...`]);
     
     let step = 0;
     const totalSteps = currentProducts.length;
@@ -801,7 +801,7 @@ export default function WordPressConsole({
         if (!["south africa", "cape town", "johannesburg", "durban", "gauteng", "pretoria", "natal"].some(loc => combinedText.includes(loc))) noLocaleCount++;
 
         setAnalyzerLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] ‚úÖ Scanned [${prod.modelCode}] ${prod.name} (SEO Score: ${sugg.score}%)`,
+          `[${new Date().toLocaleTimeString()}] \u2705 Scanned [${prod.modelCode}] ${prod.name} (SEO Score: ${sugg.score}%)`,
           ...prev
         ]);
 
@@ -825,10 +825,10 @@ export default function WordPressConsole({
         });
 
         setAnalyzerLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] üéâ Catalog Scan complete! Average SEO Health Score: ${finalHealthScore}%`,
+          `[${new Date().toLocaleTimeString()}] \U0001f389 Catalog Scan complete! Average SEO Health Score: ${finalHealthScore}%`,
           ...prev
         ]);
-        addLog(`üìä SEO Catalog Analyzer finished scan. Evaluated ${totalSteps} items. Average Score: ${finalHealthScore}%`);
+        addLog(`\U0001f4ca SEO Catalog Analyzer finished scan. Evaluated ${totalSteps} items. Average Score: ${finalHealthScore}%`);
       }
     }, 120);
   };
@@ -878,7 +878,7 @@ export default function WordPressConsole({
       text: `Optimized description and keywords successfully applied and saved for product ID: ${prodId}`
     });
     setTimeout(() => setAnalyzerNotification(null), 3000);
-    addLog(`‚ú® SEO Analyzer optimized and saved product ID: ${prodId}`);
+    addLog(`\u2728 SEO Analyzer optimized and saved product ID: ${prodId}`);
   };
 
   const handleAutonomousOptimizeAll = () => {
@@ -886,7 +886,7 @@ export default function WordPressConsole({
     setAnalyzerIsOptimizing(true);
     setAnalyzerProgress(0);
     setAnalyzerLogs(prev => [
-      `[${new Date().toLocaleTimeString()}] ‚ö° Initializing AUTONOMOUS batch catalog optimize & save...`,
+      `[${new Date().toLocaleTimeString()}] \u26a1 Initializing AUTONOMOUS batch catalog optimize & save...`,
       ...prev
     ]);
 
@@ -908,7 +908,7 @@ export default function WordPressConsole({
         };
 
         setAnalyzerLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] ‚ö° [AUTO-FIX] Applied locale, keywords, CE safety details & tags for [${prod.modelCode}] ${prod.name}`,
+          `[${new Date().toLocaleTimeString()}] \u26a1 [AUTO-FIX] Applied locale, keywords, CE safety details & tags for [${prod.modelCode}] ${prod.name}`,
           ...prev
         ]);
 
@@ -951,7 +951,7 @@ export default function WordPressConsole({
 
         setAnalyzerIsOptimizing(false);
         setAnalyzerLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] üèÜ Autonomous Auto-Optimization complete! Entire catalog has been updated, synchronized, and saved to localStorage database.`,
+          `[${new Date().toLocaleTimeString()}] \U0001f3c6 Autonomous Auto-Optimization complete! Entire catalog has been updated, synchronized, and saved to localStorage database.`,
           ...prev
         ]);
         
@@ -960,7 +960,7 @@ export default function WordPressConsole({
           text: `Entire catalog autonomously optimized and written to localStorage database successfully!`
         });
         setTimeout(() => setAnalyzerNotification(null), 4000);
-        addLog(`üèÜ SEO Analyzer autonomously optimized & saved all ${totalSteps} catalog products.`);
+        addLog(`\U0001f3c6 SEO Analyzer autonomously optimized & saved all ${totalSteps} catalog products.`);
       }
     }, 150);
   };
@@ -985,7 +985,7 @@ export default function WordPressConsole({
     setAnalyzerIsOptimizing(true);
     setAnalyzerProgress(0);
     setAnalyzerLogs(prev => [
-      `[${new Date().toLocaleTimeString()}] ‚ö° Initializing batch optimize & save for ${lowScoreProds.length} low-scoring products (< 80%)...`,
+      `[${new Date().toLocaleTimeString()}] \u26a1 Initializing batch optimize & save for ${lowScoreProds.length} low-scoring products (< 80%)...`,
       ...prev
     ]);
 
@@ -1012,7 +1012,7 @@ export default function WordPressConsole({
         });
 
         setAnalyzerLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] ‚ö° [AUTO-FIX LOW SCORE] Applied optimized keywords & meta description tags for [${prod.modelCode}] ${prod.name}`,
+          `[${new Date().toLocaleTimeString()}] \u26a1 [AUTO-FIX LOW SCORE] Applied optimized keywords & meta description tags for [${prod.modelCode}] ${prod.name}`,
           ...prev
         ]);
 
@@ -1050,7 +1050,7 @@ export default function WordPressConsole({
 
         setAnalyzerIsOptimizing(false);
         setAnalyzerLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] üèÜ Batch Optimization for Low SEO Score products complete! Updated ${totalSteps} items successfully.`,
+          `[${new Date().toLocaleTimeString()}] \U0001f3c6 Batch Optimization for Low SEO Score products complete! Updated ${totalSteps} items successfully.`,
           ...prev
         ]);
         
@@ -1059,7 +1059,7 @@ export default function WordPressConsole({
           text: `Batch optimized ${totalSteps} low-scoring products and successfully saved to local database!`
         });
         setTimeout(() => setAnalyzerNotification(null), 4000);
-        addLog(`üèÜ SEO Analyzer autonomously optimized & saved ${totalSteps} low-scoring catalog products.`);
+        addLog(`\U0001f3c6 SEO Analyzer autonomously optimized & saved ${totalSteps} low-scoring catalog products.`);
       }
     }, 150);
   };
@@ -1122,10 +1122,10 @@ export default function WordPressConsole({
       }).catch(() => {});
 
       const logMsg = type === 'sitemap'
-        ? `‚ö° [SEO AUTOMATOR] Sitemap.xml updated & deployed live with ${productsToInclude.length} product URLs!`
+        ? `\u26a1 [SEO AUTOMATOR] Sitemap.xml updated & deployed live with ${productsToInclude.length} product URLs!`
         : type === 'robots'
-        ? `‚ö° [SEO AUTOMATOR] Robots.txt updated & deployed live with ${robotsDirectives.length} crawler rule sets!`
-        : `‚ö° [SEO AUTOMATOR] Robots.txt & Sitemap.xml autonomously compiled, synced & deployed live (HTTP 200) across domain!`;
+        ? `\u26a1 [SEO AUTOMATOR] Robots.txt updated & deployed live with ${robotsDirectives.length} crawler rule sets!`
+        : `\u26a1 [SEO AUTOMATOR] Robots.txt & Sitemap.xml autonomously compiled, synced & deployed live (HTTP 200) across domain!`;
 
       addLog(logMsg);
 
@@ -1141,7 +1141,7 @@ export default function WordPressConsole({
       });
       setTimeout(() => setSeoNotification(null), 4000);
     } catch (err: any) {
-      addLog(`‚ùå Failed to automate SEO files: ${err.message}`);
+      addLog(`\u274c Failed to automate SEO files: ${err.message}`);
     } finally {
       setIsAutomatingSeoFiles(false);
     }
@@ -1655,7 +1655,7 @@ export default function WordPressConsole({
   const uploadImageToServer = async (file: File): Promise<string> => {
     addLog(`[WordPress Media] Uploading '${file.name}' to WordPress Media Library...`);
     const wpUrl = await uploadImageToWordPress(file);
-    addLog(`üìÇ [WordPress Media] Uploaded: ${file.name} -> ${wpUrl}`);
+    addLog(`\U0001f4c2 [WordPress Media] Uploaded: ${file.name} -> ${wpUrl}`);
     return wpUrl;
   };
 
@@ -1839,9 +1839,9 @@ export default function WordPressConsole({
           setSelectedProdId(cleanedProducts[0]?.id || '');
         }
 
-        addLog(`üîÑ AUTO-CLEAN SCHEDULER: Background cleanup purged ${oldDrafts.length} stale draft products older than 30 days.`);
+        addLog(`\U0001f504 AUTO-CLEAN SCHEDULER: Background cleanup purged ${oldDrafts.length} stale draft products older than 30 days.`);
       } else {
-        addLog(`üîÑ AUTO-CLEAN SCHEDULER: Scanned database, no draft products older than 30 days found.`);
+        addLog(`\U0001f504 AUTO-CLEAN SCHEDULER: Scanned database, no draft products older than 30 days found.`);
       }
       
       const nowStr = now.toISOString();
@@ -1901,7 +1901,7 @@ export default function WordPressConsole({
         setLocalFeaturedCategories(newCats);
         safeLocalStorage.setItem('triton_featured_categories_db_v3', JSON.stringify(newCats));
       }
-      addLog(`‚ÑπÔ∏è [Categories] Local state updated (${err?.message || 'Storage synchronized with fallback'})`);
+      addLog(`\u2139\ufe0f [Categories] Local state updated (${err?.message || 'Storage synchronized with fallback'})`);
     }
   };
 
@@ -1948,7 +1948,7 @@ export default function WordPressConsole({
 
     updateProducts(mergedProducts);
     setIsCatDetailsDirty(true);
-    addLog(`‚ÜïÔ∏è [Arrangement] Reordered display priority for "${temp.name}" inside category. Auto-synchronised layout positions.`);
+    addLog(`\u2195\ufe0f [Arrangement] Reordered display priority for "${temp.name}" inside category. Auto-synchronised layout positions.`);
   };
 
   const handleSaveCategorySettings = () => {
@@ -1965,7 +1965,7 @@ export default function WordPressConsole({
       setCatSaveMessage('');
     }, 3500);
 
-    addLog(`üíæ [Featured Categories] Settings synchronized with frontend client & server: "${targetCat.name}" with display status active.`);
+    addLog(`\U0001f4be [Featured Categories] Settings synchronized with frontend client & server: "${targetCat.name}" with display status active.`);
   };
 
   const handleCategoryImgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1980,11 +1980,11 @@ export default function WordPressConsole({
       );
       updateFeaturedCategories(updated);
       setIsCatDetailsDirty(true);
-      addLog(`üìÇ [Category Media] Saved category image successfully: ${savedPath}`);
+      addLog(`\U0001f4c2 [Category Media] Saved category image successfully: ${savedPath}`);
     } catch (err: any) {
       console.error('Failed to upload category image:', err);
       const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
-      addLog(`‚ùå [Category Media] ${errMsg}`);
+      addLog(`\u274c [Category Media] ${errMsg}`);
       alert(errMsg);
     } finally {
       if (categoryImageFileInputRef.current) {
@@ -2000,7 +2000,7 @@ export default function WordPressConsole({
     );
     updateFeaturedCategories(updated);
     setIsCatDetailsDirty(true);
-    addLog(`üóëÔ∏è [Category Media] Cleared image for category id: ${selectedCatId}. Reverted to default placeholder.`);
+    addLog(`\U0001f5d1\ufe0f [Category Media] Cleared image for category id: ${selectedCatId}. Reverted to default placeholder.`);
   };
 
   const handleAiCategoryImgGenerate = () => {
@@ -2061,7 +2061,7 @@ export default function WordPressConsole({
           setIsGeneratingCatImage(false);
           setCatSimulationStep('');
           setIsCatDetailsDirty(true);
-          addLog(`‚ú® [Triton AI Synthesis Complete] Generated custom asset. Type specification: "${catStyle}", Color Accent: "${catAccentColor}", Lighting: "${catLighting}".`);
+          addLog(`\u2728 [Triton AI Synthesis Complete] Generated custom asset. Type specification: "${catStyle}", Color Accent: "${catAccentColor}", Lighting: "${catLighting}".`);
           }, 800);
         }, 800);
       }, 800);
@@ -2081,7 +2081,7 @@ export default function WordPressConsole({
     const nextVal = !autoSyncOnSave;
     setAutoSyncOnSave(nextVal);
     safeLocalStorage.setItem('triton_auto_sync_on_save', String(nextVal));
-    addLog(`üîÑ [Settings] Auto-Sync on Product Save ${nextVal ? 'ENABLED' : 'DISABLED'}.`);
+    addLog(`\U0001f504 [Settings] Auto-Sync on Product Save ${nextVal ? 'ENABLED' : 'DISABLED'}.`);
   };
 
   // Dynamic Categories folders states
@@ -2444,20 +2444,20 @@ export default function WordPressConsole({
       } catch (e) {
         console.warn('Storage limit reached or localStorage disabled', e);
       }
-      addLog(`üìÇ [Media Library] Saved '${file.name}' to WordPress Media: ${savedPath}`);
+      addLog(`\U0001f4c2 [Media Library] Saved '${file.name}' to WordPress Media: ${savedPath}`);
 
       // Auto select and save the uploaded image immediately
       if (editedProduct) {
         let updatedProduct = { ...editedProduct };
         if (assetPickerTarget === 'primary') {
           updatedProduct.image = savedPath;
-          addLog(`üì∏ [Media Library] Auto-selected and mapped uploaded '${file.name}' as primary product image.`);
+          addLog(`\U0001f4f8 [Media Library] Auto-selected and mapped uploaded '${file.name}' as primary product image.`);
         } else {
           const idx = assetPickerTarget;
           const images = [...(editedProduct.images || [])];
           images[idx] = savedPath;
           updatedProduct.images = images;
-          addLog(`üì∏ [Media Library] Auto-selected and mapped uploaded '${file.name}' to gallery slot ${idx + 1}.`);
+          addLog(`\U0001f4f8 [Media Library] Auto-selected and mapped uploaded '${file.name}' to gallery slot ${idx + 1}.`);
         }
         setEditedProduct(updatedProduct);
         setIsAssetPickerOpen(false);
@@ -2468,8 +2468,9 @@ export default function WordPressConsole({
         addLog(`Catalog Auto-Saved: SKU ${updatedProduct.modelCode} - '${updatedProduct.name}' updated with uploaded image.`);
         
         if (autoSyncOnSave) {
-          setSaveMessage('Metadata saved! Auto-sync in progress...');
-          addLog(`üîÑ Auto-Sync initiated for category: '${formatCategoryLabel(updatedProduct.category)}'`);
+          setSaveMessage('Metadata saved! Auto-sync in progress ‚Äî you may continue working while autosync runs in the background.');
+      setTimeout(() => setSaveMessage(''), 7000);
+          addLog(`\U0001f504 Auto-Sync initiated for category: '${formatCategoryLabel(updatedProduct.category)}'`);
           triggerSync();
         } else {
           setSaveMessage('WooCommerce product metadata updated and synced successfully!');
@@ -2479,7 +2480,7 @@ export default function WordPressConsole({
     } catch (err: any) {
       console.error('Failed to upload image to WordPress Media:', err);
       const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
-      addLog(`‚ùå [Media Library] ${errMsg}`);
+      addLog(`\u274c [Media Library] ${errMsg}`);
       alert(errMsg);
     }
   };
@@ -2491,7 +2492,7 @@ export default function WordPressConsole({
         ...editedProduct,
         image: path
       });
-      addLog(`üì∏ [Media Library] Selected '${path.split('/').pop()}' as primary product image.`);
+      addLog(`\U0001f4f8 [Media Library] Selected '${path.split('/').pop()}' as primary product image.`);
     } else {
       const idx = assetPickerTarget;
       const images = [...(editedProduct.images || [])];
@@ -2500,7 +2501,7 @@ export default function WordPressConsole({
         ...editedProduct,
         images
       });
-      addLog(`üì∏ [Media Library] Selected '${path.split('/').pop()}' for gallery node index ${idx + 1}.`);
+      addLog(`\U0001f4f8 [Media Library] Selected '${path.split('/').pop()}' for gallery node index ${idx + 1}.`);
     }
     setIsAssetPickerOpen(false);
   };
@@ -2540,7 +2541,7 @@ export default function WordPressConsole({
     setIsGeneratingAiImage(true);
     setAiSimulationStep('Connecting to Triton AI Multi-Modal Engine...');
     
-    addLog(`ü§ñ Triton AI Engine: Started automated real-life action rendering for SKU [${editedProduct.modelCode}]...`);
+    addLog(`\U0001f916 Triton AI Engine: Started automated real-life action rendering for SKU [${editedProduct.modelCode}]...`);
 
     const category = editedProduct.category || 'workshop-equipment';
     const bodyPayload = {
@@ -2554,12 +2555,12 @@ export default function WordPressConsole({
     
     timers.push(setTimeout(() => {
       setAiSimulationStep('Analyzing model specifications & CE design criteria...');
-      addLog(`‚ö° [Triton AI] Parsing description parameters: "${bodyPayload.name}"`);
+      addLog(`\u26a1 [Triton AI] Parsing description parameters: "${bodyPayload.name}"`);
     }, 500));
 
     timers.push(setTimeout(() => {
       setAiSimulationStep('Consulting neural layout matrices & high-res actions databases...');
-      addLog(`‚öôÔ∏è [Triton AI Engine] Synthesizing photorealistic repair scenarios...`);
+      addLog(`\u2699\ufe0f [Triton AI Engine] Synthesizing photorealistic repair scenarios...`);
     }, 1200));
 
     try {
@@ -2575,7 +2576,7 @@ export default function WordPressConsole({
 
       if (data.success && data.selectedUrl) {
         setAiSimulationStep('Refining HDR lighting profiles & focal mechanics...');
-        addLog(`üé® [Triton AI] AI Synthesis complete using ${data.source === 'gemini-ai' ? 'Gemini AI' : 'Local Matchmaker'}.`);
+        addLog(`\U0001f3a8 [Triton AI] AI Synthesis complete using ${data.source === 'gemini-ai' ? 'Gemini AI' : 'Local Matchmaker'}.`);
         
         setTimeout(() => {
           setAiPreviewData({
@@ -2588,7 +2589,7 @@ export default function WordPressConsole({
           setIsGeneratingAiImage(false);
           setAiSimulationStep('');
           
-          addLog(`üí° [Triton AI] Simulation preview ready for review.`);
+          addLog(`\U0001f4a1 [Triton AI] Simulation preview ready for review.`);
         }, 1000);
       } else {
         throw new Error(data.error || 'Invalid API response');
@@ -2596,7 +2597,7 @@ export default function WordPressConsole({
     } catch (e: any) {
       timers.forEach(t => clearTimeout(t));
       console.error("[Triton AI] Simulation failed:", e);
-      addLog(`‚ùå [Triton AI Error]: Live simulation failed. Checking system fallback channels...`);
+      addLog(`\u274c [Triton AI Error]: Live simulation failed. Checking system fallback channels...`);
       
       // Secondary fallback
       setTimeout(() => {
@@ -2615,7 +2616,7 @@ export default function WordPressConsole({
         });
         setIsGeneratingAiImage(false);
         setAiSimulationStep('');
-        addLog(`‚ú® [Triton AI Fallback]: Showing standard compliant model reference image.`);
+        addLog(`\u2728 [Triton AI Fallback]: Showing standard compliant model reference image.`);
       }, 1000);
     }
   };
@@ -2633,17 +2634,17 @@ export default function WordPressConsole({
     const updated = currentProducts.map(p => p.id === newProductState.id ? newProductState : p);
     updateProducts(updated);
 
-    addLog(`‚ú® [Triton AI] Validation complete: Added to product gallery and synced platform-wide.`);
-    addLog(`üí° [Action Log]: "${aiPreviewData.actionSynthesis}"`);
+    addLog(`\u2728 [Triton AI] Validation complete: Added to product gallery and synced platform-wide.`);
+    addLog(`\U0001f4a1 [Action Log]: "${aiPreviewData.actionSynthesis}"`);
     if(aiPreviewData.technicalSpecs) {
-      addLog(`üõ°Ô∏è [Specs Applied]: Power Draw ${aiPreviewData.technicalSpecs.powerDraw} | Safety Standard: ${aiPreviewData.technicalSpecs.safety}`);
+      addLog(`\U0001f6e1\ufe0f [Specs Applied]: Power Draw ${aiPreviewData.technicalSpecs.powerDraw} | Safety Standard: ${aiPreviewData.technicalSpecs.safety}`);
     }
     setAiPreviewData(null);
   };
 
   const handleRejectAiPreview = () => {
     setAiPreviewData(null);
-    addLog(`üóëÔ∏è [Triton AI] Preview rejected.`);
+    addLog(`\U0001f5d1\ufe0f [Triton AI] Preview rejected.`);
   };
 
   const handleCreateNewProduct = () => {
@@ -2683,7 +2684,7 @@ export default function WordPressConsole({
     if (!editedProduct.name.trim() || !editedProduct.modelCode.trim()) {
       setSaveMessage('Error: Product Name and SKU Code are required!');
       setTimeout(() => setSaveMessage(''), 3500);
-      addLog('‚ùå Failed to save product: Name and SKU Code are required properties.');
+      addLog('\u274c Failed to save product: Name and SKU Code are required properties.');
       return;
     }
 
@@ -2692,8 +2693,9 @@ export default function WordPressConsole({
     addLog(`Catalog Updated: SKU ${editedProduct.modelCode} - '${editedProduct.name}' saved and exported.`);
     
     if (autoSyncOnSave) {
-      setSaveMessage('Metadata saved! Auto-sync in progress...');
-      addLog(`üîÑ Auto-Sync initiated for category: '${formatCategoryLabel(editedProduct.category)}'`);
+      setSaveMessage('Metadata saved! Auto-sync in progress ‚Äî you may continue working while autosync runs in the background.');
+      setTimeout(() => setSaveMessage(''), 7000);
+      addLog(`\U0001f504 Auto-Sync initiated for category: '${formatCategoryLabel(editedProduct.category)}'`);
       triggerSync();
     } else {
       setSaveMessage('WooCommerce product metadata updated and synced successfully!');
@@ -2739,11 +2741,11 @@ export default function WordPressConsole({
         const newProducts = currentProducts.map(p => p.id === editedProduct.id ? updated : p);
         updateProducts(newProducts);
 
-        addLog(`‚úÖ Saved cover image '${file.name}': ${savedPath}`);
+        addLog(`\u2705 Saved cover image '${file.name}': ${savedPath}`);
       } catch (err: any) {
         console.error('Failed to upload device image:', err);
         const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
-        addLog(`‚ùå [Upload] ${errMsg}`);
+        addLog(`\u274c [Upload] ${errMsg}`);
         alert(errMsg);
       } finally {
         e.target.value = '';
@@ -3272,7 +3274,7 @@ export default function WordPressConsole({
   const downloadAndLocalizeImages = async (productsToProcess: Product[]): Promise<Product[]> => {
     setIsLocalizing(true);
     setLocalizationProgress(0);
-    addLog(`üîÑ Initiating image download and localization for ${productsToProcess.length} products...`);
+    addLog(`\U0001f504 Initiating image download and localization for ${productsToProcess.length} products...`);
     const localizedProducts: Product[] = [];
     const downloadErrors: {
       sku: string;
@@ -3306,7 +3308,7 @@ export default function WordPressConsole({
         continue;
       }
       
-      addLog(`üì• Downloading ${httpUrlsToDownload.length} remote image(s) for SKU: ${prod.modelCode || prod.id}...`);
+      addLog(`\U0001f4e5 Downloading ${httpUrlsToDownload.length} remote image(s) for SKU: ${prod.modelCode || prod.id}...`);
       try {
         const response = await fetch('/api/import-images', {
           method: 'POST',
@@ -3357,14 +3359,14 @@ export default function WordPressConsole({
              image: mainImage,
              images: finalPaths
            });
-           addLog(`‚úÖ Localized image(s) for SKU: ${prod.modelCode || prod.id}`);
+           addLog(`\u2705 Localized image(s) for SKU: ${prod.modelCode || prod.id}`);
          } else {
            throw new Error("Invalid response format");
          }
        } catch (err: any) {
          const errMsg = err.message || err;
          console.log(`[CSV Import Image Fetch Exception] SKU: ${prod.modelCode || prod.id}. Error: ${errMsg}`);
-         addLog(`‚ö†Ô∏è Failed to download images for SKU ${prod.modelCode || prod.id}: ${errMsg}. Falling back to placeholder.`);
+         addLog(`\u26a0\ufe0f Failed to download images for SKU ${prod.modelCode || prod.id}: ${errMsg}. Falling back to placeholder.`);
          
          httpUrlsToDownload.forEach(url => {
            downloadErrors.push({
@@ -3401,16 +3403,16 @@ export default function WordPressConsole({
 
   const handleWipeImportedImagesAndCatalog = async () => {
     try {
-      addLog("üßπ Initiating physical wipe of imported images directory on server...");
+      addLog("\U0001f9f9 Initiating physical wipe of imported images directory on server...");
       const response = await fetch('/api/wipe-imported-images', { method: 'POST' });
       const result = await response.json();
       if (result.success && result.empty) {
-        addLog("‚úÖ Server-side imported images folder verified completely empty.");
+        addLog("\u2705 Server-side imported images folder verified completely empty.");
       } else {
-        addLog(`‚ö†Ô∏è Server-side wipe status: ${result.message || 'Verification incomplete'}`);
+        addLog(`\u26a0\ufe0f Server-side wipe status: ${result.message || 'Verification incomplete'}`);
       }
     } catch (err: any) {
-      addLog(`‚ö†Ô∏è Server-side images wipe failed: ${err.message || err}`);
+      addLog(`\u26a0\ufe0f Server-side images wipe failed: ${err.message || err}`);
     }
 
     updateProducts([]);
@@ -3456,12 +3458,12 @@ export default function WordPressConsole({
         setImportedCountCompleted(count);
         setCsvSuccessMessage(`SUCCESS: Catalog successfully overwritten with ${count} imported products from CSV!`);
         
-        addLog(`üìä [CSV OVERWRITE IMPORT SUMMARY]
-‚Ä¢ Status: Successfully completed
-‚Ä¢ Total Products Imported: ${count}
-‚Ä¢ Products Skipped (Drafts): ${importSummary ? importSummary.draftsSkipped : 0}
-‚Ä¢ Categories Created: ${newlyCreatedCategories.length} ${newlyCreatedCategories.length > 0 ? `(${newlyCreatedCategories.join(', ')})` : ''}
-‚Ä¢ Rows Failed to Parse: ${importSummary && importSummary.failedRows.length > 0 ? `${importSummary.failedRows.length} (Rows: ${importSummary.failedRows.join(', ')})` : 'None (0)'}`);
+        addLog(`\U0001f4ca [CSV OVERWRITE IMPORT SUMMARY]
+\u2022 Status: Successfully completed
+\u2022 Total Products Imported: ${count}
+\u2022 Products Skipped (Drafts): ${importSummary ? importSummary.draftsSkipped : 0}
+\u2022 Categories Created: ${newlyCreatedCategories.length} ${newlyCreatedCategories.length > 0 ? `(${newlyCreatedCategories.join(', ')})` : ''}
+\u2022 Rows Failed to Parse: ${importSummary && importSummary.failedRows.length > 0 ? `${importSummary.failedRows.length} (Rows: ${importSummary.failedRows.join(', ')})` : 'None (0)'}`);
       } catch (err: any) {
         setCsvSuccessMessage(null);
         setCsvError(`Failed to overwrite catalog: ${err?.message || err}`);
@@ -3496,12 +3498,12 @@ export default function WordPressConsole({
       setImportedCountCompleted(count);
       setCsvSuccessMessage(`SUCCESS: Successfully appended ${count} imported products from CSV to the catalog database!`);
       
-      addLog(`üìä [CSV APPEND IMPORT SUMMARY]
-‚Ä¢ Status: Successfully completed
-‚Ä¢ Total Products Imported: ${count}
-‚Ä¢ Products Skipped (Drafts): ${importSummary ? importSummary.draftsSkipped : 0}
-‚Ä¢ Categories Created: ${newlyCreatedCategories.length} ${newlyCreatedCategories.length > 0 ? `(${newlyCreatedCategories.join(', ')})` : ''}
-‚Ä¢ Rows Failed to Parse: ${importSummary && importSummary.failedRows.length > 0 ? `${importSummary.failedRows.length} (Rows: ${importSummary.failedRows.join(', ')})` : 'None (0)'}`);
+      addLog(`\U0001f4ca [CSV APPEND IMPORT SUMMARY]
+\u2022 Status: Successfully completed
+\u2022 Total Products Imported: ${count}
+\u2022 Products Skipped (Drafts): ${importSummary ? importSummary.draftsSkipped : 0}
+\u2022 Categories Created: ${newlyCreatedCategories.length} ${newlyCreatedCategories.length > 0 ? `(${newlyCreatedCategories.join(', ')})` : ''}
+\u2022 Rows Failed to Parse: ${importSummary && importSummary.failedRows.length > 0 ? `${importSummary.failedRows.length} (Rows: ${importSummary.failedRows.join(', ')})` : 'None (0)'}`);
     } catch (err: any) {
       setCsvSuccessMessage(null);
       setCsvError(`Failed to append products: ${err?.message || err}`);
@@ -3559,7 +3561,7 @@ export default function WordPressConsole({
     setIsExportingBackup(true);
     setBackupExportSuccess(null);
     try {
-      addLog("üì¶ Preparing full website database, settings, and media assets backup package...");
+      addLog("\U0001f4e6 Preparing full website database, settings, and media assets backup package...");
       
       const storedImageEntries: Record<string, string> = {};
 
@@ -3613,9 +3615,9 @@ export default function WordPressConsole({
 
       const successMsg = `Backup downloaded: ${fileName} (${currentProducts.length} products, ${currentFeaturedCategories.length} categories, & system settings).`;
       setBackupExportSuccess(successMsg);
-      addLog(`‚úÖ ${successMsg}`);
+      addLog(`\u2705 ${successMsg}`);
     } catch (err: any) {
-      addLog(`‚ùå Backup Export Error: ${err.message || err}`);
+      addLog(`\u274c Backup Export Error: ${err.message || err}`);
       alert(`Export Failed: ${err.message || err}`);
     } finally {
       setIsExportingBackup(false);
@@ -3677,7 +3679,7 @@ export default function WordPressConsole({
 
     try {
       const { data } = backupFileToRestore.rawBackup;
-      addLog(`üîÑ Restoring backup package '${backupFileToRestore.fileName}'...`);
+      addLog(`\U0001f504 Restoring backup package '${backupFileToRestore.fileName}'...`);
 
       // 1. Process and upload legacy imageStore entries to WordPress Media Library
       const keyToMediaUrlMap: Record<string, string> = {};
@@ -3685,7 +3687,7 @@ export default function WordPressConsole({
         const imageEntries = Object.entries(data.imageStore);
         const totalImages = imageEntries.length;
         if (totalImages > 0) {
-          addLog(`üñºÔ∏è Uploading ${totalImages} backup image(s) to WordPress Media Library...`);
+          addLog(`\U0001f5bc\ufe0f Uploading ${totalImages} backup image(s) to WordPress Media Library...`);
           let count = 0;
           for (const [key, base64Val] of imageEntries) {
             count++;
@@ -3704,10 +3706,10 @@ export default function WordPressConsole({
                 if (resJson && resJson.success && resJson.path) {
                   keyToMediaUrlMap[key] = resJson.path;
                 } else {
-                  addLog(`‚ö†Ô∏è Warning: Failed to upload image '${key}' to WordPress Media Library.`);
+                  addLog(`\u26a0\ufe0f Warning: Failed to upload image '${key}' to WordPress Media Library.`);
                 }
               } catch (imgErr: any) {
-                addLog(`‚ö†Ô∏è Warning: Failed to upload image '${key}': ${imgErr?.message || imgErr}`);
+                addLog(`\u26a0\ufe0f Warning: Failed to upload image '${key}': ${imgErr?.message || imgErr}`);
               }
             }
           }
@@ -3845,12 +3847,12 @@ export default function WordPressConsole({
 
       const msg = `Backup successfully restored! Restored ${backupFileToRestore.productsCount} products, ${backupFileToRestore.categoriesCount} categories, ${backupFileToRestore.imagesCount} image assets & system settings.`;
       setBackupRestoreSuccess(msg);
-      addLog(`‚úÖ ADMIN ACTION: ${msg}`);
+      addLog(`\u2705 ADMIN ACTION: ${msg}`);
       setBackupFileToRestore(null);
     } catch (err: any) {
       const errStr = `Error executing backup restore: ${err.message || err}`;
       setBackupRestoreError(errStr);
-      addLog(`‚ùå ${errStr}`);
+      addLog(`\u274c ${errStr}`);
     } finally {
       setIsRestoringBackup(false);
     }
@@ -3880,21 +3882,21 @@ export default function WordPressConsole({
       safeLocalStorage.setItem('admin_failed_attempts', '0');
       safeLocalStorage.removeItem('admin_lockout_until');
       safeSessionStorage.setItem('admin_authenticated', 'true');
-      addLog(`üîê Successful login. Access granted to administrative console.`);
+      addLog(`\U0001f510 Successful login. Access granted to administrative console.`);
     } else {
       setPasscodeError(true);
       const nextFail = failedAttempts + 1;
       setFailedAttempts(nextFail);
       safeLocalStorage.setItem('admin_failed_attempts', String(nextFail));
       
-      addLog(`‚ö†Ô∏è Failed administrative PIN verification attempt [${nextFail}/5] detected.`);
+      addLog(`\u26a0\ufe0f Failed administrative PIN verification attempt [${nextFail}/5] detected.`);
 
       if (nextFail >= 5) {
         const lockDuration = 60 * 1000; // 60 seconds
         const lockTime = Date.now() + lockDuration;
         setLockoutUntil(lockTime);
         safeLocalStorage.setItem('admin_lockout_until', String(lockTime));
-        addLog(`üö® SECURITY LOCKOUT: 5 consecutive failed login attempts. Access suspended for 60 seconds.`);
+        addLog(`\U0001f6a8 SECURITY LOCKOUT: 5 consecutive failed login attempts. Access suspended for 60 seconds.`);
       }
 
       // Let error anim play then reset
@@ -3948,7 +3950,7 @@ export default function WordPressConsole({
       onMaintenanceModeChange(enabled);
     }
     const statusLabel = enabled ? 'ACTIVATED' : 'DEACTIVATED';
-    addLog(`üõ†Ô∏è [Maintenance Mode] ${statusLabel} ‚Äî ${enabled ? 'Visitors now see maintenance page. Admins retain full access.' : 'Storefront open to all visitors.'}`);
+    addLog(`\U0001f6e0\ufe0f [Maintenance Mode] ${statusLabel} \u2014 ${enabled ? 'Visitors now see maintenance page. Admins retain full access.' : 'Storefront open to all visitors.'}`);
     setSaveMessage(`Maintenance Mode ${statusLabel}! Saved immediately to database.`);
     setTimeout(() => setSaveMessage(''), 4000);
 
@@ -3969,13 +3971,13 @@ export default function WordPressConsole({
         })
       });
       if (res.ok) {
-        addLog(`‚úÖ [Maintenance Mode] State successfully saved to server & MySQL.`);
+        addLog(`\u2705 [Maintenance Mode] State successfully saved to server & MySQL.`);
       } else {
-        addLog(`‚ö†Ô∏è [Maintenance Mode] Local state saved. Server response: ${res.status}`);
+        addLog(`\u26a0\ufe0f [Maintenance Mode] Local state saved. Server response: ${res.status}`);
       }
     } catch (err: any) {
       console.error('Failed to sync maintenance mode state to server:', err);
-      addLog(`‚ö†Ô∏è [Maintenance Mode] Saved locally. Notice: ${err?.message || err}`);
+      addLog(`\u26a0\ufe0f [Maintenance Mode] Saved locally. Notice: ${err?.message || err}`);
     }
   };
 
@@ -4006,7 +4008,7 @@ export default function WordPressConsole({
     setSavedPasscode(nCode);
     safeLocalStorage.setItem('admin_passcode', nCode);
     setAdminTabPasscodeSuccess('Admin passcode updated successfully!');
-    addLog(`‚úÖ ADMIN ACTION: Admin security passcode reset successfully.`);
+    addLog(`\u2705 ADMIN ACTION: Admin security passcode reset successfully.`);
 
     setAdminTabCurrentPasscode('');
     setAdminTabNewPasscode('');
@@ -4027,7 +4029,7 @@ export default function WordPressConsole({
     
     const msg = `Passcode reset request initiated for ${email}. Check your mail client to send instructions.`;
     setAdminTabEmailSuccess(msg);
-    addLog(`‚úâÔ∏è ADMIN ACTION: ${msg}`);
+    addLog(`\u2709\ufe0f ADMIN ACTION: ${msg}`);
     
     setTimeout(() => {
       setAdminTabEmailSuccess(null);
@@ -4424,7 +4426,7 @@ export default function WordPressConsole({
                               type="password"
                               value={currentPasscodeInput}
                               onChange={(e) => setCurrentPasscodeInput(e.target.value)}
-                              placeholder="‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢"
+                              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
                               className="w-full bg-[#111111] border border-neutral-800 text-sm sm:text-base font-mono text-center text-white py-3 rounded-lg outline-none focus:border-amber-500 transition-colors"
                               required
                             />
@@ -4438,7 +4440,7 @@ export default function WordPressConsole({
                               type="password"
                               value={newPasscodeInput}
                               onChange={(e) => setNewPasscodeInput(e.target.value)}
-                              placeholder="‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢"
+                              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
                               className="w-full bg-[#111111] border border-neutral-800 text-sm sm:text-base font-mono text-center text-white py-3 rounded-lg outline-none focus:border-amber-500 transition-colors"
                               required
                             />
@@ -4555,7 +4557,7 @@ export default function WordPressConsole({
                                 setPasscode('');
                               }
                             }}
-                            placeholder="‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢"
+                            placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
                             className={`w-full bg-[#111111] border transition-all text-center text-lg sm:text-xl font-bold tracking-[0.4em] text-white p-4.5 ${isInospace ? 'rounded-none' : 'rounded-xl'} outline-none ${
                               passcodeError 
                                 ? 'border-red-600 ring-4 ring-red-500/20 placeholder-red-700' 
@@ -4750,9 +4752,9 @@ export default function WordPressConsole({
               
               {/* FEATURED CATEGORIES TAB */}
               {activeTab === 'categories' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-[500px]">
+                <div className="flex flex-col md:flex-row gap-4 lg:gap-6 items-stretch w-full min-h-[600px] lg:min-h-[750px]">
                   {/* Left Column - Category List */}
-                  <div className="lg:col-span-4 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden h-[600px]">
+                  <div className="w-full md:w-72 lg:w-80 xl:w-96 shrink-0 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden min-h-[350px] md:min-h-[600px] lg:min-h-[750px]">
                     <div className="p-4 bg-[#141414] border-b border-[#222222] space-y-2 shrink-0 flex justify-between items-center">
                       <div className="flex items-start justify-between gap-3 flex-1 min-w-0">
                         <div>
@@ -4770,7 +4772,7 @@ export default function WordPressConsole({
                               count: getCategoryCountText(c.name, currentProducts)
                             }));
                             updateFeaturedCategories(updated);
-                            addLog(`üîÑ [Featured Categories] Triggered full category catalog check & synchronized counts with system memory.`);
+                            addLog(`\U0001f504 [Featured Categories] Triggered full category catalog check & synchronized counts with system memory.`);
                             setTimeout(() => setIsRefreshingCats(false), 850);
                           }}
                           className="p-1 bg-neutral-950 border border-neutral-850 hover:border-[#ff0000]/60 text-neutral-400 hover:text-white rounded transition-colors cursor-pointer flex items-center justify-center shrink-0"
@@ -4952,7 +4954,7 @@ export default function WordPressConsole({
                                         const el = document.getElementById('product-segment-anchor');
                                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                                       }, 150);
-                                      addLog(`üîó Category "${cat.name}" linked to Storefront view.`);
+                                      addLog(`\U0001f517 Category "${cat.name}" linked to Storefront view.`);
                                     }}
                                     className="text-neutral-500 hover:text-emerald-500 p-1 rounded hover:bg-neutral-900 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                                     title="View / Link this Category on Storefront Homepage"
@@ -5169,7 +5171,7 @@ export default function WordPressConsole({
                   </div>
 
                   {/* Right Column - Editor Form */}
-                  <div className="lg:col-span-8 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden h-[600px]">
+                  <div className="flex-1 min-w-0 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden min-h-[500px] md:min-h-[600px] lg:min-h-[750px]">
                     <div className="p-4 bg-[#141414] border-b border-[#222222] shrink-0 flex items-center justify-between">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-[#cccccc] flex items-center gap-1.5">
                         <Edit size={13} className="text-[#ff0000]" /> Edit Category Details
@@ -5184,7 +5186,7 @@ export default function WordPressConsole({
                             }));
                             updateFeaturedCategories(updated);
                             setIsCatDetailsDirty(true);
-                            addLog(`üîÑ [Bulk Sync] Automatically recalculated all category counts based on current product associations.`);
+                            addLog(`\U0001f504 [Bulk Sync] Automatically recalculated all category counts based on current product associations.`);
                           }}
                           className="px-2.5 py-1 bg-[#1e3a5f] hover:bg-[#152a45] border border-[#1e3a5f]/40 text-blue-200 hover:text-white rounded text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer"
                           title="Recalculate and update the product count subtitle for all categories automatically"
@@ -5505,7 +5507,7 @@ export default function WordPressConsole({
                                     );
                                     updateFeaturedCategories(updated);
                                     setIsCatDetailsDirty(true);
-                                    addLog(`üîÑ [Category Sync] Auto-calculated product count for "${targetCat.name}" with database catalog: ${realCountStr}`);
+                                    addLog(`\U0001f504 [Category Sync] Auto-calculated product count for "${targetCat.name}" with database catalog: ${realCountStr}`);
                                   }}
                                   className="text-[10px] bg-[#1e3a5f]/40 border border-[#1e3a5f]/60 hover:bg-[#1e3a5f]/80 text-blue-300 font-bold px-2 py-0.5 rounded flex items-center gap-1 transition-colors cursor-pointer"
                                   title="Analyze current product database and sync category count badge text"
@@ -5818,7 +5820,7 @@ export default function WordPressConsole({
                                 <h3 className="text-sm font-bold text-white mb-0.5">{targetCat.name}</h3>
                                 <p className="text-[10px] text-[#999999] mb-2">{getCategoryCountText(targetCat.name, currentProducts)}</p>
                                 <span className="text-[10px] font-semibold text-[#ff0000]/90 transition-colors uppercase tracking-wider">
-                                  Browse Category ‚Üí
+                                  Browse Category \u2192
                                 </span>
                               </div>
                             </div>
@@ -6127,10 +6129,10 @@ export default function WordPressConsole({
 
               {/* MANAGE PRODUCTS TAB */}
               {activeTab === 'products' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-[500px]">
+                <div className="flex flex-col md:flex-row gap-4 lg:gap-6 items-stretch w-full min-h-[600px] lg:min-h-[750px]">
                   
                   {/* Left Column - Products List Selection */}
-                  <div className="lg:col-span-4 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden h-[600px]">
+                  <div className="w-full md:w-72 lg:w-80 xl:w-96 shrink-0 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden min-h-[350px] md:min-h-[600px] lg:min-h-[750px]">
                     <div className="p-4 bg-[#141414] border-b border-[#222222] space-y-3 shrink-0">
                       <div className="flex justify-between items-center">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-[#cccccc] flex items-center gap-1.5">
@@ -6266,7 +6268,7 @@ export default function WordPressConsole({
                   </div>
 
                   {/* Right Column - Active Product Editor */}
-                  <div className="lg:col-span-8 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden h-[600px]">
+                  <div className="flex-1 min-w-0 flex flex-col bg-[#0c0c0c] border border-[#222222] rounded-xl overflow-hidden min-h-[500px] md:min-h-[600px] lg:min-h-[750px]">
                     {editedProduct ? (
                       <div className="flex flex-col h-full overflow-hidden">
                         
@@ -6299,9 +6301,31 @@ export default function WordPressConsole({
 
                         {/* Save message Banner */}
                         {saveMessage && (
-                          <div className="bg-emerald-950/60 border-b border-emerald-900/40 px-4 py-2 text-emerald-400 text-xs font-bold flex items-center gap-2 shrink-0 animate-pulse">
-                            <CheckCircle size={14} />
-                            <span>{saveMessage}</span>
+                          <div className="bg-emerald-950/80 border-b border-emerald-500/30 px-4 py-2.5 text-emerald-300 text-xs font-medium flex items-center justify-between gap-3 shrink-0 animate-in fade-in duration-200 shadow-sm">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              {isSyncing ? (
+                                <RefreshCw size={14} className="text-emerald-400 animate-spin shrink-0" />
+                              ) : (
+                                <CheckCircle size={14} className="text-emerald-400 shrink-0" />
+                              )}
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 min-w-0">
+                                <span className="font-bold text-white tracking-wide">{saveMessage}</span>
+                                {isSyncing && (
+                                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-300 bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 rounded-full">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                    Autosync background active ({syncProgress}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSaveMessage('')}
+                              className="text-neutral-400 hover:text-white p-1 px-2 rounded hover:bg-neutral-800/60 transition-colors shrink-0 text-[10px] font-mono font-bold uppercase cursor-pointer border border-neutral-700/50"
+                              title="Dismiss note"
+                            >
+                              Dismiss
+                            </button>
                           </div>
                         )}
 
@@ -6453,7 +6477,7 @@ export default function WordPressConsole({
                                         // Instantly update the category across all products in the product catalog
                                         const updated = currentProducts.map(p => p.id === editedProduct.id ? { ...p, category: newCategory } : p);
                                         updateProducts(updated);
-                                        addLog(`‚ö° [Catalog] Live Category updated instantly for '${editedProduct.name}' to '${formatCategoryLabel(newCategory)}'.`);
+                                        addLog(`\u26a1 [Catalog] Live Category updated instantly for '${editedProduct.name}' to '${formatCategoryLabel(newCategory)}'.`);
                                       }}
                                       onDoubleClick={handleStartRenameCategory}
                                       title="Double-click to rename/edit this category folder"
@@ -6471,7 +6495,7 @@ export default function WordPressConsole({
                                       ))}
                                     </select>
                                     <span className="text-[10px] text-neutral-500 block">
-                                      üí° Double-click the select box above to edit its folder name & save instantly.
+                                      \U0001f4a1 Double-click the select box above to edit its folder name & save instantly.
                                     </span>
                                     <div className="flex items-center gap-2 mt-2 pt-1.5 border-t border-neutral-900">
                                       <input
@@ -6697,8 +6721,8 @@ export default function WordPressConsole({
                           {/* Section 2: Visual Media Assets */}
                           <div className="space-y-4">
                             <h5 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 border-b border-[#222222] pb-1.5">2. Visual Media Assets</h5>
-                            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                              <div className="md:col-span-4 space-y-3">
+                            <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                              <div className="xl:col-span-8 space-y-3">
                                 <div className="space-y-1.5">
                                   <div className="flex justify-between items-center">
                                     <label className="text-[10px] uppercase font-bold text-neutral-500">Primary Cover Image URL</label>
@@ -6859,11 +6883,11 @@ export default function WordPressConsole({
                                                 addLog(`[WordPress Media] Uploading secondary image '${file.name}'...`);
                                                 const savedPath = await uploadImageToWordPress(file);
                                                 handleUpdateAdditionalImage(imageIdx, savedPath);
-                                                addLog(`‚úÖ Saved secondary image '${file.name}': ${savedPath}`);
+                                                addLog(`\u2705 Saved secondary image '${file.name}': ${savedPath}`);
                                               } catch (err: any) {
                                                 console.error('Failed to upload secondary image:', err);
                                                 const errMsg = err?.message || 'Upload failed: WordPress Media Library did not accept the image. Check WP_AUTH_TOKEN/Application Password and Cloudflare WAF.';
-                                                addLog(`‚ùå [Gallery Upload] ${errMsg}`);
+                                                addLog(`\u274c [Gallery Upload] ${errMsg}`);
                                                 alert(errMsg);
                                               } finally {
                                                 e.target.value = '';
@@ -6909,7 +6933,7 @@ export default function WordPressConsole({
                                   </div>
                                 </div>
                               </div>
-                              <div className="md:col-span-2 flex flex-col justify-center items-center p-3 bg-[#111111] border border-neutral-900 rounded-lg shrink-0">
+                              <div className="xl:col-span-4 flex flex-col justify-center items-center p-3 bg-[#111111] border border-neutral-900 rounded-lg shrink-0">
                                 <span className="text-[9px] uppercase font-bold text-neutral-500 mb-2 font-mono">Live Cover Preview</span>
                                 <div className="w-full aspect-square relative overflow-hidden rounded border border-neutral-800 bg-[#0c0c0c] flex items-center justify-center mb-2">
                                   <ResponsiveImage 
@@ -7362,7 +7386,7 @@ export default function WordPressConsole({
                                 const el = document.getElementById('product-segment-anchor');
                                 if (el) el.scrollIntoView({ behavior: 'smooth' });
                               }, 150);
-                              addLog(`üîó Shortcode view linked to storefront category filter for "${selectedCategory}".`);
+                              addLog(`\U0001f517 Shortcode view linked to storefront category filter for "${selectedCategory}".`);
                             }}
                             className="mt-1.5 w-full bg-neutral-900 hover:bg-[#ff0000] text-neutral-300 hover:text-white border border-neutral-800 hover:border-red-600 transition-all py-1.5 rounded text-[10px] font-bold font-mono tracking-wider uppercase flex items-center justify-center gap-1.5 cursor-pointer"
                             title="Preview this selected category on the storefront homepage product grid"
@@ -7619,7 +7643,7 @@ export default function WordPressConsole({
                             </div>
                             <p className="text-[10px] text-neutral-400 font-sans mt-0.5">
                               Automate, compile, and deploy search engine indexing files (<code className="text-amber-400 font-mono">/sitemap.xml</code> & <code className="text-amber-400 font-mono">/robots.txt</code>) live across your domain.
-                              {lastSeoAutoSyncTime && <span className="text-neutral-500 ml-1.5 font-mono">‚Ä¢ Last automated: {lastSeoAutoSyncTime}</span>}
+                              {lastSeoAutoSyncTime && <span className="text-neutral-500 ml-1.5 font-mono">\u2022 Last automated: {lastSeoAutoSyncTime}</span>}
                             </p>
                           </div>
                         </div>
@@ -7734,9 +7758,9 @@ export default function WordPressConsole({
                                     document.body.removeChild(link);
                                     URL.revokeObjectURL(url);
 
-                                    addLog(`üìÇ Generated custom sitemap.xml with ${productsToInclude.length} listings successfully.`);
+                                    addLog(`\U0001f4c2 Generated custom sitemap.xml with ${productsToInclude.length} listings successfully.`);
                                   } catch (error: any) {
-                                    addLog(`‚ùå Sitemap generation failed: ${error.message}`);
+                                    addLog(`\u274c Sitemap generation failed: ${error.message}`);
                                   }
                                 }}
                                 className="py-2.5 bg-[#1f1f1f] hover:bg-neutral-800 text-white border border-neutral-800 font-sans font-bold text-xs uppercase rounded-lg transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
@@ -7842,7 +7866,7 @@ export default function WordPressConsole({
                                   link.click();
                                   document.body.removeChild(link);
                                   URL.revokeObjectURL(url);
-                                  addLog(`ü§ñ Generated robots.txt configurations successfully.`);
+                                  addLog(`\U0001f916 Generated robots.txt configurations successfully.`);
                                 }}
                                 className="py-2 px-3 bg-[#1e293b] hover:bg-neutral-800 border border-neutral-800 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center justify-center gap-1 cursor-pointer"
                               >
@@ -7880,7 +7904,7 @@ export default function WordPressConsole({
                                     const productsToInclude = sitemapIncludeDrafts ? currentProducts : currentProducts.filter(p => p.status !== 'draft');
                                     const sitemapXml = generateSitemapXml(productsToInclude, sitemapDomain);
                                     navigator.clipboard.writeText(sitemapXml);
-                                    addLog(`üìã Copied sitemap.xml markup directly to clipboard.`);
+                                    addLog(`\U0001f4cb Copied sitemap.xml markup directly to clipboard.`);
                                   }}
                                   className="px-2.5 py-1.5 bg-[#0f0f0f] border border-neutral-800 hover:border-neutral-700 text-[9px] font-bold uppercase rounded text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
                                 >
@@ -7930,10 +7954,10 @@ export default function WordPressConsole({
                                 onChange={(e) => setSchemaSelectedProductId(e.target.value)}
                                 className="w-full bg-[#070707] border border-neutral-800 focus:border-amber-500 focus:outline-none rounded p-2.5 text-xs text-white"
                               >
-                                <option value="">üè¢ Company / LocalBusiness (Global Site)</option>
-                                <option disabled>‚îÄ‚îÄ Products Catalog Items ‚îÄ‚îÄ</option>
+                                <option value="">\U0001f3e2 Company / LocalBusiness (Global Site)</option>
+                                <option disabled>\u2500\u2500 Products Catalog Items \u2500\u2500</option>
                                 {currentProducts.map(p => (
-                                  <option key={p.id} value={p.id}>üì¶ [{p.modelCode}] {p.name}</option>
+                                  <option key={p.id} value={p.id}>\U0001f4e6 [{p.modelCode}] {p.name}</option>
                                 ))}
                               </select>
                             </div>
@@ -8002,7 +8026,7 @@ export default function WordPressConsole({
                               <div className="space-y-2 text-xs font-sans">
                                 {passes.map((p, idx) => (
                                   <div key={idx} className="flex items-center gap-2 p-1.5 bg-[#070707] rounded border border-neutral-900/60">
-                                    <span className={p.status ? "text-emerald-400 text-xs" : "text-amber-500 text-xs"}>{p.status ? "‚óè" : "‚ñ≤"}</span>
+                                    <span className={p.status ? "text-emerald-400 text-xs" : "text-amber-500 text-xs"}>{p.status ? "\u25cf" : "\u25b2"}</span>
                                     <span className="text-[11px] text-neutral-300 flex-1">{p.name}</span>
                                     <span className={`text-[9px] font-mono px-1.5 rounded ${p.status ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-950/40' : 'bg-amber-950/20 text-amber-400 border border-amber-900/40'}`}>
                                       {p.status ? 'PASS' : 'WARN'}
@@ -8076,14 +8100,14 @@ export default function WordPressConsole({
                                     Structured JSON-LD Schema Script
                                   </h3>
                                   <p className="text-[10px] text-neutral-500 font-sans">
-                                    Include this tag inside your landing page‚Äôs <code className="text-amber-500 font-mono bg-[#0c0c0c] px-1 py-0.5">&lt;head&gt;</code> element to prompt Google rich snippets.
+                                    Include this tag inside your landing page\u2019s <code className="text-amber-500 font-mono bg-[#0c0c0c] px-1 py-0.5">&lt;head&gt;</code> element to prompt Google rich snippets.
                                   </p>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => {
                                     navigator.clipboard.writeText(`<script type="application/ld+json">\n${jsonString}\n</script>`);
-                                    addLog(`üìã Copied generated JSON-LD script tag directly to clipboard.`);
+                                    addLog(`\U0001f4cb Copied generated JSON-LD script tag directly to clipboard.`);
                                   }}
                                   className="px-2.5 py-1.5 bg-[#0f0f0f] border border-neutral-800 hover:border-neutral-700 text-[9px] font-bold uppercase rounded text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
                                 >
@@ -8162,15 +8186,15 @@ export default function WordPressConsole({
                                   disabled={securityIsScanning}
                                   onClick={() => {
                                     setSecurityIsScanning(true);
-                                    setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] ‚ö° Initializing Security hardiness scan...`, ...prev]);
+                                    setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] \u26a1 Initializing Security hardiness scan...`, ...prev]);
                                     
                                     const msgs = [
-                                      "üîç Validating WordPress REST base endpoints... Success.",
-                                      "üîç Evaluating SSL Certificate authority... Valid root cert verified.",
-                                      "üõ° CORS Check: No wildcards allowed on authenticated endpoints.",
-                                      "üõ° Evaluating local data scopes for customer info... compliant.",
-                                      "üîí POPIA audit: Verifying cookies and terms consent layouts... Complete.",
-                                      "üèÜ Security hardiness scan finished successfully!"
+                                      "\U0001f50d Validating WordPress REST base endpoints... Success.",
+                                      "\U0001f50d Evaluating SSL Certificate authority... Valid root cert verified.",
+                                      "\U0001f6e1 CORS Check: No wildcards allowed on authenticated endpoints.",
+                                      "\U0001f6e1 Evaluating local data scopes for customer info... compliant.",
+                                      "\U0001f512 POPIA audit: Verifying cookies and terms consent layouts... Complete.",
+                                      "\U0001f3c6 Security hardiness scan finished successfully!"
                                     ];
 
                                     let i = 0;
@@ -8181,7 +8205,7 @@ export default function WordPressConsole({
                                       } else {
                                         clearInterval(interval);
                                         setSecurityIsScanning(false);
-                                        addLog("üõ° Admin security auditing and environment scanner run completed.");
+                                        addLog("\U0001f6e1 Admin security auditing and environment scanner run completed.");
                                       }
                                     }, 400);
                                   }}
@@ -8212,8 +8236,8 @@ export default function WordPressConsole({
                                 onChange={(e) => {
                                   const val = e.target.checked;
                                   setSecurityHardenCookies(val);
-                                  addLog(`üõ° Simulate HttpOnly authentication tags ${val ? 'ENABLED' : 'DISABLED'}.`);
-                                  setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] üõ° Simulate HttpOnly parameters set to ${val ? 'ACTIVE' : 'INACTIVE'}`, ...prev]);
+                                  addLog(`\U0001f6e1 Simulate HttpOnly authentication tags ${val ? 'ENABLED' : 'DISABLED'}.`);
+                                  setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] \U0001f6e1 Simulate HttpOnly parameters set to ${val ? 'ACTIVE' : 'INACTIVE'}`, ...prev]);
                                 }}
                                 className="rounded border-neutral-800 bg-[#0c0c0c] text-amber-500 focus:ring-0 w-4.5 h-4.5 shrink-0 cursor-pointer accent-amber-500"
                               />
@@ -8231,8 +8255,8 @@ export default function WordPressConsole({
                                 onChange={(e) => {
                                   const val = e.target.checked;
                                   setSecurityHardenLocalStorage(val);
-                                  addLog(`üõ° Strict LocalStorage sanitization & cleaning ${val ? 'ENABLED' : 'DISABLED'}.`);
-                                  setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] üõ° Strict browser storage scrubbing set to ${val ? 'ACTIVE' : 'INACTIVE'}`, ...prev]);
+                                  addLog(`\U0001f6e1 Strict LocalStorage sanitization & cleaning ${val ? 'ENABLED' : 'DISABLED'}.`);
+                                  setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] \U0001f6e1 Strict browser storage scrubbing set to ${val ? 'ACTIVE' : 'INACTIVE'}`, ...prev]);
                                 }}
                                 className="rounded border-neutral-800 bg-[#0c0c0c] text-amber-500 focus:ring-0 w-4.5 h-4.5 shrink-0 cursor-pointer accent-amber-500"
                               />
@@ -8250,8 +8274,8 @@ export default function WordPressConsole({
                                 onChange={(e) => {
                                   const val = e.target.checked;
                                   setSecurityHardenCors(val);
-                                  addLog(`üõ° Restrictive CORS endpoint mapping ${val ? 'ENABLED' : 'DISABLED'}.`);
-                                  setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] üõ° CORS domain restriction to ${wpUrl || 'verified target node'} ${val ? 'BOUND' : 'UNBOUND'}`, ...prev]);
+                                  addLog(`\U0001f6e1 Restrictive CORS endpoint mapping ${val ? 'ENABLED' : 'DISABLED'}.`);
+                                  setSecurityLogs(prev => [`[${new Date().toLocaleTimeString()}] \U0001f6e1 CORS domain restriction to ${wpUrl || 'verified target node'} ${val ? 'BOUND' : 'UNBOUND'}`, ...prev]);
                                 }}
                                 className="rounded border-neutral-800 bg-[#0c0c0c] text-amber-500 focus:ring-0 w-4.5 h-4.5 shrink-0 cursor-pointer accent-amber-500"
                               />
@@ -8410,7 +8434,7 @@ export default function WordPressConsole({
                           : 'border-transparent text-neutral-400 hover:text-white hover:bg-neutral-800/40'
                       }`}
                     >
-                      ‚ú® SEO Catalog Analyzer
+                      \u2728 SEO Catalog Analyzer
                     </button>
                   </div>
 
@@ -8517,7 +8541,7 @@ export default function WordPressConsole({
                               <ul className="space-y-1.5 text-xs text-neutral-300 font-sans">
                                 {seoHealthResult.trends.map((trend, idx) => (
                                   <li key={idx} className="flex items-start gap-2 bg-[#070707] p-2 rounded border border-neutral-800">
-                                    <span className="text-yellow-400 font-bold select-none">‚Ä¢</span>
+                                    <span className="text-yellow-400 font-bold select-none">\u2022</span>
                                     <span>{trend}</span>
                                   </li>
                                 ))}
@@ -8664,9 +8688,9 @@ export default function WordPressConsole({
                                   {/* Indicators summary */}
                                   <div className="flex gap-1.5 text-[8px] font-mono text-neutral-500">
                                     <span className={p.seoTitle ? 'text-emerald-400' : 'text-neutral-500'}>Title</span>
-                                    <span>¬∑</span>
+                                    <span>\xb7</span>
                                     <span className={p.seoDescription ? 'text-emerald-400' : 'text-neutral-500'}>Desc</span>
-                                    <span>¬∑</span>
+                                    <span>\xb7</span>
                                     <span className={p.seoFocusKeyword ? 'text-emerald-400' : 'text-neutral-500'}>Keyw</span>
                                   </div>
                                 </div>
@@ -8802,15 +8826,15 @@ export default function WordPressConsole({
                                     {/* Rating & reviews mock search snippet metadata */}
                                     <div className="flex items-center gap-1.5 text-[12px] text-[#bdc1c6] leading-tight py-0.5 font-sans flex-wrap">
                                       <span className="text-[#fbc02d] text-[13px]">
-                                        {"‚òÖ".repeat(Math.round(seoRichSnippetRating)) + "‚òÜ".repeat(5 - Math.round(seoRichSnippetRating))}
+                                        {"\u2605".repeat(Math.round(seoRichSnippetRating)) + "\u2606".repeat(5 - Math.round(seoRichSnippetRating))}
                                       </span>
                                       <span className="font-semibold">{seoRichSnippetRating}</span>
                                       <span className="text-[#80868b] font-light">({seoRichSnippetReviews} reviews)</span>
-                                      <span className="text-[#80868b] font-light">¬∑</span>
+                                      <span className="text-[#80868b] font-light">\xb7</span>
                                       <span className="text-[#dadce0] font-medium">
                                         {seoCustomPrice || `ZAR ${activeSeoProduct.price?.toLocaleString() || 'Quote'}`}
                                       </span>
-                                      <span className="text-[#80868b] font-light">¬∑</span>
+                                      <span className="text-[#80868b] font-light">\xb7</span>
                                       {seoRichSnippetStock === 'instock' && <span className="text-emerald-400 font-medium">In stock</span>}
                                       {seoRichSnippetStock === 'outofstock' && <span className="text-red-400 font-medium">Out of stock</span>}
                                       {seoRichSnippetStock === 'onrequest' && <span className="text-yellow-400 font-medium">Available on request</span>}
@@ -8840,10 +8864,10 @@ export default function WordPressConsole({
                                       </h4>
                                       {/* Star ratings and price on Mobile snippet */}
                                       <div className="flex items-center gap-1.5 text-[11px] text-[#bdc1c6] font-sans">
-                                        <span className="text-[#fbc02d]">‚òÖ</span>
+                                        <span className="text-[#fbc02d]">\u2605</span>
                                         <span className="font-semibold">{seoRichSnippetRating}</span>
                                         <span className="text-[#80868b]">({seoRichSnippetReviews})</span>
-                                        <span className="text-[#80868b]">¬∑</span>
+                                        <span className="text-[#80868b]">\xb7</span>
                                         <span className="font-medium text-[#dadce0]">{seoCustomPrice || `ZAR ${activeSeoProduct.price?.toLocaleString() || 'Quote'}`}</span>
                                       </div>
                                       {/* Snippet Description */}
@@ -8880,7 +8904,7 @@ export default function WordPressConsole({
                                   <div className="space-y-1">
                                     <label className="text-[9px] uppercase text-neutral-500 font-bold tracking-wider flex justify-between">
                                       <span>Rating Stars</span>
-                                      <span className="text-yellow-500 font-mono font-bold">{seoRichSnippetRating} ‚òÖ</span>
+                                      <span className="text-yellow-500 font-mono font-bold">{seoRichSnippetRating} \u2605</span>
                                     </label>
                                     <input 
                                       type="range" 
@@ -9044,3587 +9068,152 @@ export default function WordPressConsole({
                                     Live suggested high-traffic search queries tailored for <strong>{activeSeoProduct?.category || 'automotive'}</strong> category.
                                   </p>
                                 </div>
-                                <span className="text-[9px] font-mono bg-neutral-800 border border-neutral-700 text-neutral-400 px-2 py-0.5 rounded-full uppercase">
-                                  {activeSeoProduct ? activeSeoProduct.category : 'General'}
-                                </span>
-                              </div>
-
-                              <div className="space-y-2.5 max-h-[280px] overflow-y-auto custom-scrollbar pr-1">
-                                {(() => {
-                                  const categoryKey = activeSeoProduct 
-                                    ? (activeSeoProduct.category === 'car-lift' || activeSeoProduct.category === 'spray-booth' || activeSeoProduct.category === 'welder'
-                                        ? activeSeoProduct.category 
-                                        : (activeSeoProduct.name.toLowerCase().includes('weld') ? 'welder' : 'default'))
-                                    : 'default';
-                                  const suggestedKeywords = SOUTH_AFRICAN_COMPETITIVE_KEYWORDS[categoryKey] || SOUTH_AFRICAN_COMPETITIVE_KEYWORDS['default'];
-
-                                  return suggestedKeywords.map((kw, index) => {
-                                    const isCurrentFocus = seoKeywordInput.toLowerCase().trim() === kw.keyword.toLowerCase().trim();
-                                    const isInjecting = injectingKeyword === kw.keyword;
-
-                                    return (
-                                      <div 
-                                        key={index} 
-                                        className={`p-3 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 text-left ${
-                                          isCurrentFocus 
-                                            ? 'bg-yellow-950/20 border-yellow-600/40 shadow-[0_0_12px_rgba(217,119,6,0.1)]' 
-                                            : 'bg-[#070707] border-neutral-850 hover:border-neutral-750'
-                                        }`}
-                                      >
-                                        <div className="space-y-1.5 min-w-0 flex-1">
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-mono text-xs font-semibold text-neutral-100 break-words select-all">
-                                              {kw.keyword}
-                                            </span>
-                                            {isCurrentFocus && (
-                                              <span className="text-[8px] bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">
-                                                Active Target
-                                              </span>
-                                            )}
-                                          </div>
-                                          
-                                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-mono text-neutral-400">
-                                            <span className="flex items-center gap-1">
-                                              <span className="text-neutral-500">Volume:</span>
-                                              <strong className="text-neutral-300">{kw.volume}</strong>
-                                            </span>
-                                            <span>‚Ä¢</span>
-                                            <span className="flex items-center gap-1">
-                                              <span className="text-neutral-500">CPC:</span>
-                                              <strong className="text-neutral-300">{kw.cpc}</strong>
-                                            </span>
-                                            <span>‚Ä¢</span>
-                                            <span className="flex items-center gap-1">
-                                              <span className="text-neutral-500">Intent:</span>
-                                              <strong className="text-neutral-300">{kw.intent}</strong>
-                                            </span>
-                                            <span>‚Ä¢</span>
-                                            <span className="flex items-center gap-1">
-                                              <span className="text-neutral-500">Difficulty:</span>
-                                              <span className={`font-bold ${
-                                                kw.difficulty === 'Low' ? 'text-emerald-400' : kw.difficulty === 'Medium' ? 'text-amber-400' : 'text-red-400'
-                                              }`}>
-                                                {kw.difficulty}
-                                              </span>
-                                            </span>
-                                          </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setSeoKeywordInput(kw.keyword);
-                                              setSeoNotification({
-                                                type: 'success',
-                                                text: `Keyword "${kw.keyword}" loaded as the active Focus Target!`
-                                              });
-                                              setTimeout(() => setSeoNotification(null), 3000);
-                                            }}
-                                            className="px-2.5 py-1.5 bg-[#1a1a1a] hover:bg-[#2a2a2a] border border-neutral-800 hover:border-neutral-750 text-neutral-300 hover:text-white font-sans font-bold text-[9px] uppercase rounded transition-all cursor-pointer"
-                                            title="Set this keyword as the focus keyword for validation checks"
-                                          >
-                                            Quick Set
-                                          </button>
-
-                                          <button
-                                            type="button"
-                                            disabled={isGeneratingProductSeo}
-                                            onClick={() => handleGenerateProductSeo(kw.keyword)}
-                                            className="px-2.5 py-1.5 bg-yellow-600 hover:bg-yellow-500 disabled:bg-neutral-850 disabled:text-neutral-500 text-black font-sans font-black text-[9px] uppercase rounded flex items-center gap-1 shadow-md hover:shadow-yellow-600/10 transition-all cursor-pointer"
-                                            title="Automatically rewrite meta title and description with this keyword via AI"
-                                          >
-                                            {isInjecting ? (
-                                              <>
-                                                <RefreshCw size={10} className="animate-spin" />
-                                                Applying...
-                                              </>
-                                            ) : (
-                                              <>
-                                                <Sparkles size={10} />
-                                                AI Apply & Optimize
-                                              </>
-                                            )}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    );
-                                  });
-                                })()}
-                              </div>
-                            </div>
-
-                            {/* SEO Title Input */}
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between items-center">
-                                <label className="text-xs uppercase text-[#999999] font-bold tracking-wider">SEO Meta Title Override</label>
-                                <span className={`text-[10px] font-mono font-bold ${
-                                  seoTitleInput.length >= 50 && seoTitleInput.length <= 60 
-                                    ? 'text-emerald-400' 
-                                    : seoTitleInput.length > 0 && (seoTitleInput.length < 50 || seoTitleInput.length > 70)
-                                      ? 'text-red-400 animate-pulse'
-                                      : 'text-yellow-500'
-                                }`}>
-                                  {seoTitleInput.length} chars (Target: 50-60)
-                                </span>
-                              </div>
-                              <input
-                                type="text"
-                                value={seoTitleInput}
-                                onChange={(e) => setSeoTitleInput(e.target.value)}
-                                placeholder={`${activeSeoProduct.name} - Dimensions & Technical Specs | car-lifts.co.za`}
-                                className="w-full bg-[#070707] border border-[#222222] hover:border-neutral-700 text-xs text-white p-3 pr-8 rounded-lg outline-none focus:border-[#ff0000] font-sans transition-colors"
-                              />
-                              {/* Character strength progress visual bar */}
-                              <div className="w-full bg-[#1e1e1e] h-1.5 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full transition-all duration-300 ${
-                                    seoTitleInput.length >= 50 && seoTitleInput.length <= 60
-                                      ? 'bg-emerald-500'
-                                      : seoTitleInput.length > 70
-                                        ? 'bg-red-500'
-                                        : 'bg-yellow-500'
-                                  }`} 
-                                  style={{ width: `${Math.min(100, (seoTitleInput.length / 75) * 100)}%` }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* SEO Meta Description Input */}
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between items-center">
-                                <label className="text-xs uppercase text-[#999999] font-bold tracking-wider">SEO Meta Description Override</label>
-                                <span className={`text-[10px] font-mono font-bold ${
-                                  seoDescInput.length >= 120 && seoDescInput.length <= 160 
-                                    ? 'text-emerald-400' 
-                                    : seoDescInput.length > 0 && (seoDescInput.length < 120 || seoDescInput.length > 180)
-                                      ? 'text-red-500 animate-pulse'
-                                      : 'text-yellow-500'
-                                }`}>
-                                  {seoDescInput.length} chars (Target: 120-160)
-                                </span>
-                              </div>
-                              <textarea
-                                value={seoDescInput}
-                                onChange={(e) => setSeoDescInput(e.target.value)}
-                                rows={3}
-                                placeholder={`Get absolute pricing, complete spec sheets, and engineering highlights for ${activeSeoProduct.name}. Certified durability at car-lifts.co.za Cape Town.`}
-                                className="w-full bg-[#070707] border border-[#222222] hover:border-neutral-700 text-xs text-white p-3 rounded-lg outline-none focus:border-[#ff0000] font-sans transition-colors resize-none leading-relaxed"
-                              />
-                              {/* Character strength progress visual bar for description */}
-                              <div className="w-full bg-[#1e1e1e] h-1.5 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full transition-all duration-300 ${
-                                    seoDescInput.length >= 120 && seoDescInput.length <= 160
-                                      ? 'bg-emerald-500'
-                                      : seoDescInput.length > 180
-                                        ? 'bg-red-500'
-                                        : 'bg-yellow-500'
-                                  }`} 
-                                  style={{ width: `${Math.min(100, (seoDescInput.length / 200) * 100)}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* PART C: AI / Optimization dynamic Auto-Fill Options */}
-                          <div className="bg-[#070707] border border-neutral-900 rounded-xl p-4 space-y-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <Sparkles size={14} className="text-yellow-400" />
-                              <h4 className="text-xs font-extrabold uppercase text-neutral-300 tracking-wider">‚ö° Rule-Based SEO Auto-Fill Optimizer</h4>
-                            </div>
-                            
-                            <p className="text-[10px] text-neutral-500 font-sans leading-relaxed">
-                              Select from the certified high-ranking copy templates generated on the fly for <strong className="text-neutral-300">"{activeSeoProduct.modelCode}"</strong>:
-                            </p>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                              {/* Option 1: Cape Town & South Africa Focus */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nameClean = activeSeoProduct.name.split('(')[0].trim();
-                                  setSeoTitleInput(`${nameClean} Cape Town & South Africa | Triton`);
-                                  setSeoDescInput(`Order premium certified ${nameClean} (${activeSeoProduct.modelCode}) at Triton Car Lifts SA. Built for elite workshop safety inside Cape Town. View complete drawings.`);
-                                  
-                                  // set keyword intelligently
-                                  if (activeSeoProduct.category === 'car-lift') {
-                                    setSeoKeywordInput(activeSeoProduct.name.toLowerCase().includes('scissor') ? 'scissor lift' : 'car lift');
-                                  } else if (activeSeoProduct.category === 'spray-booth') {
-                                    setSeoKeywordInput('spray booth');
-                                  } else {
-                                    setSeoKeywordInput('mig welder');
-                                  }
-                                }}
-                                className="bg-[#111111] hover:bg-[#1a1a1a] border border-[#222222] hover:border-neutral-700 p-3 rounded-lg text-left transition-all cursor-pointer group"
-                              >
-                                <p className="text-[9px] font-mono uppercase font-bold text-[#ff0000] tracking-wider mb-1">Local Authority</p>
-                                <p className="text-[10px] font-sans text-neutral-300 leading-snug group-hover:text-white font-semibold">Cape Town & SA Buyers</p>
-                                <p className="text-[9px] font-sans text-neutral-500 leading-snug mt-1">Targets geography. Ranks in Western Cape & Gauteng regions.</p>
-                              </button>
-
-                              {/* Option 2: Technical specifications focus */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nameClean = activeSeoProduct.name.split('(')[0].trim();
-                                  setSeoTitleInput(`${nameClean} Specs & Pricing | Triton ${activeSeoProduct.modelCode}`);
-                                  setSeoDescInput(`Get absolute pricing, lift ratings, and safety certifications for ${nameClean} (${activeSeoProduct.modelCode}). High quality professional workspace setups in SA.`);
-                                  
-                                  // set keyword intelligently
-                                  setSeoKeywordInput(activeSeoProduct.modelCode.toLowerCase());
-                                }}
-                                className="bg-[#111111] hover:bg-[#1a1a1a] border border-[#222222] hover:border-neutral-700 p-3 rounded-lg text-left transition-all cursor-pointer group"
-                              >
-                                <p className="text-[9px] font-mono uppercase font-bold text-yellow-500 tracking-wider mb-1">Specs & Layout</p>
-                                <p className="text-[10px] font-sans text-neutral-300 leading-snug group-hover:text-white font-semibold">Technical Specs & SKU</p>
-                                <p className="text-[9px] font-sans text-neutral-500 leading-snug mt-1">Targets model code long-tails. Ranks for spec searches.</p>
-                              </button>
-
-                              {/* Option 3: Commercial Inquiry focus */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nameClean = activeSeoProduct.name.split('(')[0].trim();
-                                  setSeoTitleInput(`Buy Triton ${nameClean} Online (Best Prices)`);
-                                  setSeoDescInput(`Discover the best commercial prices for Triton ${nameClean}. Full physical warranty, spares, and custom layout engineering inside South Africa. Enquire today.`);
-                                  
-                                  setSeoKeywordInput(`triton ${activeSeoProduct.name.toLowerCase().split(' ')[0]}`);
-                                }}
-                                className="bg-[#111111] hover:bg-[#1a1a1a] border border-[#222222] hover:border-neutral-700 p-3 rounded-lg text-left transition-all cursor-pointer group"
-                              >
-                                <p className="text-[9px] font-mono uppercase font-bold text-emerald-400 tracking-wider mb-1">Buyer Intent</p>
-                                <p className="text-[10px] font-sans text-neutral-300 leading-snug group-hover:text-white font-semibold">Wholesale Commercial Promo</p>
-                                <p className="text-[9px] font-sans text-neutral-500 leading-snug mt-1">Targets transactional keywords. Boosts quote requests.</p>
-                              </button>
-                            </div>
-
-                            {/* One-click custom smart generator buttons */}
-                            <div className="pt-2 border-t border-neutral-900 flex justify-end gap-3 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const cleanName = activeSeoProduct.name.split('(')[0].trim();
-                                  const featuresText = activeSeoProduct.features && activeSeoProduct.features.length > 0
-                                    ? activeSeoProduct.features[0]
-                                    : 'certified heavy durable hardware';
-                                  
-                                  setSeoTitleInput(`Triton ${cleanName} (${activeSeoProduct.modelCode}) South Africa`);
-                                  setSeoDescInput(`Explore the premium structural Triton ${cleanName}. Features: ${featuresText}. 100% durable design with local backup, spares, and engineering drawings. Rands pricing.`);
-                                  
-                                  // extract focus keyword
-                                  const firstWord = cleanName.toLowerCase().split(' ')[0];
-                                  setSeoKeywordInput(`${firstWord} ${activeSeoProduct.category === 'car-lift' ? 'lift' : activeSeoProduct.category === 'spray-booth' ? 'booth' : 'welder'}`);
-                                  
-                                  setSeoNotification({
-                                    type: 'success',
-                                    text: 'Rule-based quick meta draft generated and populated in the input fields!'
-                                  });
-                                  setTimeout(() => setSeoNotification(null), 3000);
-                                }}
-                                className="px-3.5 py-1.5 bg-[#222222] hover:bg-[#333333] hover:text-white border border-neutral-800 text-neutral-300 font-sans font-extrabold text-[10px] uppercase rounded flex items-center gap-1 cursor-pointer transition-all"
-                              >
-                                Rule-Based Quick Draft
-                              </button>
-
-                              <button
-                                type="button"
-                                disabled={isGeneratingProductSeo}
-                                onClick={() => handleGenerateProductSeo()}
-                                className="px-3.5 py-1.5 bg-yellow-500 hover:bg-yellow-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-black font-sans font-extrabold text-[10px] uppercase rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-                              >
-                                {isGeneratingProductSeo ? (
-                                  <>
-                                    <RefreshCw size={11} className="animate-spin" />
-                                    Optimizing with Gemini...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles size={11} />
-                                    Generate with Gemini AI
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* PART D: SEO Checklist Validator - Live Analysis */}
-                          {seoKeywordInput && (
-                            <div className="bg-[#070707] border border-neutral-900 rounded-xl p-4 space-y-2.5">
-                              <h4 className="text-xs font-bold uppercase text-neutral-400 tracking-wider">SEO Compliance & Density Analysis</h4>
-                              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                {[
-                                  {
-                                    label: 'Title Keyword',
-                                    check: seoTitleInput.toLowerCase().includes(seoKeywordInput.toLowerCase()),
-                                    successText: 'In Title',
-                                    failText: 'Missing in Title'
-                                  },
-                                  {
-                                    label: 'Desc Keyword',
-                                    check: seoDescInput.toLowerCase().includes(seoKeywordInput.toLowerCase()),
-                                    successText: 'In Desc',
-                                    failText: 'Missing in Desc'
-                                  },
-                                  {
-                                    label: 'URL Keyword',
-                                    check: activeSeoProduct.id.toLowerCase().includes(seoKeywordInput.toLowerCase().replace(/ /g, '-')) || activeSeoProduct.modelCode.toLowerCase().includes(seoKeywordInput.toLowerCase().replace(/ /g, '-')),
-                                    successText: 'In Slug',
-                                    failText: 'Missing in Slug'
-                                  },
-                                  {
-                                    label: 'Title Length',
-                                    check: seoTitleInput.length >= 50 && seoTitleInput.length <= 60,
-                                    successText: '50-60 chars',
-                                    failText: `${seoTitleInput.length} chars`
-                                  },
-                                  {
-                                    label: 'Desc Length',
-                                    check: seoDescInput.length >= 120 && seoDescInput.length <= 160,
-                                    successText: '120-160 chars',
-                                    failText: `${seoDescInput.length} chars`
-                                  }
-                                ].map((item, idx) => (
-                                  <div key={idx} className="bg-[#111111] p-2.5 rounded border border-neutral-900 text-center space-y-1">
-                                    <p className="text-[8px] font-mono uppercase text-neutral-500 font-bold tracking-tight leading-none">{item.label}</p>
-                                    <div className="flex items-center justify-center gap-1 mt-1 text-[10px] font-semibold leading-tight">
-                                      {item.check ? (
-                                        <>
-                                          <CheckCircle size={10} className="text-emerald-400 shrink-0" />
-                                          <span className="text-emerald-400">{item.successText}</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <AlertCircle size={10} className="text-yellow-500 shrink-0" />
-                                          <span className="text-yellow-500">{item.failText}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Actions: Save or Reset */}
-                          <div className="flex gap-4 pt-2 border-t border-neutral-800">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updated = currentProducts.map(p => {
-                                  if (p.id === activeSeoProduct.id) {
-                                    return {
-                                      ...p,
-                                      seoTitle: seoTitleInput,
-                                      seoDescription: seoDescInput,
-                                      seoFocusKeyword: seoKeywordInput
-                                    };
-                                  }
-                                  return p;
-                                });
-                                updateProducts(updated);
-                                setSeoNotification({
-                                  type: 'success',
-                                  text: `SEO Rankings Meta optimized successfully for product ID: "${activeSeoProduct.id}". State persisted in backend client sandbox.`
-                                });
-                                setTimeout(() => setSeoNotification(null), 4000);
-                              }}
-                              className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-sans text-xs font-bold uppercase rounded flex items-center gap-1.5 cursor-pointer shadow-[0_4px_15px_rgba(16,185,129,0.2)]"
-                            >
-                              <Save size={14} />
-                              Save SEO Metadata
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSeoTitleInput('');
-                                setSeoDescInput('');
-                                setSeoKeywordInput('');
-                                
-                                const updated = currentProducts.map(p => {
-                                  if (p.id === activeSeoProduct.id) {
-                                    return {
-                                      ...p,
-                                      seoTitle: undefined,
-                                      seoDescription: undefined,
-                                      seoFocusKeyword: undefined
-                                    };
-                                  }
-                                  return p;
-                                });
-                                updateProducts(updated);
-                                setSeoNotification({
-                                  type: 'success',
-                                  text: `SEO settings reset to default settings for "${activeSeoProduct.modelCode}".`
-                                });
-                                setTimeout(() => setSeoNotification(null), 4000);
-                              }}
-                              className="px-4 py-3 bg-[#222222] hover:bg-[#333333] hover:text-white border border-neutral-800 text-neutral-300 font-sans text-xs font-bold uppercase rounded flex items-center gap-1.5 cursor-pointer"
-                            >
-                              <RotateCcw size={14} />
-                              Reset to Default
-                            </button>
-                          </div>
-
-                        </div>
-                      ) : (
-                        <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center text-neutral-500 flex flex-col items-center justify-center min-h-[400px]">
-                          <Sparkles size={32} className="text-[#333] mb-2 animate-bounce" />
-                          <p className="text-sm font-bold text-neutral-300 uppercase font-sans">No product selected</p>
-                          <p className="text-xs text-neutral-500 font-sans mt-1">Select a product from the sidebar list to optimize its SEO metadata rankings.</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                  {seoSubTab === 'global' && (
-                    /* Global SEO Settings UI */
-                    <div className="bg-[#111111] border border-[#222222] rounded-xl p-6 space-y-6 text-left animate-in fade-in duration-200">
-                      
-                      <div className="space-y-1">
-                        <h3 
-                          onDoubleClick={() => {
-                            setShowSitemapTools(!showSitemapTools);
-                            addLog("üîß Sitemap Developer Panel toggled via hidden Admin shortcut.");
-                          }}
-                          className="text-sm font-bold text-white uppercase tracking-wider font-sans cursor-pointer select-none hover:text-red-400 transition-colors"
-                          title="Double-click to open hidden Sitemap Developer Suite"
-                        >
-                          Global SEO Site Configuration
-                        </h3>
-                        <p className="text-xs text-neutral-400 font-sans">
-                          Configure the fallback search engine meta-tags for the main website, used when viewing the homepage or categories without specific overrides. (Tip: Double-click heading to access Sitemap Generator)
-                        </p>
-                      </div>
-
-                      {/* Google Search Snippet Preview Simulator */}
-                      <div className="space-y-4">
-                        <div className="bg-[#181818] border border-neutral-800 rounded-xl p-4 space-y-4">
-                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 border-b border-neutral-800">
-                            <div className="space-y-0.5">
-                              <span className="text-[10px] font-mono text-neutral-400 font-bold tracking-wider uppercase flex items-center gap-1.5">
-                                <Search size={11} className="text-red-500" /> Google Search Snippet Preview (Global Site SERP)
-                              </span>
-                              <p className="text-[10px] text-neutral-500 font-sans">
-                                How your main landing page will list in global web indexes like Google or Bing.
-                              </p>
-                            </div>
-                            <div className="flex bg-[#070707] p-0.5 rounded border border-neutral-800">
-                              <button
-                                type="button"
-                                onClick={() => setSerpPreviewMode('desktop')}
-                                className={`px-2.5 py-1 text-[9px] font-bold rounded tracking-wider uppercase font-sans cursor-pointer transition-all ${
-                                  serpPreviewMode === 'desktop' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-400 hover:text-white'
-                                }`}
-                              >
-                                Desktop
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSerpPreviewMode('mobile')}
-                                className={`px-2.5 py-1 text-[9px] font-bold rounded tracking-wider uppercase font-sans cursor-pointer transition-all ${
-                                  serpPreviewMode === 'mobile' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-400 hover:text-white'
-                                }`}
-                              >
-                                Mobile
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Simulator Search Box for Global Settings */}
-                          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                            <div className="md:col-span-8 space-y-1">
-                              <label className="text-[9px] uppercase text-neutral-500 font-bold tracking-wider">Search Query Simulator</label>
-                              <div className="relative">
-                                <Search size={11} className="absolute left-2.5 top-2.5 text-neutral-500" />
-                                <input
-                                  type="text"
-                                  value={seoSearchSimulatorQuery}
-                                  onChange={(e) => setSeoSearchSimulatorQuery(e.target.value)}
-                                  placeholder="Type search terms to simulate live query highlights..."
-                                  className="w-full bg-[#070707] border border-neutral-800 hover:border-neutral-700 text-[10px] text-white p-2 pl-7 rounded-lg outline-none focus:border-red-600 font-sans transition-colors"
-                                />
-                                {seoSearchSimulatorQuery && (
-                                  <button 
-                                    type="button"
-                                    onClick={() => setSeoSearchSimulatorQuery('')}
-                                    className="absolute right-2 top-2 text-neutral-500 hover:text-white cursor-pointer"
-                                  >
-                                    <X size={10} />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            <div className="md:col-span-4 flex gap-1.5 flex-wrap items-end self-end pt-3">
-                              <p className="text-[8px] font-mono text-neutral-500 uppercase font-bold w-full">Popular terms:</p>
-                              {['car lift', 'workshop', 'Cape Town'].map((pill, idx) => (
-                                <button
-                                  key={idx}
-                                  type="button"
-                                  onClick={() => setSeoSearchSimulatorQuery(pill)}
-                                  className="px-2 py-0.5 bg-[#070707] hover:bg-[#111111] border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white text-[8px] font-mono rounded cursor-pointer transition-colors"
-                                >
-                                  {pill}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* SERP Preview layout styled exactly like Google */}
-                          <div className="bg-[#070707] p-5 rounded-xl border border-neutral-800 font-sans">
-                            {serpPreviewMode === 'desktop' ? (
-                              <div className="space-y-1.5 max-w-[600px] text-left">
-                                {/* URL & Favicon line */}
-                                <div className="flex items-center gap-2 text-[12px] text-[#bdc1c6] leading-tight font-sans">
-                                  <div className="w-5 h-5 bg-white/5 rounded-full flex items-center justify-center text-[9px] text-neutral-300 font-bold font-mono">T</div>
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-[#dadce0] font-medium text-[11px]">Triton Car Lifts</span>
-                                    <span className="text-neutral-500 text-[9px]">&rsaquo;</span>
-                                    <span className="text-[#80868b] text-[11px] font-normal">https://car-lifts.co.za</span>
-                                  </div>
-                                </div>
-                                {/* Title (Blue styled classic link) */}
-                                <h4 className="text-[20px] text-[#8ab4f8] group-hover:underline font-normal font-sans tracking-normal leading-tight font-medium truncate cursor-pointer hover:text-[#a0c5fc]">
-                                  {renderGoogleHighlightedText(
-                                    globalSeoTitleInput || 'Triton Car Lifts & Premium Workshop Equipment Cape Town',
-                                    seoSearchSimulatorQuery
-                                  )}
-                                </h4>
-                                {/* Snippet Description */}
-                                <p className="text-[14px] text-[#bdc1c6] leading-relaxed font-sans line-clamp-2">
-                                  {renderGoogleHighlightedText(
-                                    globalSeoDescInput || 'Top-quality 2-Post and 4-Post car lifts, down-draft spray booths, and specialized welding gear for professional garages in South Africa.',
-                                    seoSearchSimulatorQuery
-                                  )}
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="space-y-1.5 max-w-[420px] text-left p-1 border border-neutral-900/60 rounded">
-                                {/* URL Mobile style with icon */}
-                                <div className="flex items-center gap-2 text-[11px] text-[#bdc1c6]">
-                                  <div className="w-4 h-4 bg-white/5 rounded-full flex items-center justify-center text-[8px] text-neutral-300 font-bold font-mono">T</div>
-                                  <span className="truncate text-xs text-[#dadce0]">car-lifts.co.za</span>
-                                </div>
-                                {/* Mobile Title - bigger Blue styled */}
-                                <h4 className="text-[17px] text-[#8ab4f8] font-medium leading-snug line-clamp-2 font-sans cursor-pointer hover:text-[#a0c5fc]">
-                                  {renderGoogleHighlightedText(
-                                    globalSeoTitleInput || 'Triton Car Lifts & Premium Workshop Equipment Cape Town',
-                                    seoSearchSimulatorQuery
-                                  )}
-                                </h4>
-                                {/* Snippet Description */}
-                                <p className="text-[12px] text-[#bdc1c6] leading-relaxed font-sans line-clamp-3">
-                                  {renderGoogleHighlightedText(
-                                    globalSeoDescInput || 'Top-quality 2-Post and 4-Post car lifts, down-draft spray booths, and specialized welding gear for professional garages in South Africa.',
-                                    seoSearchSimulatorQuery
-                                  )}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Inputs Form */}
-                      <div className="space-y-4">
-                        
-                        {/* Global SEO Title */}
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-center">
-                            <label className="text-xs uppercase text-[#999999] font-bold tracking-wider">Global Meta Title</label>
-                            <span className={`text-[10px] font-mono font-bold ${
-                              globalSeoTitleInput.length >= 50 && globalSeoTitleInput.length <= 60 
-                                ? 'text-emerald-400' 
-                                : globalSeoTitleInput.length > 0 && (globalSeoTitleInput.length < 50 || globalSeoTitleInput.length > 70)
-                                  ? 'text-red-400 animate-pulse'
-                                  : 'text-yellow-500'
-                            }`}>
-                              {globalSeoTitleInput.length} chars (Target: 50-60)
-                            </span>
-                          </div>
-                          <input
-                            type="text"
-                            value={globalSeoTitleInput}
-                            onChange={(e) => setGlobalSeoTitleInput(e.target.value)}
-                            placeholder="Triton Car Lifts & Premium Workshop Equipment Cape Town"
-                            className="w-full bg-[#070707] border border-[#222222] hover:border-neutral-700 text-xs text-white p-3 rounded-lg outline-none focus:border-[#ff0000] font-sans transition-colors"
-                          />
-                          <div className="w-full bg-[#1e1e1e] h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${
-                                globalSeoTitleInput.length >= 50 && globalSeoTitleInput.length <= 60
-                                  ? 'bg-emerald-500'
-                                  : globalSeoTitleInput.length > 70
-                                    ? 'bg-red-500'
-                                    : 'bg-yellow-500'
-                              }`} 
-                              style={{ width: `${Math.min(100, (globalSeoTitleInput.length / 75) * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Global SEO Description */}
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-center">
-                            <label className="text-xs uppercase text-[#999999] font-bold tracking-wider">Global Meta Description</label>
-                            <span className={`text-[10px] font-mono font-bold ${
-                              globalSeoDescInput.length >= 120 && globalSeoDescInput.length <= 160 
-                                ? 'text-emerald-400' 
-                                : globalSeoDescInput.length > 0 && (globalSeoDescInput.length < 120 || globalSeoDescInput.length > 180)
-                                  ? 'text-red-500 animate-pulse'
-                                  : 'text-yellow-500'
-                            }`}>
-                              {globalSeoDescInput.length} chars (Target: 120-160)
-                            </span>
-                          </div>
-                          <textarea
-                            value={globalSeoDescInput}
-                            onChange={(e) => setGlobalSeoDescInput(e.target.value)}
-                            rows={3}
-                            placeholder="Top-quality 2-Post and 4-Post car lifts, down-draft spray booths, and specialized welding gear for professional garages in South Africa."
-                            className="w-full bg-[#070707] border border-[#222222] hover:border-neutral-700 text-xs text-white p-3 rounded-lg outline-none focus:border-[#ff0000] font-sans transition-colors resize-none leading-relaxed"
-                          />
-                          <div className="w-full bg-[#1e1e1e] h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${
-                                globalSeoDescInput.length >= 120 && globalSeoDescInput.length <= 160
-                                  ? 'bg-emerald-500'
-                                  : globalSeoDescInput.length > 180
-                                    ? 'bg-red-500'
-                                    : 'bg-yellow-500'
-                              }`} 
-                              style={{ width: `${Math.min(100, (globalSeoDescInput.length / 200) * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Global AI automation */}
-                      <div className="bg-[#070707] border border-neutral-900 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <Sparkles size={14} className="text-yellow-400" />
-                            <h4 className="text-xs font-extrabold uppercase text-neutral-300 tracking-wider">Gemini SEO Automation Suite</h4>
-                          </div>
-                          <p className="text-[10px] text-neutral-500 font-sans leading-relaxed">
-                            Generate state-of-the-art global title and descriptions utilizing South African industrial long-tail keyword indexing patterns.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          disabled={isGeneratingGlobalSeo}
-                          onClick={handleGenerateGlobalSeo}
-                          className="px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-black font-sans font-extrabold text-[10px] uppercase rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all self-start md:self-auto"
-                        >
-                          {isGeneratingGlobalSeo ? (
-                            <>
-                              <RefreshCw size={11} className="animate-spin" />
-                              Generating Global Metatags...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles size={11} />
-                              Generate Global SEO with AI
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Hidden Sitemap Generator Panel */}
-                      {showSitemapTools && (
-                        <div className="bg-[#181818] border border-dashed border-red-500/40 rounded-xl p-5 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                          <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-                            <span className="text-xs font-mono font-bold text-red-500 uppercase tracking-wider flex items-center gap-1.5">
-                              <FileCode size={13} /> XML Sitemap Developer Suite
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setShowSitemapTools(false)}
-                              className="text-neutral-500 hover:text-neutral-300 text-xs cursor-pointer"
-                            >
-                              ‚úï Close Panel
-                            </button>
-                          </div>
-                          
-                          <p className="text-xs text-neutral-400 font-sans leading-relaxed">
-                            Generate and download a search-engine-ready <code className="text-red-400 font-mono bg-black/40 px-1 py-0.5 rounded">sitemap.xml</code> based on current active catalog products, categories, and settings.
-                          </p>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label className="block text-[10px] font-extrabold text-neutral-300 uppercase tracking-wider">
-                                Target Domain URL:
-                              </label>
-                              <input
-                                type="url"
-                                value={sitemapDomain}
-                                onChange={(e) => setSitemapDomain(e.target.value)}
-                                className="w-full bg-[#0a0a0a] border border-neutral-800 focus:border-red-500 focus:outline-none rounded px-3 py-2 text-xs font-mono text-neutral-200"
-                                placeholder="https://triton-equipment.co.za"
-                              />
-                            </div>
-
-                            <div className="flex items-end">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  try {
-                                    const sitemapXml = generateSitemapXml(currentProducts, sitemapDomain);
-                                    
-                                    // Trigger file download in browser
-                                    const blob = new Blob([sitemapXml], { type: 'application/xml' });
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = 'sitemap.xml';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(url);
-
-                                    addLog(`üìÇ Generated sitemap.xml successfully with ${currentProducts.filter(p => p.status !== 'draft').length} published product listings.`);
-                                    
-                                    setSeoNotification({
-                                      type: 'success',
-                                      text: 'sitemap.xml generated and downloaded successfully!'
-                                    });
-                                    setTimeout(() => setSeoNotification(null), 4000);
-                                  } catch (error: any) {
-                                    setSeoNotification({
-                                      type: 'error',
-                                      text: `Sitemap generation failed: ${error.message}`
-                                    });
-                                    setTimeout(() => setSeoNotification(null), 4000);
-                                  }
-                                }}
-                                className="w-full py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-sans text-xs font-bold uppercase rounded flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
-                              >
-                                <Download size={13} />
-                                Build & Download sitemap.xml
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Action buttons */}
-                      <div className="flex gap-4 pt-4 border-t border-neutral-800">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (onGlobalSeoTitleChange) onGlobalSeoTitleChange(globalSeoTitleInput);
-                            if (onGlobalSeoDescriptionChange) onGlobalSeoDescriptionChange(globalSeoDescInput);
-                            
-                            safeLocalStorage.setItem('triton_global_seo_title', globalSeoTitleInput);
-                            safeLocalStorage.setItem('triton_global_seo_description', globalSeoDescInput);
-
-                            setSeoNotification({
-                              type: 'success',
-                              text: 'Global Website SEO rankings meta-tags updated and saved successfully!'
-                            });
-                            setTimeout(() => setSeoNotification(null), 4000);
-                          }}
-                          className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-sans text-xs font-bold uppercase rounded flex items-center gap-1.5 cursor-pointer shadow-[0_4px_15px_rgba(16,185,129,0.2)]"
-                        >
-                          <Save size={14} />
-                          Save Global SEO Settings
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setGlobalSeoTitleInput('Triton Car Lifts & Premium Workshop Equipment Cape Town');
-                            setGlobalSeoDescInput('Top-quality 2-Post and 4-Post car lifts, down-draft spray booths, and specialized welding gear for professional garages in South Africa.');
-                            
-                            if (onGlobalSeoTitleChange) onGlobalSeoTitleChange('');
-                            if (onGlobalSeoDescriptionChange) onGlobalSeoDescriptionChange('');
-                            
-                            safeLocalStorage.removeItem('triton_global_seo_title');
-                            safeLocalStorage.removeItem('triton_global_seo_description');
-
-                            setSeoNotification({
-                              type: 'success',
-                              text: 'Global SEO settings reset to default configurations.'
-                            });
-                            setTimeout(() => setSeoNotification(null), 4000);
-                          }}
-                          className="px-4 py-3 bg-[#222222] hover:bg-[#333333] hover:text-white border border-neutral-800 text-neutral-300 font-sans text-xs font-bold uppercase rounded flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <RotateCcw size={14} />
-                          Reset Global Settings
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {seoSubTab === 'audit' && (
-                    <div className="bg-[#111111] border border-[#222222] rounded-xl p-6 space-y-6 text-left animate-in fade-in duration-200">
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-bold text-white uppercase tracking-wider font-sans">South African Competitor Category Intelligence</h3>
-                        <p className="text-xs text-neutral-400 font-sans">
-                          Perform a live or local search-grounded audit of a specific automotive workshop equipment category. This indexes active South African competitors, extracts trends, and formulates highly optimized Meta Title & Description recommendations.
-                        </p>
-                      </div>
-
-                      {/* Dropdown Select Category & SEO Audit Button */}
-                      <div className="bg-[#181818] border border-neutral-800 rounded-xl p-5 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                          <div className="md:col-span-8 space-y-2">
-                            <label className="text-xs uppercase text-[#999999] font-bold tracking-wider">Select Category for Search Indexing</label>
-                            <select
-                              value={selectedAuditCategory}
-                              onChange={(e) => setSelectedAuditCategory(e.target.value)}
-                              className="w-full bg-[#070707] border border-neutral-800 hover:border-neutral-700 text-xs text-white p-3.5 rounded-lg outline-none focus:border-red-600 font-sans transition-all cursor-pointer"
-                            >
-                              <option value="car-lift">üöó Car Lifts & Vehicle Hoists</option>
-                              <option value="spray-booth">üé® Automotive Spray Booths & Paint Ovens</option>
-                              <option value="welder">‚ö° Professional Welding Equipment & Welders</option>
-                              <option value="wheel-alignment">‚öôÔ∏è Wheel Alignment & Tyre Changers</option>
-                              <option value="diagnostic-tools">üîç Automotive Diagnostic Scanners</option>
-                              <option value="air-compressors">üí® Industrial Air Compressors</option>
-                            </select>
-                          </div>
-                          <div className="md:col-span-4">
-                            <button
-                              type="button"
-                              disabled={categoryAuditLoading}
-                              onClick={() => handleRunCategoryAudit()}
-                              className="w-full py-3.5 bg-[#ff0000] hover:bg-[#cc0000] disabled:bg-neutral-850 disabled:text-neutral-500 text-white font-sans font-black text-xs uppercase rounded-lg flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(255,0,0,0.25)] transition-all cursor-pointer"
-                            >
-                              {categoryAuditLoading ? (
-                                <>
-                                  <RefreshCw size={14} className="animate-spin" />
-                                  Indexing Competitors...
-                                </>
-                              ) : (
-                                <>
-                                  <Search size={14} strokeWidth={2.5} />
-                                  Run SEO Audit
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Loading State or Result Area */}
-                      {categoryAuditLoading ? (
-                        <div className="bg-[#0c0c0c] border border-neutral-900 rounded-xl py-16 flex flex-col items-center justify-center space-y-3">
-                          <RefreshCw size={28} className="text-red-500 animate-spin" />
-                          <p className="text-xs text-neutral-300 font-mono animate-pulse">
-                            Accessing Google Search to index South African competitors for category...
-                          </p>
-                          <p className="text-[10px] text-neutral-500 font-sans">
-                            Extracting live trend parameters, evaluating CE compliance keywords, and generating optimized tags...
-                          </p>
-                        </div>
-                      ) : categoryAuditResult ? (
-                        <div className="space-y-6 animate-in fade-in duration-300">
-                          {/* Competitor Analysis and Discovered Sources */}
-                          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 text-left">
-                            
-                            {/* Left Side: Competitor Sites */}
-                            <div className="md:col-span-4 bg-[#0c0c0c] border border-neutral-900 rounded-xl p-5 space-y-4">
-                              <span className="text-[10px] font-mono text-red-500 uppercase tracking-widest font-black block">
-                                Top 5 Discovered Competitors
-                              </span>
-                              <p className="text-[10px] text-neutral-400 font-sans">
-                                Active South African landing pages captured during Google Search grounding.
-                              </p>
-
-                              <div className="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar">
-                                {categoryAuditResult.competitorsFound && categoryAuditResult.competitorsFound.length > 0 ? (
-                                  categoryAuditResult.competitorsFound.map((comp, idx) => (
-                                    <a
-                                      key={idx}
-                                      href={comp.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex items-center justify-between p-3 bg-[#111111] hover:bg-neutral-800 rounded-lg border border-neutral-950 text-xs text-neutral-300 hover:text-white transition-all group"
-                                    >
-                                      <div className="flex flex-col min-w-0 flex-1 pr-2">
-                                        <span className="truncate font-sans font-bold text-neutral-200 group-hover:text-white">
-                                          {comp.name}
-                                        </span>
-                                        <span className="truncate font-mono text-[9px] text-neutral-500">
-                                          {comp.url}
-                                        </span>
-                                      </div>
-                                      <ExternalLink size={11} className="text-neutral-500 group-hover:text-red-400 transition-colors flex-shrink-0" />
-                                    </a>
-                                  ))
-                                ) : (
-                                  <p className="text-xs text-neutral-500 italic">No competitors indexed.</p>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Right Side: Strategy Analysis */}
-                            <div className="md:col-span-8 bg-[#0c0c0c] border border-neutral-900 rounded-xl p-5 space-y-4">
-                              <span className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest font-black block">
-                                Competitor Strategy Analysis
-                              </span>
-                              
-                              <div className="bg-[#141414] border border-neutral-850 p-4 rounded-lg text-xs text-neutral-300 font-sans leading-relaxed">
-                                {categoryAuditResult.competitorAnalysis}
-                              </div>
-
-                              <div className="text-[10.5px] text-neutral-400 space-y-1 bg-[#141414]/50 p-4 border border-neutral-900 rounded-lg">
-                                <span className="font-bold text-neutral-200">Recommended local SEO keywords to target:</span>
-                                <p className="font-mono text-[10px] text-neutral-300">
-                                  {categoryAuditResult.category === 'car-lift' && "2 post lift price sa, hydraulic hoists johannesburg, vehicle lift cape town"}
-                                  {categoryAuditResult.category === 'spray-booth' && "spray booth for sale south africa, paint booth price, downdraft booths SA"}
-                                  {categoryAuditResult.category === 'welder' && "mig welder price sa, inverter welder durban, industrial co2 welding machine"}
-                                  {categoryAuditResult.category === 'wheel-alignment' && "3d wheel alignment price, wheel balancer combo sa, tyre changer durban"}
-                                  {categoryAuditResult.category === 'diagnostic-tools' && "obd2 scanner price south africa, launch diagnostic tool, professional auto scanners"}
-                                  {categoryAuditResult.category === 'air-compressors' && "industrial air compressor sa, vertical receiver tanks, sabs pressure vessel"}
-                                  {!['car-lift', 'spray-booth', 'welder', 'wheel-alignment', 'diagnostic-tools', 'air-compressors'].includes(categoryAuditResult.category) && "automotive workshop equipment south africa, garage gear suppliers"}
-                                </p>
-                              </div>
-                            </div>
-
-                          </div>
-
-                          {/* Suggested Category Meta-tags */}
-                          <div className="bg-[#181818] border border-red-900/30 rounded-xl p-5 space-y-4 text-left">
-                            <div className="flex justify-between items-center pb-2.5 border-b border-neutral-850">
-                              <span className="text-xs font-mono text-red-500 font-black uppercase tracking-wider flex items-center gap-1.5">
-                                <Sparkles size={13} className="text-red-500 animate-pulse" /> Optimized Snippet Recommendation
-                              </span>
-                              <span className="text-[9px] font-mono bg-neutral-900 border border-neutral-800 text-neutral-400 px-2 py-0.5 rounded-full uppercase">
-                                Grounded via {categoryAuditResult.source === 'gemini-grounding' ? 'Google Search' : 'Rules Engine'}
-                              </span>
-                            </div>
-
-                            <div className="space-y-4">
-                              {/* Title block */}
-                              <div className="space-y-1.5">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-[10px] uppercase text-neutral-500 font-bold tracking-wider">Recommended Meta Title</span>
-                                  <span className="text-[10px] font-mono font-medium text-emerald-400">
-                                    {categoryAuditResult.recommendedTitle.length} chars
-                                  </span>
-                                </div>
-                                <div className="flex gap-2">
-                                  <p className="flex-1 bg-[#070707] p-3 rounded-lg text-xs text-neutral-200 font-mono break-all border border-neutral-800 font-semibold select-all">
-                                    {categoryAuditResult.recommendedTitle}
-                                  </p>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(categoryAuditResult.recommendedTitle);
-                                      setSeoNotification({
-                                        type: 'success',
-                                        text: 'Meta Title copied to clipboard!'
-                                      });
-                                      setTimeout(() => setSeoNotification(null), 3000);
-                                    }}
-                                    className="px-3 py-2.5 bg-neutral-850 hover:bg-neutral-750 text-neutral-300 hover:text-white text-xs font-bold uppercase rounded-lg border border-neutral-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                                    title="Copy Title"
-                                  >
-                                    Copy
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Description block */}
-                              <div className="space-y-1.5">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-[10px] uppercase text-neutral-500 font-bold tracking-wider">Recommended Meta Description</span>
-                                  <span className="text-[10px] font-mono font-medium text-emerald-400">
-                                    {categoryAuditResult.recommendedDescription.length} chars
-                                  </span>
-                                </div>
-                                <div className="flex gap-2">
-                                  <p className="flex-1 bg-[#070707] p-3 rounded-lg text-xs text-neutral-200 font-sans leading-relaxed border border-neutral-800 select-all">
-                                    {categoryAuditResult.recommendedDescription}
-                                  </p>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(categoryAuditResult.recommendedDescription);
-                                      setSeoNotification({
-                                        type: 'success',
-                                        text: 'Meta Description copied to clipboard!'
-                                      });
-                                      setTimeout(() => setSeoNotification(null), 3000);
-                                    }}
-                                    className="px-3 py-2.5 bg-neutral-850 hover:bg-neutral-750 text-neutral-300 hover:text-white text-xs font-bold uppercase rounded-lg border border-neutral-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                                    title="Copy Description"
-                                  >
-                                    Copy
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-[#0c0c0c] border border-neutral-900 rounded-xl py-12 text-center text-neutral-500 flex flex-col items-center justify-center min-h-[220px]">
-                          <Search size={24} className="text-[#333] mb-2" />
-                          <p className="text-xs font-bold text-neutral-300 uppercase font-sans">No audit performed yet</p>
-                          <p className="text-[11px] text-neutral-500 font-sans mt-1">Select an industrial category above and click "Run SEO Audit" to generate competitor reports.</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {seoSubTab === 'analyzer' && (
-                    <div className="space-y-6 animate-in fade-in duration-200">
-                      {/* Top Header Deck */}
-                      <div className="bg-[#111111] border border-[#222222] rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="space-y-1 text-left">
-                          <div className="flex items-center gap-2">
-                            <Sparkles size={20} className="text-yellow-400 animate-pulse" />
-                            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">SEO Catalog-Wide Deep Analyzer</h2>
-                          </div>
-                          <p className="text-xs text-neutral-400 max-w-xl font-sans">
-                            Run catalog-wide crawls to analyze description lengths, check focus keywords, measure meta-tag alignment, evaluate workshop safety compliance markers, and autonomously auto-fix your storefront inventory.
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            disabled={analyzerIsScanning || analyzerIsOptimizing}
-                            onClick={handleRunCatalogScan}
-                            className="px-4 py-3 bg-[#161616] hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 disabled:opacity-55 disabled:cursor-not-allowed text-neutral-300 hover:text-white font-sans font-bold text-xs uppercase rounded transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <RefreshCw size={13} className={`text-yellow-400 ${analyzerIsScanning ? 'animate-spin' : ''}`} />
-                            {analyzerIsScanning ? 'Scanning...' : 'Scan Catalog'}
-                          </button>
-
-                          {analyzerResults && (
-                            <button
-                              type="button"
-                              disabled={analyzerIsScanning || analyzerIsOptimizing || analyzerResults.healthScore === 100}
-                              onClick={handleAutonomousOptimizeAll}
-                              className="px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-white hover:to-white hover:text-black disabled:opacity-50 disabled:from-neutral-800 disabled:to-neutral-900 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:shadow-none font-sans font-bold text-xs uppercase rounded transition-all duration-300 shadow-[0_4px_20px_rgba(239,68,68,0.2)] flex items-center gap-1.5 cursor-pointer text-white"
-                            >
-                              <Cpu size={13} className={analyzerIsOptimizing ? 'animate-pulse' : ''} />
-                              {analyzerIsOptimizing ? 'Optimizing Entire Catalog...' : 'Autonomous Auto-Optimize & Save'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Toast Notification */}
-                      {analyzerNotification && (
-                        <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs leading-relaxed text-left animate-in slide-in-from-top-2 duration-200 ${
-                          analyzerNotification.type === 'success' 
-                            ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400' 
-                            : 'bg-red-950/40 border-red-500/30 text-red-500'
-                        }`}>
-                          <CheckCircle size={16} className={analyzerNotification.type === 'success' ? 'text-emerald-400' : 'text-red-500'} />
-                          <span>{analyzerNotification.text}</span>
-                        </div>
-                      )}
-
-                      {/* Scanning Active Overlay */}
-                      {(analyzerIsScanning || analyzerIsOptimizing) && (
-                        <div className="bg-[#111111] border border-red-600/20 rounded-xl p-6 space-y-4">
-                          <div className="flex justify-between items-center text-xs font-mono">
-                            <span className="text-red-400 font-bold uppercase animate-pulse">
-                              {analyzerIsScanning ? '‚ö° Crawling Catalog Inventory...' : '‚ö° Autonomous AI-Optimizing Database...'}
-                            </span>
-                            <span className="text-neutral-400">{analyzerProgress}%</span>
-                          </div>
-                          <div className="w-full bg-[#1e1e1e] h-2 rounded-full overflow-hidden">
-                            <div 
-                              className="bg-red-600 h-full transition-all duration-300"
-                              style={{ width: `${analyzerProgress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {!analyzerResults && !analyzerIsScanning && (
-                        <div className="bg-[#111111] border border-[#222222] rounded-xl py-16 text-center text-neutral-500 flex flex-col items-center justify-center min-h-[300px]">
-                          <Search size={32} className="text-neutral-700 mb-3 animate-pulse" />
-                          <p className="text-sm font-bold text-neutral-300 uppercase font-sans">SEO Scan Required</p>
-                          <p className="text-xs text-neutral-500 font-sans mt-1 max-w-md">
-                            Click "Scan Catalog" above to initiate a thorough diagnostic scan. This evaluates descriptions, meta-tags, keywords, and workshop safety standards.
-                          </p>
-                        </div>
-                      )}
-
-                      {analyzerResults && (
-                        <div className="space-y-6">
-                          {/* Metrics Dashboard */}
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
-                            {/* Score Card */}
-                            <div className="bg-[#111111] border border-[#222222] p-5 rounded-xl flex items-center justify-between">
-                              <div className="space-y-1">
-                                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block font-bold">Average Catalog SEO Health</span>
-                                <span className={`text-3xl font-mono font-black ${
-                                  analyzerResults.healthScore >= 80 ? 'text-emerald-400' : analyzerResults.healthScore >= 60 ? 'text-amber-400' : 'text-red-500'
-                                }`}>
-                                  {analyzerResults.healthScore}%
-                                </span>
-                              </div>
-                              <div className="relative w-14 h-14 flex items-center justify-center">
-                                <svg className="w-14 h-14 transform -rotate-90 absolute">
-                                  <circle cx="28" cy="28" r="22" stroke="#222" strokeWidth="4" fill="transparent" />
-                                  <circle 
-                                    cx="28" cy="28" r="22" 
-                                    stroke={analyzerResults.healthScore >= 80 ? '#10b981' : analyzerResults.healthScore >= 60 ? '#f59e0b' : '#ef4444'} 
-                                    strokeWidth="4" fill="transparent" 
-                                    strokeDasharray={2 * Math.PI * 22}
-                                    strokeDashoffset={2 * Math.PI * 22 * (1 - analyzerResults.healthScore / 100)}
-                                    className="transition-all duration-500"
-                                  />
-                                </svg>
-                                <Award size={16} className={analyzerResults.healthScore >= 80 ? 'text-emerald-400' : 'text-neutral-500'} />
-                              </div>
-                            </div>
-
-                            {/* Descriptive Gaps Card */}
-                            <div className="bg-[#111111] border border-[#222222] p-5 rounded-xl space-y-1">
-                              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block font-bold">Short Descriptions (&lt;150 chars)</span>
-                              <div className="flex items-baseline gap-1.5">
-                                <span className="text-3xl font-mono font-black text-white">{analyzerResults.shortDescCount}</span>
-                                <span className="text-xs text-neutral-500">/ {analyzerResults.scannedCount} items</span>
-                              </div>
-                              <div className="w-full bg-[#1c1c1c] h-1 rounded-full overflow-hidden">
-                                <div className="bg-amber-500 h-full" style={{ width: `${(analyzerResults.shortDescCount / analyzerResults.scannedCount) * 100}%` }} />
-                              </div>
-                            </div>
-
-                            {/* Missing Keywords Card */}
-                            <div className="bg-[#111111] border border-[#222222] p-5 rounded-xl space-y-1">
-                              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block font-bold">Missing Focus Keywords</span>
-                              <div className="flex items-baseline gap-1.5">
-                                <span className="text-3xl font-mono font-black text-white">{analyzerResults.missingKeywordsCount}</span>
-                                <span className="text-xs text-neutral-500">/ {analyzerResults.scannedCount} items</span>
-                              </div>
-                              <div className="w-full bg-[#1c1c1c] h-1 rounded-full overflow-hidden">
-                                <div className="bg-red-500 h-full" style={{ width: `${(analyzerResults.missingKeywordsCount / analyzerResults.scannedCount) * 100}%` }} />
-                              </div>
-                            </div>
-
-                            {/* Compliance gaps card */}
-                            <div className="bg-[#111111] border border-[#222222] p-5 rounded-xl space-y-1">
-                              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block font-bold">Safety Standards Gaps</span>
-                              <div className="flex items-baseline gap-1.5">
-                                <span className="text-3xl font-mono font-black text-white">{analyzerResults.noSafetyCount}</span>
-                                <span className="text-xs text-neutral-500">/ {analyzerResults.scannedCount} items</span>
-                              </div>
-                              <div className="w-full bg-[#1c1c1c] h-1 rounded-full overflow-hidden">
-                                <div className="bg-yellow-500 h-full" style={{ width: `${(analyzerResults.noSafetyCount / analyzerResults.scannedCount) * 100}%` }} />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Live Console Terminal */}
-                          <div className="bg-[#070707] border border-neutral-900 rounded-xl overflow-hidden text-left">
-                            <div className="bg-[#111111] border-b border-neutral-900 px-4 py-2.5 flex items-center justify-between">
-                              <span className="text-[10px] font-mono font-black text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <Terminal size={11} className="text-red-500" /> Operational Scan Console
-                              </span>
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                            </div>
-                            <div className="p-4 font-mono text-[10px] leading-relaxed text-emerald-400 space-y-1 max-h-[160px] overflow-y-auto custom-scrollbar">
-                              {analyzerLogs.length > 0 ? (
-                                analyzerLogs.map((log, idx) => <p key={idx}>{log}</p>)
-                              ) : (
-                                <p className="text-neutral-600">Terminal idle.</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Low Score Products Segment with Batch Apply */}
-                          {(() => {
-                            const lowScoreProducts = currentProducts.filter(p => {
-                              const d = analyzerResults.details[p.id];
-                              return d && d.score < 80;
-                            });
-
-                            if (lowScoreProducts.length === 0) return null;
-
-                            return (
-                              <div className="bg-[#111111]/90 border border-amber-500/20 rounded-xl p-5 text-left space-y-4 shadow-[0_4px_25px_rgba(245,158,11,0.02)]">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-900">
-                                  <div>
-                                    <h4 className="text-xs font-black text-amber-400 font-sans uppercase tracking-wider flex items-center gap-1.5">
-                                      <AlertTriangle size={14} className="text-amber-500 animate-pulse" />
-                                      {lowScoreProducts.length} Products with Low SEO Scores (&lt; 80%)
-                                    </h4>
-                                    <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
-                                      These products lack optimized focus keywords, descriptive meta tags, or standards compliance. Suggestions have been pre-computed below.
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    disabled={analyzerIsOptimizing || analyzerIsScanning}
-                                    onClick={handleBatchApplyLowScores}
-                                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 text-neutral-950 font-sans font-black text-xs uppercase rounded-lg transition-all duration-200 flex items-center gap-1.5 cursor-pointer shadow-lg shadow-amber-500/10"
-                                  >
-                                    <Cpu size={12} className={analyzerIsOptimizing ? 'animate-pulse' : ''} />
-                                    Batch-Apply Suggestions ({lowScoreProducts.length})
-                                  </button>
-                                </div>
-
-                                <div className="max-h-[260px] overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
-                                  {lowScoreProducts.map(p => {
-                                    const d = analyzerResults.details[p.id];
-                                    return (
-                                      <div key={p.id} className="bg-[#070707] border border-neutral-900 rounded-lg p-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:border-amber-500/10">
-                                        <div className="space-y-2 max-w-full overflow-hidden flex-1">
-                                          <div className="flex flex-wrap items-center gap-2">
-                                            <span className="text-[9px] font-mono text-amber-500 font-black px-1.5 py-0.5 bg-amber-500/10 rounded border border-amber-500/20">Score: {d.score}%</span>
-                                            <span className="text-xs font-bold text-white truncate max-w-[200px] sm:max-w-xs">{p.name}</span>
-                                            <span className="text-[9px] font-mono text-neutral-500">[{p.modelCode}]</span>
-                                          </div>
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-[10px] font-mono text-neutral-400">
-                                            <div className="truncate">
-                                              <span className="text-neutral-500 font-bold uppercase text-[8px] tracking-wider block">Suggested Focus Keyword</span>
-                                              <span className="text-emerald-400 font-medium">{d.suggestedKeywords || 'None'}</span>
-                                            </div>
-                                            <div className="truncate">
-                                              <span className="text-neutral-500 font-bold uppercase text-[8px] tracking-wider block">Suggested Meta Title</span>
-                                              <span className="text-emerald-400 font-medium">{d.suggestedTitle || 'None'}</span>
-                                            </div>
-                                            <div className="col-span-1 sm:col-span-2">
-                                              <span className="text-neutral-500 font-bold uppercase text-[8px] tracking-wider block">Suggested Meta Description & Tags</span>
-                                              <span className="text-emerald-400 font-medium leading-relaxed block text-[9px] bg-[#0c0c0c] p-2 rounded border border-neutral-900/40 mt-1">{d.suggestedMetaDesc || 'None'}</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <button
-                                          type="button"
-                                          disabled={analyzerIsOptimizing || analyzerIsScanning}
-                                          onClick={() => handleApplySingleSuggestion(p.id)}
-                                          className="shrink-0 text-[10px] font-bold font-mono uppercase px-3 py-1.5 rounded-lg bg-[#161616] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 hover:border-neutral-700 transition cursor-pointer"
-                                        >
-                                          Apply Fix
-                                        </button>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Detailed Products Diagnostics Grid */}
-                          <div className="space-y-4">
-                            <h3 className="text-xs font-bold text-white uppercase tracking-wider text-left">Catalog SEO Diagnostics Report</h3>
-                            <div className="space-y-3">
-                              {currentProducts.map((p) => {
-                                const details = analyzerResults.details[p.id];
-                                if (!details) return null;
-                                
-                                const isExpanded = expandedProductSeoId === p.id;
-                                const isFullyOptimized = details.score === 100;
-
-                                return (
-                                  <div key={p.id} className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden transition-all text-left">
-                                    {/* Product Header Row */}
-                                    <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                      <div className="flex items-center gap-3">
-                                        <img 
-                                          src={p.image} 
-                                          alt="" 
-                                          className="w-10 h-10 object-cover rounded border border-neutral-800 shrink-0"
-                                          referrerPolicy="no-referrer"
-                                          onError={(e) => {
-                                            e.currentTarget.src = "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=150&auto=format&fit=crop";
-                                          }}
-                                        />
-                                        <div>
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-mono text-neutral-500">{p.modelCode}</span>
-                                            <span className="text-neutral-600 font-mono text-[9px]">‚Ä¢</span>
-                                            <span className="text-[9px] font-mono uppercase font-bold text-red-500">{p.category}</span>
-                                          </div>
-                                          <h4 className="text-xs font-bold text-white font-sans mt-0.5">{p.name}</h4>
-                                        </div>
-                                      </div>
-
-                                      {/* Badges & Actions */}
-                                      <div className="flex items-center gap-3 self-end sm:self-auto">
-                                        {/* Score Badge */}
-                                        <div className="flex items-center gap-1.5 bg-[#070707] border border-neutral-800 px-2.5 py-1.5 rounded-lg">
-                                          <span className="text-[8px] font-mono text-neutral-500 uppercase font-black">Score</span>
-                                          <span className={`text-xs font-mono font-extrabold ${
-                                            details.score >= 80 ? "text-emerald-400" : details.score >= 60 ? "text-amber-400" : "text-red-500"
-                                          }`}>
-                                            {details.score}%
-                                          </span>
-                                        </div>
-
-                                        {/* Compare Toggle */}
-                                        <button
-                                          type="button"
-                                          onClick={() => setExpandedProductSeoId(isExpanded ? null : p.id)}
-                                          className="px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-[10px] text-neutral-300 font-bold uppercase rounded border border-neutral-800 transition-colors cursor-pointer"
-                                        >
-                                          {isExpanded ? "Hide Details" : "Compare Options"}
-                                        </button>
-
-                                        {/* Apply Fix */}
-                                        <button
-                                          type="button"
-                                          disabled={isFullyOptimized}
-                                          onClick={() => handleApplySingleSuggestion(p.id)}
-                                          className={`px-3 py-1.5 font-bold uppercase rounded transition-all text-[10px] cursor-pointer flex items-center gap-1 ${
-                                            isFullyOptimized 
-                                              ? "bg-emerald-950/20 text-emerald-500 border border-emerald-950 cursor-not-allowed"
-                                              : "bg-red-600 hover:bg-red-500 text-white shadow-[0_2px_10px_rgba(239,68,68,0.15)]"
-                                          }`}
-                                        >
-                                          {isFullyOptimized ? (
-                                            <>
-                                              <Check size={11} /> Optimized
-                                            </>
-                                          ) : (
-                                            <>
-                                              <Cpu size={11} /> Auto-Fix & Save
-                                            </>
-                                          )}
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                    {/* Defects & Diagnostic Bullet points */}
-                                    {!isFullyOptimized && details.issues.length > 0 && (
-                                      <div className="px-4 pb-4 border-t border-neutral-950/40 pt-2 flex flex-wrap gap-2">
-                                        {details.issues.map((issue, idx) => (
-                                          <span key={idx} className="text-[9px] font-sans font-medium bg-red-950/20 text-red-400 border border-red-900/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                            <AlertCircle size={9} /> {issue}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    )}
-
-                                    {/* Expanded Side-by-Side Comparison Area */}
-                                    {isExpanded && (
-                                      <div className="bg-[#0c0c0c] border-t border-neutral-900 p-4 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
-                                          {/* Before column */}
-                                          <div className="bg-[#111] border border-neutral-950 rounded-xl p-3.5 space-y-3">
-                                            <div className="flex items-center justify-between pb-1.5 border-b border-neutral-950">
-                                              <span className="text-[10px] font-mono text-neutral-400 font-extrabold uppercase">Original Metadata</span>
-                                              <span className="text-[9px] font-sans text-red-500 font-bold">Unoptimized</span>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Meta Title</span>
-                                              <p className="text-neutral-300 font-mono text-[10px] break-all bg-[#070707] p-2 rounded border border-neutral-950">
-                                                {p.seoTitle || <span className="text-neutral-600 italic">None (Defaults to Template)</span>}
-                                              </p>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Focus Keyword</span>
-                                              <p className="text-neutral-300 font-mono text-[10px] bg-[#070707] p-2 rounded border border-neutral-950">
-                                                {p.seoFocusKeyword || <span className="text-neutral-600 italic">Not set</span>}
-                                              </p>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Meta Description</span>
-                                              <p className="text-neutral-300 font-sans text-[11px] leading-relaxed bg-[#070707] p-2 rounded border border-neutral-950">
-                                                {p.seoDescription || <span className="text-neutral-600 italic">Not set</span>}
-                                              </p>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Product Copy</span>
-                                              <p className="text-neutral-300 font-sans text-[11px] leading-relaxed bg-[#070707] p-2 rounded border border-neutral-950 max-h-[120px] overflow-y-auto custom-scrollbar">
-                                                {stripHtml(p.description)}
-                                              </p>
-                                            </div>
-                                          </div>
-
-                                          {/* After column */}
-                                          <div className="bg-[#111] border border-[#ff0000]/15 rounded-xl p-3.5 space-y-3 shadow-[0_4px_25px_rgba(255,0,0,0.02)]">
-                                            <div className="flex items-center justify-between pb-1.5 border-b border-neutral-950">
-                                              <span className="text-[10px] font-mono text-yellow-400 font-extrabold uppercase">Suggested Safety-Aligned Optimization</span>
-                                              <span className="text-[9px] font-sans text-emerald-400 font-bold">Recommended</span>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Suggested Meta Title</span>
-                                              <p className="text-emerald-400 font-mono text-[10px] break-all bg-[#070707] p-2 rounded border border-neutral-950 font-semibold">
-                                                {details.suggestedTitle}
-                                              </p>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Suggested Focus Keyword</span>
-                                              <p className="text-emerald-400 font-mono text-[10px] bg-[#070707] p-2 rounded border border-neutral-950 font-semibold">
-                                                {details.suggestedKeywords}
-                                              </p>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Suggested Meta Description</span>
-                                              <p className="text-emerald-400 font-sans text-[11px] leading-relaxed bg-[#070707] p-2 rounded border border-neutral-950 font-medium">
-                                                {details.suggestedMetaDesc}
-                                              </p>
-                                            </div>
-
-                                            <div className="space-y-1 text-left">
-                                              <span className="text-[9px] font-mono text-neutral-500 font-bold block">Suggested Product Copy (Includes Locale & Safety Standards)</span>
-                                              <p className="text-emerald-400 font-sans text-[11px] leading-relaxed bg-[#070707] p-2 rounded border border-neutral-950 max-h-[120px] overflow-y-auto custom-scrollbar font-medium">
-                                                {stripHtml(details.suggestedDesc)}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* SEO RANKING EDITOR TAB */}
-              {activeTab === 'seo' && (
-                <div className="space-y-6">
-                  {/* ... contents of seo ... */}
-                </div>
-              )}
-
-              {/* ADMIN & WHITE-LABEL RESET TAB */}
-              {activeTab === 'admin' && (
-                <div className="space-y-6 animate-in fade-in duration-250 select-text text-left">
-                  {/* Master Header Deck */}
-                  <div className="bg-[#111111] border border-[#222222] rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Shield size={20} className="text-[#ff0000] animate-pulse" />
-                        <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">Showroom White-Label & Administrator Tools</h2>
-                      </div>
-                      <p className="text-xs text-neutral-400 max-w-xl font-sans">
-                        Reset catalog databases to clean-slate states, manage admin security passcodes & password reset options, download and restore full site backups, and upload standard WooCommerce CSV inventory files.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* PROMINENT MAINTENANCE MODE CONTROLLER CARD */}
-                  <div className="bg-[#111111] border-2 border-amber-500/40 rounded-xl p-6 shadow-2xl space-y-4" id="admin-maintenance-mode-card">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2.5">
-                          <div className={`p-2.5 rounded-lg ${maintenanceModeState ? 'bg-amber-500/20 text-amber-400' : 'bg-neutral-800 text-neutral-400'}`}>
-                            <AlertTriangle size={22} className={maintenanceModeState ? 'animate-bounce text-amber-400' : ''} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2.5 flex-wrap">
-                              <h3 className="text-sm font-black uppercase text-white tracking-wider">
-                                Maintenance Mode
-                              </h3>
-                              {maintenanceModeState ? (
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/50 uppercase flex items-center gap-1 animate-pulse">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                  ACTIVE (Visitors See Maintenance Page)
-                                </span>
-                              ) : (
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-800 text-neutral-400 border border-neutral-700 uppercase">
-                                  OFF (Public Live Storefront)
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-neutral-300 font-sans mt-1 max-w-xl">
-                              When ON, regular visitors see a maintenance page. Admins keep full access.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Immediate Interactive ON/OFF Switch */}
-                      <div className="flex items-center gap-3 self-start sm:self-center bg-[#0a0a0a] px-4 py-2.5 rounded-xl border border-neutral-800">
-                        <span className="text-xs font-bold font-mono uppercase">
-                          {maintenanceModeState ? (
-                            <span className="text-amber-400 font-black flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                              ON
-                            </span>
-                          ) : (
-                            <span className="text-neutral-400">OFF</span>
-                          )}
-                        </span>
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={maintenanceModeState}
-                          onClick={() => handleToggleMaintenance(!maintenanceModeState)}
-                          className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-black ${
-                            maintenanceModeState ? 'bg-amber-500' : 'bg-neutral-700'
-                          }`}
-                          id="btn-toggle-maintenance-mode"
-                          title="Toggle Showroom Maintenance Mode"
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                              maintenanceModeState ? 'translate-x-7' : 'translate-x-0'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* PASSCODE SECURITY & PASSWORD RESET CENTER */}
-                  <div className="bg-[#111111] border border-neutral-800 rounded-xl p-6 space-y-6 shadow-2xl">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-5">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2.5">
-                          <Lock size={18} className="text-amber-500 animate-pulse" />
-                          <h3 className="text-sm font-extrabold uppercase text-white tracking-wider">
-                            Admin Passcode Security & Password Reset Center
-                          </h3>
-                        </div>
-                        <p className="text-xs text-neutral-400 font-sans max-w-2xl">
-                          Reset your admin access passcode directly in this tab by validating your old passcode, or initiate a secure recovery email request to <strong className="text-amber-400 font-mono">info@car-lifts.co.za</strong>.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Option A: In-Tab Passcode Reset */}
-                      <div className="bg-[#0d0d0d] border border-neutral-800 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-colors">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Key size={16} className="text-amber-400" />
-                              <h4 className="text-xs font-bold uppercase text-white tracking-wide">1. Reset Passcode In-Tab</h4>
-                            </div>
-                            <span className="text-[9px] font-mono bg-amber-950/60 text-amber-400 border border-amber-800/50 px-2 py-0.5 rounded font-bold uppercase">
-                              In-Tab Reset
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                            Enter your old passcode followed by your desired new passcode to update system access credentials instantly.
-                          </p>
-
-                          <form onSubmit={handleAdminTabPasscodeReset} className="space-y-3 pt-1">
-                            <div>
-                              <label className="block text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">
-                                Old Passcode (Previous)
-                              </label>
-                              <input
-                                type="password"
-                                value={adminTabCurrentPasscode}
-                                onChange={(e) => setAdminTabCurrentPasscode(e.target.value)}
-                                placeholder="‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢"
-                                className="w-full bg-[#141414] border border-neutral-800 text-xs font-mono text-white px-3 py-2 rounded outline-none focus:border-amber-500 transition-colors"
-                                required
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <label className="block text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">
-                                  New Passcode
-                                </label>
-                                <input
-                                  type="password"
-                                  value={adminTabNewPasscode}
-                                  onChange={(e) => setAdminTabNewPasscode(e.target.value)}
-                                  placeholder="New passcode"
-                                  className="w-full bg-[#141414] border border-neutral-800 text-xs font-mono text-white px-3 py-2 rounded outline-none focus:border-amber-500 transition-colors"
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">
-                                  Confirm New Passcode
-                                </label>
-                                <input
-                                  type="password"
-                                  value={adminTabConfirmPasscode}
-                                  onChange={(e) => setAdminTabConfirmPasscode(e.target.value)}
-                                  placeholder="Confirm passcode"
-                                  className="w-full bg-[#141414] border border-neutral-800 text-xs font-mono text-white px-3 py-2 rounded outline-none focus:border-amber-500 transition-colors"
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            {adminTabPasscodeError && (
-                              <div className="p-2.5 bg-red-950/40 border border-red-500/30 text-red-400 rounded text-[10px] font-sans flex items-start gap-1.5">
-                                <AlertCircle size={13} className="shrink-0 mt-0.5" />
-                                <div>{adminTabPasscodeError}</div>
-                              </div>
-                            )}
-
-                            {adminTabPasscodeSuccess && (
-                              <div className="p-2.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 rounded text-[10px] font-sans flex items-start gap-1.5 animate-in fade-in">
-                                <CheckCircle size={13} className="shrink-0 mt-0.5 text-emerald-400" />
-                                <div>{adminTabPasscodeSuccess}</div>
-                              </div>
-                            )}
-
-                            <button
-                              type="submit"
-                              className="w-full bg-amber-600 hover:bg-amber-500 text-white font-extrabold py-2.5 rounded text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow hover:scale-[1.01] active:scale-[0.99]"
-                            >
-                              <Lock size={13} /> Update Passcode Now
-                            </button>
-                          </form>
-                        </div>
-                      </div>
-
-                      {/* Option B: Reset via Email Link */}
-                      <div className="bg-[#0d0d0d] border border-neutral-800 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-colors">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Mail size={16} className="text-sky-400" />
-                              <h4 className="text-xs font-bold uppercase text-white tracking-wide">2. Email Passcode Recovery</h4>
-                            </div>
-                            <span className="text-[9px] font-mono bg-sky-950/60 text-sky-400 border border-sky-800/50 px-2 py-0.5 rounded font-bold uppercase">
-                              Email Recovery
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                            Forgot your previous passcode? Send a direct email passcode reset request to the registered administrator address.
-                          </p>
-
-                          <div className="bg-[#141414] border border-neutral-800 rounded-lg p-3 space-y-2">
-                            <span className="text-[9px] font-mono uppercase text-neutral-500 block">Registered Admin Email</span>
-                            <span className="text-xs font-mono font-bold text-sky-400 block break-all">
-                              info@car-lifts.co.za
-                            </span>
-                          </div>
-
-                          {adminTabEmailSuccess && (
-                            <div className="p-2.5 bg-sky-950/40 border border-sky-500/30 text-sky-400 rounded text-[10px] font-sans flex items-start gap-1.5 animate-in fade-in">
-                              <CheckCircle size={13} className="shrink-0 mt-0.5 text-sky-400" />
-                              <div>{adminTabEmailSuccess}</div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={handleAdminTabEmailReset}
-                            className="w-full bg-sky-700 hover:bg-sky-600 text-white font-extrabold py-2.5 rounded text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow hover:scale-[1.01] active:scale-[0.99]"
-                          >
-                            <Mail size={14} /> Send Reset Link to info@car-lifts.co.za
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* FULL WEBSITE BACKUP & RESTORE CENTER */}
-                  <div className="bg-[#111111] border border-neutral-800 rounded-xl p-6 space-y-6 shadow-2xl">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-5">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2.5">
-                          <Database size={18} className="text-emerald-500 animate-pulse" />
-                          <h3 className="text-sm font-extrabold uppercase text-white tracking-wider">
-                            Full Website Backup & Restore Center
-                          </h3>
-                        </div>
-                        <p className="text-xs text-neutral-400 font-sans max-w-2xl">
-                          Download a complete offline backup file (`.json`) containing all product information, custom images, category layouts, and admin settings. Re-upload this file at any time on your live domain or device of choice to restore everything in seconds.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Download Backup Box */}
-                      <div className="bg-[#0d0d0d] border border-neutral-800 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-colors">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Download size={16} className="text-emerald-400" />
-                              <h4 className="text-xs font-bold uppercase text-white tracking-wide">1. Download Website Backup</h4>
-                            </div>
-                            <span className="text-[9px] font-mono bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded font-bold uppercase">
-                              1-Click Export
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                            Generates a `.json` backup file with all {currentProducts.length} products, {currentFeaturedCategories.length} categories, custom image assets, and system configuration settings.
-                          </p>
-
-                          <div className="grid grid-cols-3 gap-2 pt-2 text-center text-[10px] font-sans">
-                            <div className="bg-[#141414] border border-neutral-800 p-2 rounded">
-                              <span className="block text-neutral-500 font-mono text-[9px] uppercase">Products</span>
-                              <span className="font-bold text-white font-mono">{currentProducts.length}</span>
-                            </div>
-                            <div className="bg-[#141414] border border-neutral-800 p-2 rounded">
-                              <span className="block text-neutral-500 font-mono text-[9px] uppercase">Categories</span>
-                              <span className="font-bold text-white font-mono">{currentFeaturedCategories.length}</span>
-                            </div>
-                            <div className="bg-[#141414] border border-neutral-800 p-2 rounded">
-                              <span className="block text-neutral-500 font-mono text-[9px] uppercase">Settings</span>
-                              <span className="font-bold text-emerald-400 font-mono">Full</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={handleExportFullBackup}
-                            disabled={isExportingBackup}
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-                          >
-                            {isExportingBackup ? (
-                              <>
-                                <RefreshCw size={14} className="animate-spin" /> Generating Backup Package...
-                              </>
-                            ) : (
-                              <>
-                                <Download size={14} /> Download Complete Backup File (.json)
-                              </>
-                            )}
-                          </button>
-
-                          {backupExportSuccess && (
-                            <div className="mt-3 p-3 bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 rounded-lg text-[11px] font-sans flex items-start gap-2 animate-in fade-in">
-                              <CheckCircle size={15} className="shrink-0 mt-0.5 text-emerald-400" />
-                              <div className="break-words">{backupExportSuccess}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Upload & Restore Backup Box */}
-                      <div className="bg-[#0d0d0d] border border-neutral-800 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-colors">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Upload size={16} className="text-blue-400" />
-                              <h4 className="text-xs font-bold uppercase text-white tracking-wide">2. Restore Backup From Device</h4>
-                            </div>
-                            <span className="text-[9px] font-mono bg-blue-950/60 text-blue-400 border border-blue-800/50 px-2 py-0.5 rounded font-bold uppercase">
-                              Upload & Restore
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                            Upload a previously downloaded `.json` backup file from your device of choice to instantly restore all products, images, and settings on this live website.
-                          </p>
-
-                          {/* Drag & drop or click file input */}
-                          {!backupFileToRestore && (
-                            <div className="relative border border-dashed border-neutral-700 hover:border-blue-500/60 rounded-lg p-4 transition-all bg-[#121212] flex flex-col items-center justify-center text-center gap-2 group cursor-pointer mt-2">
-                              <input
-                                type="file"
-                                accept=".json"
-                                onChange={handleBackupFileSelect}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                              />
-                              <div className="w-9 h-9 rounded-full bg-blue-950/40 border border-blue-800/40 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
-                                <Upload size={16} />
-                              </div>
-                              <div>
-                                <p className="text-[11px] font-bold text-white">Click or drag `.json` backup file here</p>
-                                <p className="text-[9px] text-neutral-500 font-sans">Select backup from your device of choice</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Selected Backup Preview card */}
-                          {backupFileToRestore && (
-                            <div className="bg-blue-950/20 border border-blue-800/50 rounded-lg p-3.5 space-y-3 animate-in fade-in">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <span className="text-xs font-bold text-blue-300 block truncate max-w-[200px]">
-                                    üìÑ {backupFileToRestore.fileName}
-                                  </span>
-                                  <span className="text-[9px] text-neutral-400 font-mono block">
-                                    Exported: {new Date(backupFileToRestore.timestamp).toLocaleString()} (v{backupFileToRestore.version})
-                                  </span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setBackupFileToRestore(null)}
-                                  className="text-neutral-500 hover:text-white text-[10px] font-bold uppercase underline cursor-pointer"
-                                >
-                                  Change File
-                                </button>
-                              </div>
-
-                              <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-                                <div className="bg-[#111111] border border-neutral-800 p-1.5 rounded">
-                                  <span className="block text-neutral-500 font-mono text-[8px] uppercase">Products</span>
-                                  <span className="font-bold text-white font-mono">{backupFileToRestore.productsCount}</span>
-                                </div>
-                                <div className="bg-[#111111] border border-neutral-800 p-1.5 rounded">
-                                  <span className="block text-neutral-500 font-mono text-[8px] uppercase">Categories</span>
-                                  <span className="font-bold text-white font-mono">{backupFileToRestore.categoriesCount}</span>
-                                </div>
-                                <div className="bg-[#111111] border border-neutral-800 p-1.5 rounded">
-                                  <span className="block text-neutral-500 font-mono text-[8px] uppercase">Image Blobs</span>
-                                  <span className="font-bold text-blue-400 font-mono">{backupFileToRestore.imagesCount}</span>
-                                </div>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={handleExecuteBackupRestore}
-                                disabled={isRestoringBackup}
-                                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2.5 rounded text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-                              >
-                                {isRestoringBackup ? (
-                                  <>
-                                    <RefreshCw size={14} className="animate-spin" /> Restoring Website Backup...
-                                  </>
-                                ) : (
-                                  <>
-                                    <RotateCcw size={14} /> Confirm & Restore Backup Now
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          )}
-
-                          {backupRestoreError && (
-                            <div className="p-3 bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg text-[11px] font-sans flex items-start gap-2">
-                              <AlertTriangle size={15} className="shrink-0 mt-0.5 text-red-400" />
-                              <div>{backupRestoreError}</div>
-                            </div>
-                          )}
-
-                          {backupRestoreSuccess && (
-                            <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 rounded-lg text-[11px] font-sans flex items-start gap-2 animate-in fade-in">
-                              <CheckCircle size={15} className="shrink-0 mt-0.5 text-emerald-400" />
-                              <div>{backupRestoreSuccess}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Left Column: Theme Toggle & catalog resets */}
-                    <div className="lg:col-span-5 space-y-6">
-                      {/* Theme Template Selection */}
-                      <div className="bg-[#111111] border border-neutral-800 rounded-xl p-5 space-y-4">
-                        <div className="flex items-center gap-2.5">
-                          <Settings size={16} className="text-[#ff0000]" />
-                          <h3 className="text-xs font-bold uppercase text-white tracking-wider">Master Application Theme Template</h3>
-                        </div>
-                        <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                          Active master theme template for the customer-facing showroom.
-                        </p>
-                        
-                        <div className="grid grid-cols-1 gap-3 pt-2">
-                          {/* Inospace Corporate Master Theme */}
-                          <div
-                            className="w-full text-left p-4 rounded-lg border transition-all flex items-center justify-between bg-neutral-900 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.15)]"
-                          >
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-white">Inospace Professional Red</span>
-                                <span className="text-[9px] bg-red-600/30 text-red-400 border border-red-500/40 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Master Theme</span>
-                              </div>
-                              <span className="text-[10px] text-neutral-400 font-sans block">Premium sleek commercial dark-matte finish with robust corporate branding guidelines.</span>
-                            </div>
-                            <div className="flex items-center shrink-0 ml-3">
-                              <div className="w-4 h-4 rounded-full bg-red-600 border-2 border-white flex items-center justify-center">
-                                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Hard reset controls */}
-                      <div className="bg-[#111111] border border-neutral-800 rounded-xl p-5 space-y-4">
-                        <div className="flex items-center gap-2.5">
-                          <Trash2 size={16} className="text-[#ff0000]" />
-                          <h3 className="text-xs font-bold uppercase text-white tracking-wider">Catalog Resets & Fresh Start</h3>
-                        </div>
-                        <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                          Wipe existing products and starting data to reset the layout for another customer, or quickly restore defaults.
-                        </p>
-
-                        <div className="space-y-3 pt-2">
-                          {/* Clear Catalog completely */}
-                          <div className="bg-red-950/20 border border-red-900/40 p-4 rounded-lg space-y-3">
-                            <div className="space-y-1">
-                              <span className="text-xs font-bold text-red-400 block">DANGER: Permanent Full Database Wipe</span>
-                              <span className="text-[10px] text-neutral-400 font-sans block">
-                                Removes all products and images immediately. Ideal to clear space for your new client's WooCommerce CSV upload.
-                              </span>
-                            </div>
-
-                            {wipeConfirmState === 'idle' && (
-                              <button
-                                type="button"
-                                onClick={() => setWipeConfirmState('confirming')}
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded text-[11px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow shadow-black/40 hover:scale-[1.01] active:scale-[0.99]"
-                              >
-                                <Trash2 size={12} /> Permanently Wipe Catalog
-                              </button>
-                            )}
-
-                            {wipeConfirmState === 'confirming' && (
-                              <motion.div 
-                                initial={{ opacity: 0, y: -5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="space-y-2 p-2.5 bg-red-950/60 border border-red-500/30 rounded-md"
-                              >
-                                <div className="text-[10px] font-bold text-red-300 text-center uppercase tracking-wider">
-                                  ‚ö†Ô∏è Are you sure? This cannot be undone!
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={async () => {
-                                      await handleWipeImportedImagesAndCatalog();
-                                      addLog(`ADMIN ACTION: Permanently wiped the entire catalog database and all local CSV imported images on disk.`);
-                                      setWipeConfirmState('success');
-                                      setTimeout(() => {
-                                        setWipeConfirmState('idle');
-                                      }, 3500);
-                                    }}
-                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold py-1 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow"
-                                  >
-                                    <Check size={11} strokeWidth={3} /> Yes, Wipe It
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setWipeConfirmState('idle')}
-                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold py-1 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center"
-                                  >
-                                    No, Cancel
-                                  </button>
-                                </div>
-                              </motion.div>
-                            )}
-
-                            {wipeConfirmState === 'success' && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="p-3 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-lg text-center text-xs font-bold font-sans flex flex-col items-center justify-center gap-1"
-                              >
-                                <motion.div
-                                  animate={{ scale: [1, 1.25, 1], rotate: [0, 10, -10, 0] }}
-                                  transition={{ duration: 0.5 }}
-                                >
-                                  <CheckCircle size={18} className="text-emerald-400" />
-                                </motion.div>
-                                <span className="uppercase tracking-wider">Catalog Permanently Wiped!</span>
-                                <span className="text-[9px] font-normal text-neutral-400">All database records have been purged.</span>
-                              </motion.div>
-                            )}
-                          </div>
-
-                          {/* Restore default CE database */}
-                          <div className="bg-neutral-900/50 border border-neutral-800 p-4 rounded-lg space-y-3">
-                            <div className="space-y-1">
-                              <span className="text-xs font-bold text-neutral-300 block">Restore Default CE Showroom Setup</span>
-                              <span className="text-[10px] text-neutral-500 font-sans block">
-                                Overwrites active edits and restores the beautiful pre-loaded Triton Car Lifts & Spray Booths catalog data.
-                              </span>
-                            </div>
-
-                            {restoreConfirmState === 'idle' && (
-                              <button
-                                type="button"
-                                onClick={() => setRestoreConfirmState('confirming')}
-                                className="w-full bg-neutral-800 hover:bg-neutral-700 text-white font-bold py-2 rounded text-[11px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
-                              >
-                                <RotateCcw size={12} /> Reload Default CE Template Catalog
-                              </button>
-                            )}
-
-                            {restoreConfirmState === 'confirming' && (
-                              <motion.div 
-                                initial={{ opacity: 0, y: -5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="space-y-2 p-2.5 bg-neutral-950 border border-neutral-800 rounded-md"
-                              >
-                                <div className="text-[10px] font-bold text-neutral-300 text-center uppercase tracking-wider">
-                                  ‚ö†Ô∏è Are you sure? Overwrite all current edits?
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      updateProducts(PRODUCTS);
-                                      updateFeaturedCategories(DEFAULT_FEATURED_CATEGORIES);
-                                      const nextId = PRODUCTS[0]?.id || '';
-                                      setSelectedProdId(nextId);
-                                      addLog(`Overwrote active changes and restored default showroom schema catalog.`);
-                                      setRestoreConfirmState('success');
-                                      setTimeout(() => {
-                                        setRestoreConfirmState('idle');
-                                      }, 3500);
-                                    }}
-                                    className="flex-1 bg-white hover:bg-neutral-100 text-neutral-950 font-extrabold py-1 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow"
-                                  >
-                                    <Check size={11} strokeWidth={3} /> Yes, Restore
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setRestoreConfirmState('idle')}
-                                    className="flex-1 bg-neutral-850 hover:bg-neutral-800 text-neutral-400 font-bold py-1 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center"
-                                  >
-                                    No, Cancel
-                                  </button>
-                                </div>
-                              </motion.div>
-                            )}
-
-                            {restoreConfirmState === 'success' && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="p-3 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-lg text-center text-xs font-bold font-sans flex flex-col items-center justify-center gap-1"
-                              >
-                                <motion.div
-                                  animate={{ scale: [1, 1.25, 1], rotate: [0, 10, -10, 0] }}
-                                  transition={{ duration: 0.5 }}
-                                >
-                                  <CheckCircle size={18} className="text-emerald-400" />
-                                </motion.div>
-                                <span className="uppercase tracking-wider">Template Catalog Restored!</span>
-                                <span className="text-[9px] font-normal text-neutral-400">Default Showroom Setup loaded successfully.</span>
-                              </motion.div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Database Optimization & Auto-Clean */}
-                      <div className="bg-[#111111] border border-neutral-800 rounded-xl p-5 space-y-4">
-                        <div className="flex items-center gap-2.5">
-                          <Wrench size={16} className="text-amber-500" />
-                          <h3 className="text-xs font-bold uppercase text-white tracking-wider">Database Optimization & Autoclean</h3>
-                        </div>
-                        <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                          Automatically or manually purge temporary draft products that are older than 30 days to optimize browser storage and catalog performance.
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-2 text-center bg-[#0a0a0a] p-3 rounded-lg border border-neutral-800/40">
-                          <div>
-                            <span className="block text-neutral-500 text-[9px] uppercase font-mono tracking-wider mb-0.5 font-sans">Total Drafts</span>
-                            <span className="text-sm font-bold font-mono text-amber-500">
-                              {currentProducts.filter(p => p && p.status === 'draft').length}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="block text-neutral-500 text-[9px] uppercase font-mono tracking-wider mb-0.5 font-sans">Stale Drafts (&gt;30d)</span>
-                            <span className={`text-sm font-bold font-mono ${getOldDrafts().length > 0 ? 'text-red-400 font-extrabold' : 'text-neutral-500'}`}>
-                              {getOldDrafts().length}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3 pt-1">
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-mono uppercase tracking-wider text-neutral-400">Background Auto-Clean Scheduler:</label>
-                            <select
-                              value={autoCleanInterval}
-                              onChange={(e) => handleUpdateAutoCleanInterval(e.target.value as any)}
-                              className="bg-neutral-950 border border-neutral-800 text-neutral-300 text-[11px] rounded px-2.5 py-1.5 focus:outline-none focus:border-amber-500 transition-colors font-sans cursor-pointer"
-                            >
-                              <option value="disabled">Disabled (Manual Purge Only)</option>
-                              <option value="daily">Auto-Clean Daily (Every 24 Hours)</option>
-                              <option value="weekly">Auto-Clean Weekly (Every 7 Days)</option>
-                            </select>
-                            {autoCleanInterval !== 'disabled' && (
-                              <span className="text-[9px] text-neutral-500 font-sans italic leading-normal">
-                                * Scheduled to run automatically in background on application startup. Last run: {lastAutoCleanTime ? new Date(lastAutoCleanTime).toLocaleString() : 'Never'}
-                              </span>
-                            )}
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={handlePurgeOldDrafts}
-                            disabled={getOldDrafts().length === 0}
-                            className="w-full bg-[#1c0d0d] hover:bg-[#2e1212] disabled:opacity-30 disabled:hover:bg-[#1c0d0d] disabled:cursor-not-allowed text-amber-400 disabled:text-neutral-500 border border-red-950 hover:border-red-900/40 disabled:border-neutral-900/50 py-2 rounded text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <Trash2 size={12} /> Purge Stale Drafts Now
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Column: WooCommerce CSV upload */}
-                    <div className="lg:col-span-7 space-y-6">
-                      <div className="bg-[#111111] border border-neutral-800 rounded-xl p-5 space-y-5 flex flex-col h-full min-h-[500px]">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2.5">
-                              <Upload size={16} className="text-emerald-500" />
-                              <h3 className="text-xs font-bold uppercase text-white tracking-wider">WooCommerce CSV Product Importer</h3>
-                            </div>
-                            <p className="text-[11px] text-neutral-400 font-sans leading-relaxed">
-                              Upload a standard WooCommerce inventory CSV file to populate the customer-facing catalog in seconds.
-                            </p>
-                          </div>
-                          
-                          <button
-                            type="button"
-                            onClick={handleDownloadSampleCsv}
-                            className="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 hover:text-white px-2.5 py-1.5 rounded text-[10px] font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all uppercase tracking-wide shrink-0"
-                            title="Download standard CSV structure"
-                          >
-                            <Download size={11} className="text-emerald-500" /> Sample CSV
-                          </button>
-                        </div>
-
-                        {/* File Upload Box */}
-                        <div className="relative border-2 border-dashed border-neutral-800 hover:border-emerald-500/40 rounded-xl p-6 transition-all bg-[#0a0a0a] flex flex-col items-center justify-center text-center gap-3 group">
-                          <input
-                            type="file"
-                            accept=".csv"
-                            onChange={handleCsvFileUpload}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                          />
-                          <div className="w-12 h-12 rounded-full bg-emerald-950/20 border border-emerald-900/30 flex items-center justify-center text-emerald-500 group-hover:scale-105 transition-transform duration-200">
-                            <Upload size={18} className="animate-pulse" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-white">Drag & drop your WooCommerce CSV file here</p>
-                            <p className="text-[10px] text-neutral-500 mt-1 font-sans">or click to browse local files (Supports standard headers: SKU, Name, Price, Images, etc.)</p>
-                          </div>
-                        </div>
-
-                        {/* Parse Status / Feedback messages */}
-                        {csvError && (
-                          <div className="p-4 bg-red-950/20 border border-red-900/30 text-red-400 rounded-lg text-xs font-medium font-sans flex items-start gap-3">
-                            <AlertTriangle size={15} className="shrink-0 mt-0.5 text-red-500" />
-                            <div>{csvError}</div>
-                          </div>
-                        )}
-
-                        {csvSuccessMessage && (
-                          <div className="p-4 bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 rounded-lg text-xs font-medium font-sans flex items-start gap-3">
-                            <CheckCircle size={15} className="shrink-0 mt-0.5 text-emerald-500" />
-                            <div>{csvSuccessMessage}</div>
-                          </div>
-                        )}
-
-                        {importCompleted && (
-                          <div className="p-4 bg-emerald-950/10 border border-emerald-900/30 rounded-xl space-y-4 font-sans text-xs">
-                            <div className="flex items-center gap-2.5 border-b border-emerald-900/30 pb-2.5">
-                              <CheckCircle size={18} className="text-emerald-500 shrink-0" />
-                              <div>
-                                <h4 className="font-bold text-white text-sm">WooCommerce Import Operation Complete</h4>
-                                <p className="text-[10px] text-neutral-400 font-sans mt-0.5">The database catalog has been updated with the localized assets.</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex flex-col gap-1.5 bg-neutral-950/60 p-3 rounded-lg border border-neutral-900/40 font-sans">
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="text-neutral-400">Products Processed:</span>
-                                <span className="font-mono font-bold text-white">{importedCountCompleted} successful</span>
-                              </div>
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="text-neutral-400">Errors Logged:</span>
-                                <span className={`font-mono font-bold ${importErrorLog.length > 0 ? 'text-red-400' : 'text-neutral-500'}`}>
-                                  {importErrorLog.length} failures
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              {importErrorLog.length > 0 && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={handleDownloadErrorLogCsv}
-                                    className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/40 text-red-300 border border-red-900/30 rounded font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Download size={11} /> Download Errors (.CSV)
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={handleDownloadErrorLogJson}
-                                    className="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 rounded font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Download size={11} /> Download Errors (.JSON)
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowErrorLogViewer(!showErrorLogViewer)}
-                                    className="px-2.5 py-1.5 bg-emerald-900/20 hover:bg-emerald-900/30 text-emerald-400 border border-emerald-800/40 rounded font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Eye size={11} /> {showErrorLogViewer ? "Hide Log Viewer" : "View Error Log Inline"}
-                                  </button>
-                                </>
-                              )}
-                              {importErrorLog.length === 0 && (
-                                <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/30 px-2.5 py-1 rounded border border-emerald-900/40">
-                                  ‚ú® Perfect Import! No warnings or errors were identified during CSV parsing or asset downloading.
-                                </span>
-                              )}
-                            </div>
-
-                            {/* In-app Error Log Table / Viewer */}
-                            {showErrorLogViewer && importErrorLog.length > 0 && (
-                              <div className="mt-3 border border-red-950 rounded-lg overflow-hidden bg-[#0d0707] transition-all">
-                                <div className="bg-red-950/20 px-3 py-2 border-b border-red-950/60 flex items-center justify-between">
-                                  <span className="text-[10px] font-mono font-bold text-red-400 uppercase tracking-wider">
-                                    In-App Import Errors Log Viewer
-                                  </span>
-                                  <span className="text-[9px] font-mono text-red-500">
-                                    Showing {importErrorLog.length} detailed records
-                                  </span>
-                                </div>
-                                <div className="max-h-[300px] overflow-y-auto overflow-x-auto text-[10px] font-mono">
-                                  <table className="w-full text-left border-collapse">
-                                    <thead>
-                                      <tr className="bg-red-950/10 border-b border-red-950/30 text-neutral-400 font-sans font-bold">
-                                        <th className="p-2 text-[9px] uppercase">SKU</th>
-                                        <th className="p-2 text-[9px] uppercase font-sans">Product Name</th>
-                                        <th className="p-2 text-[9px] uppercase text-red-400 font-sans">Specific Failure Reason</th>
-                                        <th className="p-2 text-[9px] uppercase font-sans">Original/Broken Value</th>
-                                        <th className="p-2 text-[9px] uppercase text-right font-sans">Timestamp</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-red-950/20">
-                                      {importErrorLog.map((err, idx) => (
-                                        <tr key={idx} className="hover:bg-red-950/10 transition-colors">
-                                          <td className="p-2 whitespace-nowrap text-red-300 font-bold">{err.sku || 'N/A'}</td>
-                                          <td className="p-2 font-sans text-neutral-300 max-w-[150px] truncate" title={err.name}>{err.name || 'N/A'}</td>
-                                          <td className="p-2 text-red-400 font-semibold max-w-[200px] whitespace-normal leading-normal">{err.failure}</td>
-                                          <td className="p-2 text-neutral-500 max-w-[200px] truncate" title={err.originalValue}>{err.originalValue}</td>
-                                          <td className="p-2 text-neutral-600 text-right whitespace-nowrap text-[9px]">{new Date(err.timestamp).toLocaleTimeString()}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {importSummary && (
-                          <div id="import-summary-report" className="p-4 bg-neutral-900/90 border border-neutral-800 rounded-lg space-y-3 font-sans text-xs">
-                            <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
-                              <FileText size={14} className="text-emerald-500" />
-                              <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">CSV Import Quality Summary</h4>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                              <div className="bg-neutral-950 p-2.5 rounded border border-neutral-800/40">
-                                <span className="block text-neutral-500 text-[9px] uppercase font-mono tracking-wider mb-0.5">Total Products</span>
-                                <span className="text-sm font-bold font-mono text-emerald-400">{importSummary.importedCount}</span>
-                              </div>
-                              <div className="bg-neutral-950 p-2.5 rounded border border-neutral-800/40">
-                                <span className="block text-neutral-500 text-[9px] uppercase font-mono tracking-wider mb-0.5">Drafts Skipped</span>
-                                <span className="text-sm font-bold font-mono text-amber-500">{importSummary.draftsSkipped}</span>
-                              </div>
-                              <div className="bg-neutral-950 p-2.5 rounded border border-neutral-800/40">
-                                <span className="block text-neutral-500 text-[9px] uppercase font-mono tracking-wider mb-0.5">Categories Ident.</span>
-                                <span className="text-sm font-bold font-mono text-blue-400">{importSummary.categories.length}</span>
-                              </div>
-                              <div className="bg-neutral-950 p-2.5 rounded border border-neutral-800/40">
-                                <span className="block text-neutral-500 text-[9px] uppercase font-mono tracking-wider mb-0.5">Failed Rows</span>
-                                <span className={`text-sm font-bold font-mono ${importSummary.failedRows.length > 0 ? 'text-red-500 font-extrabold' : 'text-neutral-500'}`}>
-                                  {importSummary.failedRows.length}
-                                </span>
-                              </div>
-                            </div>
-
-                            {importSummary.categories.length > 0 && (
-                              <div className="bg-neutral-950/40 p-2 rounded border border-neutral-800/30">
-                                <span className="text-[9px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">Categories Created:</span>
-                                <div className="flex flex-wrap gap-1">
-                                  {importSummary.categories.map((cat, i) => (
-                                    <span key={i} className="text-[9px] px-2 py-0.5 bg-neutral-900 border border-neutral-800 rounded text-neutral-300 font-mono">
-                                      {cat}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {importSummary.failedRows.length > 0 && (
-                              <div className="p-2.5 bg-red-950/20 border border-red-900/30 text-red-300 rounded text-[10px] font-sans">
-                                <div className="font-bold flex items-center gap-1.5 mb-1 text-red-400 uppercase tracking-wider text-[9px] font-mono">
-                                  <AlertTriangle size={11} /> Failed Row Numbers (Spot-Check Needed):
-                                </div>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {importSummary.failedRows.map((rowNum) => (
-                                    <span key={rowNum} className="px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-900/40 rounded font-mono text-[9px]">
-                                      Row {rowNum}
-                                    </span>
-                                  ))}
-                                </div>
-                                <p className="text-[9px] text-neutral-500 mt-1.5 font-sans leading-normal">
-                                  * These rows were skipped because they lack basic identifiers (both Name and SKU are missing).
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Success Parsed Preview Panel */}
-                        {parsedProducts.length > 0 && (() => {
-                          const filteredParsedProducts = parsedProducts.filter(p => {
-                            if (csvFilterMode === 'invalid') {
-                              return !!csvValidationErrors[p.id];
-                            }
-                            return true;
-                          });
-                          const invalidRowsCount = Object.keys(csvValidationErrors).length;
-
-                          return (
-                            <div className="space-y-4 flex-1 flex flex-col min-h-[300px]">
-                              <div className="flex justify-between items-center bg-[#070707] px-3 py-2 rounded-lg border border-neutral-900 shrink-0">
-                                <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
-                                  File Loaded: {importedFilename}
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-mono text-white bg-emerald-600 px-2 py-0.5 rounded-full font-bold">
-                                    {parsedProducts.length} Products Found
-                                  </span>
-                                  {invalidRowsCount > 0 && (
-                                    <span className="text-[10px] font-mono text-white bg-red-600 px-2 py-0.5 rounded-full font-bold animate-pulse">
-                                      {invalidRowsCount} Flagged
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Filter and Validation Summary Selector */}
-                              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 bg-[#0c0c0c] border border-neutral-800 p-2.5 rounded-lg text-xs font-sans">
-                                <div className="flex items-center gap-1.5 text-neutral-400 text-[11px]">
-                                  <AlertTriangle size={13} className={invalidRowsCount > 0 ? "text-amber-500 shrink-0" : "text-neutral-500 shrink-0"} />
-                                  <span>
-                                    {invalidRowsCount > 0 
-                                      ? `Validation alerts found in ${invalidRowsCount} product(s). Red highlighted rows require verification.`
-                                      : "All rows passed standard validation checks."
-                                    }
-                                  </span>
-                                </div>
-                                
-                                <div className="flex gap-1 bg-neutral-950 p-0.5 rounded border border-neutral-850 self-end">
-                                  <button
-                                    type="button"
-                                    onClick={() => setCsvFilterMode('all')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded transition-all cursor-pointer ${
-                                      csvFilterMode === 'all'
-                                        ? 'bg-neutral-800 text-white'
-                                        : 'text-neutral-500 hover:text-neutral-300'
-                                    }`}
-                                  >
-                                    All ({parsedProducts.length})
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={invalidRowsCount === 0}
-                                    onClick={() => setCsvFilterMode('invalid')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-                                      csvFilterMode === 'invalid'
-                                        ? 'bg-red-950 text-red-400 border border-red-900/40'
-                                        : 'text-neutral-500 hover:text-neutral-300'
-                                    }`}
-                                  >
-                                    Flagged ({invalidRowsCount})
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Scrollable grid preview list */}
-                              <div className="border border-neutral-800 rounded-lg overflow-hidden bg-[#070707] flex-1 max-h-[220px] overflow-y-auto custom-scrollbar">
-                                <table className="w-full text-left text-[11px] font-sans">
-                                  <thead className="bg-[#141414] border-b border-neutral-800 text-neutral-400 uppercase font-mono text-[9px] sticky top-0 z-10">
-                                    <tr>
-                                      <th className="p-2.5">SKU</th>
-                                      <th className="p-2.5">Name</th>
-                                      <th className="p-2.5">Category</th>
-                                      <th className="p-2.5 text-right">Price (ZAR)</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-neutral-900 text-neutral-300">
-                                    {filteredParsedProducts.slice(0, 15).map((p, i) => {
-                                      const errors = csvValidationErrors[p.id];
-                                      const hasErrors = errors && errors.length > 0;
-                                      const hasOnlyWarnings = hasErrors && errors.every(e => e.startsWith('Warning:'));
-                                      const isRedHighlight = hasErrors && !hasOnlyWarnings;
-                                      const isOrangeHighlight = hasErrors && hasOnlyWarnings;
-
-                                      return (
-                                        <tr 
-                                          key={p.id + i} 
-                                          className={`transition-colors ${
-                                            isRedHighlight 
-                                              ? 'bg-red-950/20 hover:bg-red-950/35' 
-                                              : isOrangeHighlight 
-                                              ? 'bg-amber-950/20 hover:bg-amber-950/35' 
-                                              : 'hover:bg-neutral-900/40'
-                                          }`}
-                                        >
-                                          <td className="p-2.5 font-mono text-[10px] text-neutral-400 vertical-align-top">
-                                            <div className="flex items-center gap-1">
-                                              {isRedHighlight && <AlertTriangle size={11} className="text-red-500 shrink-0" />}
-                                              <span>{p.modelCode}</span>
-                                            </div>
-                                          </td>
-                                          <td className="p-2.5 font-semibold max-w-[180px]">
-                                            <div className="truncate text-white" title={p.name}>{p.name}</div>
-                                            {hasErrors && (
-                                              <div className="mt-1 space-y-0.5 font-sans leading-relaxed">
-                                                {errors.map((err, errIdx) => (
-                                                  <span 
-                                                    key={errIdx} 
-                                                    className={`block text-[9px] font-medium font-sans ${
-                                                      err.startsWith('Warning:') ? 'text-amber-400' : 'text-red-400'
-                                                    }`}
-                                                  >
-                                                    ‚Ä¢ {err}
-                                                  </span>
-                                                ))}
-                                              </div>
-                                            )}
-                                          </td>
-                                          <td className="p-2.5 capitalize text-neutral-450 text-[10px]">
-                                            {p.category.replace('-', ' ')}
-                                          </td>
-                                          <td className="p-2.5 text-right font-mono text-emerald-400 font-semibold">
-                                            {p.price > 0 ? `R ${p.price.toLocaleString()}` : (
-                                              <span className="text-red-400 font-bold">R 0 (Quote Req.)</span>
-                                            )}
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                    {filteredParsedProducts.length > 15 && (
-                                      <tr>
-                                        <td colSpan={4} className="p-2.5 text-center text-neutral-500 font-mono text-[10px] bg-neutral-950/40">
-                                          + {filteredParsedProducts.length - 15} more products in list...
-                                        </td>
-                                      </tr>
-                                    )}
-                                    {filteredParsedProducts.length === 0 && (
-                                      <tr>
-                                        <td colSpan={4} className="p-8 text-center text-neutral-500 font-sans text-xs italic">
-                                          No products match the selected filter.
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </tbody>
-                                </table>
-                              </div>
-
-                              {/* Alert Warning Box */}
-                              {invalidRowsCount > 0 && (
-                                <div className="p-3 bg-amber-950/15 border border-amber-900/30 rounded-lg text-[11px] text-amber-400 font-sans leading-relaxed flex items-start gap-2.5">
-                                  <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                                  <div>
-                                    <span className="font-bold block text-white">Import Quality Warning</span>
-                                    Your CSV contains <strong>{invalidRowsCount} product(s)</strong> with validation warnings or missing price lists. Re-validate your inventory columns or proceed to let Triton resolve default fields.
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Real-time Image Localization Progress Box */}
-                              {isLocalizing && (
-                                <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-lg space-y-2">
-                                  <div className="flex justify-between items-center text-xs font-mono">
-                                    <span className="text-emerald-400 font-bold animate-pulse">üì• Downloading & Localizing Images...</span>
-                                    <span className="text-neutral-400 font-bold">{localizationProgress}%</span>
-                                  </div>
-                                  <div className="w-full bg-neutral-950 h-2 rounded-full overflow-hidden border border-neutral-800">
-                                    <div 
-                                      className="bg-emerald-500 h-full transition-all duration-300"
-                                      style={{ width: `${localizationProgress}%` }}
-                                    />
-                                  </div>
-                                  <p className="text-[10px] text-neutral-500 font-sans text-center">
-                                    Downloading original remote URLs, saving files locally to src/assets/images/imported/ on the server.
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Import Action Buttons */}
-                              <div className="space-y-3 shrink-0 pt-2">
-                                {csvReplaceConfirmState === 'idle' && csvAppendConfirmState === 'idle' && !isLocalizing && (
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                      type="button"
-                                      onClick={() => setCsvReplaceConfirmState('confirming')}
-                                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/20"
-                                    >
-                                      <RefreshCw size={12} /> Replace Whole Catalog
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setCsvAppendConfirmState('confirming')}
-                                      className="bg-neutral-800 hover:bg-neutral-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-all border border-neutral-700 cursor-pointer flex items-center justify-center gap-1.5"
-                                    >
-                                      <Plus size={12} /> Append to Catalog
-                                    </button>
-                                  </div>
-                                )}
-
-                              {csvReplaceConfirmState === 'confirming' && (
-                                <motion.div 
-                                  initial={{ opacity: 0, y: -5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className="space-y-2 p-2.5 bg-red-950/60 border border-red-500/30 rounded-lg text-left"
-                                >
-                                  <div className="text-[10px] font-bold text-red-300 text-center uppercase tracking-wider">
-                                    ‚ö†Ô∏è Overwrite all {currentProducts.length} active items with {parsedProducts.length} CSV items?
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <button
-                                      type="button"
-                                      disabled={isLocalizing}
-                                      onClick={async () => {
-                                        try {
-                                          const categoriesBefore = new Set(currentFeaturedCategories.map(c => c.name.toUpperCase()));
-                                          const count = parsedProducts.length;
-                                          
-                                          const localized = await downloadAndLocalizeImages(parsedProducts);
-                                          updateProducts(localized);
-                                          
-                                          const derived = deriveCategoriesFromProducts(localized);
-                                          updateFeaturedCategories(derived);
-                                          
-                                          const categoriesAfter = new Set(derived.map(c => c.name.toUpperCase()));
-                                          const newlyCreatedCategories = Array.from(categoriesAfter).filter(c => !categoriesBefore.has(c));
-
-                                          setSelectedProdId(localized[0]?.id || '');
-                                          setParsedProducts([]);
-                                          setImportedFilename('');
-                                          setCsvError(null);
-                                          setImportCompleted(true);
-                                          setImportedCountCompleted(count);
-                                          setCsvSuccessMessage(`SUCCESS: Catalog successfully overwritten with ${count} imported products from CSV!`);
-                                          
-                                          addLog(`üìä [CSV OVERWRITE IMPORT SUMMARY]
-‚Ä¢ Status: Successfully completed
-‚Ä¢ Total Products Imported: ${count}
-‚Ä¢ Products Skipped (Drafts): ${importSummary ? importSummary.draftsSkipped : 0}
-‚Ä¢ Categories Created: ${newlyCreatedCategories.length} ${newlyCreatedCategories.length > 0 ? `(${newlyCreatedCategories.join(', ')})` : ''}
-‚Ä¢ Rows Failed to Parse: ${importSummary && importSummary.failedRows.length > 0 ? `${importSummary.failedRows.length} (Rows: ${importSummary.failedRows.join(', ')})` : 'None (0)'}`);
-
-                                          setCsvReplaceConfirmState('success');
-                                          setTimeout(() => {
-                                            setCsvReplaceConfirmState('idle');
-                                          }, 3500);
-                                        } catch (err: any) {
-                                          setCsvReplaceConfirmState('idle');
-                                          setCsvSuccessMessage(null);
-                                          setCsvError(`Failed to overwrite catalog: ${err?.message || err}`);
-                                        }
-                                      }}
-                                      className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-extrabold py-1.5 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow"
-                                    >
-                                      {isLocalizing ? (
-                                        <>
-                                          <RefreshCw size={11} className="animate-spin" /> Localizing...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Check size={11} strokeWidth={3} /> Yes, Replace
-                                        </>
-                                      )}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={isLocalizing}
-                                      onClick={() => setCsvReplaceConfirmState('idle')}
-                                      className="flex-1 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 font-bold py-1.5 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center"
-                                    >
-                                      No, Cancel
-                                    </button>
-                                  </div>
-                                </motion.div>
-                              )}
-
-                              {csvAppendConfirmState === 'confirming' && (
-                                <motion.div 
-                                  initial={{ opacity: 0, y: -5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className="space-y-2 p-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-left"
-                                >
-                                  <div className="text-[10px] font-bold text-neutral-300 text-center uppercase tracking-wider">
-                                    ‚ö†Ô∏è Append {parsedProducts.length} items to current catalog of {currentProducts.length} items?
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <button
-                                      type="button"
-                                      disabled={isLocalizing}
-                                      onClick={async () => {
-                                        try {
-                                          const categoriesBefore = new Set(currentFeaturedCategories.map(c => c.name.toUpperCase()));
-                                          const count = parsedProducts.length;
-                                          
-                                          const localized = await downloadAndLocalizeImages(parsedProducts);
-                                          const combined = [...currentProducts, ...localized];
-                                          updateProducts(combined);
-                                          
-                                          const derived = deriveCategoriesFromProducts(combined);
-                                          updateFeaturedCategories(derived);
-                                          
-                                          const categoriesAfter = new Set(derived.map(c => c.name.toUpperCase()));
-                                          const newlyCreatedCategories = Array.from(categoriesAfter).filter(c => !categoriesBefore.has(c));
-
-                                          setParsedProducts([]);
-                                          setImportedFilename('');
-                                          setCsvError(null);
-                                          setImportCompleted(true);
-                                          setImportedCountCompleted(count);
-                                          setCsvSuccessMessage(`SUCCESS: Successfully appended ${count} imported products from CSV!`);
-                                          
-                                          addLog(`üìä [CSV APPEND IMPORT SUMMARY]
-‚Ä¢ Status: Successfully completed
-‚Ä¢ Total Products Imported: ${count}
-‚Ä¢ Products Skipped (Drafts): ${importSummary ? importSummary.draftsSkipped : 0}
-‚Ä¢ Categories Created: ${newlyCreatedCategories.length} ${newlyCreatedCategories.length > 0 ? `(${newlyCreatedCategories.join(', ')})` : ''}
-‚Ä¢ Rows Failed to Parse: ${importSummary && importSummary.failedRows.length > 0 ? `${importSummary.failedRows.length} (Rows: ${importSummary.failedRows.join(', ')})` : 'None (0)'}`);
-
-                                          setCsvAppendConfirmState('success');
-                                          setTimeout(() => {
-                                            setCsvAppendConfirmState('idle');
-                                          }, 3500);
-                                        } catch (err: any) {
-                                          setCsvAppendConfirmState('idle');
-                                          setCsvSuccessMessage(null);
-                                          setCsvError(`Failed to append products: ${err?.message || err}`);
-                                        }
-                                      }}
-                                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-extrabold py-1.5 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow"
-                                    >
-                                      {isLocalizing ? (
-                                        <>
-                                          <RefreshCw size={11} className="animate-spin" /> Localizing...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Check size={11} strokeWidth={3} /> Yes, Append
-                                        </>
-                                      )}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={isLocalizing}
-                                      onClick={() => setCsvAppendConfirmState('idle')}
-                                      className="flex-1 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 font-bold py-1.5 px-2 rounded text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center"
-                                    >
-                                      No, Cancel
-                                    </button>
-                                  </div>
-                                </motion.div>
-                              )}
-
-                              {(csvReplaceConfirmState === 'success' || csvAppendConfirmState === 'success') && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  className="p-3 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-lg text-center text-xs font-bold font-sans flex flex-col items-center justify-center gap-1"
-                                >
-                                  <motion.div
-                                    animate={{ scale: [1, 1.25, 1], rotate: [0, 10, -10, 0] }}
-                                    transition={{ duration: 0.5 }}
-                                  >
-                                    <CheckCircle size={18} className="text-emerald-400" />
-                                  </motion.div>
-                                  <span className="uppercase tracking-wider">
-                                    {csvReplaceConfirmState === 'success' ? 'Catalog Overwritten!' : 'Products Appended!'}
-                                  </span>
-                                  <span className="text-[9px] font-normal text-neutral-400">Your active database inventory has been updated.</span>
-                                </motion.div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* LOGS VIEW TAB */}
-              {activeTab === 'logs' && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-[#999999] font-mono">Live synchronization and batch upload trace logging</span>
-                    <button 
-                      onClick={() => setSyncLogs([])}
-                      className="text-[10px] text-[#ff0000] hover:underline font-mono"
-                    >
-                      Clear Log Buffer
-                    </button>
-                  </div>
-                  
-                  <div className="w-full bg-[#050505] border border-[#333333] font-mono text-xs p-4 rounded-lg h-80 overflow-y-auto space-y-1 text-neutral-450 p-4 leading-relaxed">
-                    {syncLogs.length === 0 ? (
-                      <div className="text-[#666666] italic flex flex-col items-center justify-center h-full gap-2">
-                        <Terminal size={24} />
-                        No synchronization actions run yet. Use Tab 1 "Run WooCommerce Sync" to generate logs.
-                      </div>
-                    ) : (
-                      syncLogs.map((log, lIdx) => (
-                        <div key={lIdx} className="hover:bg-[#111111] py-0.5 border-l-2 border-slate-700 pl-2 whitespace-pre-wrap text-left">
-                          {log}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ASSET AUDIT TAB */}
-              {activeTab === 'assets' && (
-                <AssetAuditTab
-                  products={currentProducts}
-                  onProductsChange={updateProducts}
-                  addLog={addLog}
-                  isInospace={isInospace}
-                />
-              )}
-
-              {/* MEDIA STORAGE & PERMANENT DELETE TAB */}
-              {activeTab === 'media' && (
-                <MediaStorageTab
-                  products={currentProducts}
-                  onProductsChange={updateProducts}
-                  featuredCategories={currentFeaturedCategories}
-                  onFeaturedCategoriesChange={updateFeaturedCategories}
-                  addLog={addLog}
-                  isInospace={isInospace}
-                  onFixLegacyImages={handleFixLegacyImages}
-                  isMigratingImages={isMigratingImages}
-                  onMigrateDefaultImagesToWordPress={handleMigrateDefaultImagesToWordPress}
-                  isMigratingDefaultImages={isMigratingDefaultImages}
-                />
-              )}
-
-              {/* PRE-CHECK DEPLOYMENT REPORT & ERROR LOGS TAB */}
-              {activeTab === 'errors' && (() => {
-                // Dynamically analyze the links, products, and configurations
-                const linksToAudit = [
-                  { name: "Home Navigation", target: "Tuiste / Home Navigation Link", status: "PASSED", details: "Correctly maps back to shopfront dashboard index", icon: "CheckCircle" },
-                  { name: "All Products Filter", target: "All Products Navigation", status: "PASSED", details: "Triggers active category filter and scrolls catalog smoothly", icon: "CheckCircle" },
-                  { name: "Shop Dropdown Catalog", target: "Mega Menu Grid Navigation", status: "PASSED", details: "All columns are correctly linked with active product SKU IDs", icon: "CheckCircle" },
-                  { name: "FAQ Portal Modal", target: "FAQ Technical Help System", status: "PASSED", details: "Triggers help modal overlays with search keywords audit", icon: "CheckCircle" },
-                  { name: "Contact Phone Anchor", target: "tel:0215562413", status: "PASSED", details: "Standard S.A. landline voice dial integration", icon: "CheckCircle" },
-                  { name: "Contact Email Anchor", target: "mailto:info@car-lifts.co.za", status: "PASSED", details: "Maps to verified active server domain mailbox", icon: "CheckCircle" },
-                  { name: "Map Depot Location", target: "Google Maps Coordinates Anchor", status: "PASSED", details: "Points to Killarney Gardens Cape Town showroom depot", icon: "CheckCircle" },
-                  { name: "WhatsApp Chat Link", target: "WhatsApp Click-to-Chat Anchor", status: "PASSED", details: "Correctly formats verified cell phone text pre-fill", icon: "CheckCircle" },
-                  { name: "Legal Policy (Privacy)", target: "LegalPoliciesModal ('privacy')", status: "PASSED", details: "Fulfills POPIA regulatory compliance standards", icon: "CheckCircle" },
-                  { name: "Legal Policy (Terms)", target: "LegalPoliciesModal ('terms')", status: "PASSED", details: "Fulfills Consumer Protection Act (CPA) mandates", icon: "CheckCircle" },
-                  { name: "Legal Policy (Cookie)", target: "LegalPoliciesModal ('cookie')", status: "PASSED", details: "Triggers cookie consent preference settings overlays", icon: "CheckCircle" }
-                ];
-
-                // Database product audits
-                const zeroPriceProducts = currentProducts.filter(p => !p.price || p.price === 0);
-                const lowSeoProducts = currentProducts.filter(p => !p.seoTitle || !p.seoDescription || (p.seoScore || 0) < 70);
-                const remainingRotaryProducts = currentProducts.filter(p => {
-                  const safeRotaryRegex = /\bRotary\b(?!\s+(?:screw|safety|valve))/gi;
-                  return safeRotaryRegex.test(p.name || '') || safeRotaryRegex.test(p.description || '');
-                });
-
-                // Calculate total errors/warnings
-                const errorsList: { type: string; msg: string; severity: 'error' | 'warning'; details?: string; actionLabel?: string; onAction?: () => void }[] = [];
-
-                if (remainingRotaryProducts.length > 0) {
-                  errorsList.push({
-                    type: "Branding / Compliance",
-                    msg: `${remainingRotaryProducts.length} product(s) still contain "Rotary" naming reference (which should be rebranded to "Triton").`,
-                    severity: "error",
-                    actionLabel: "Auto-rebrand to Triton",
-                    onAction: () => {
-                      const updated = currentProducts.map(p => {
-                        const safeRotaryRegex = /\bRotary\b(?!\s+(?:screw|safety|valve))/gi;
-                        let nameStr = p.name || '';
-                        let descStr = p.description || '';
-                        if (safeRotaryRegex.test(nameStr)) {
-                          nameStr = nameStr.replace(safeRotaryRegex, 'Triton');
-                        }
-                        if (safeRotaryRegex.test(descStr)) {
-                          descStr = descStr.replace(safeRotaryRegex, 'Triton');
-                        }
-                        return { ...p, name: nameStr, description: descStr };
-                      });
-                      updateProducts(updated);
-                      addLog(`AUTO-FIX AUDITOR: Automatically renamed remaining "Rotary" occurrences to "Triton" across ${remainingRotaryProducts.length} items.`);
-                      alert(`Successfully rebranded ${remainingRotaryProducts.length} items to Triton Lift branding standard!`);
-                    }
-                  });
-                }
-
-                if (zeroPriceProducts.length > 0) {
-                  errorsList.push({
-                    type: "Pricing",
-                    msg: `${zeroPriceProducts.length} high-end commercial products are configured with R0.00 / missing price.`,
-                    details: "This is fully compliant and automatically routes to 'Request a Quote' form, preventing empty cart checkouts.",
-                    severity: "warning"
-                  });
-                }
-
-                if (lowSeoProducts.length > 0) {
-                  errorsList.push({
-                    type: "SEO Optimisation",
-                    msg: `${lowSeoProducts.length} products have missing or low-scoring SEO metadata parameters.`,
-                    severity: "warning",
-                    actionLabel: "Bulk Optimize Metadata",
-                    onAction: () => {
-                      // Call batch optimize
-                      const updated = currentProducts.map(p => {
-                        let cleanName = p.name.split('(')[0].trim();
-                        let seoTitle = p.seoTitle || `Triton ${cleanName} (${p.modelCode}) South Africa`;
-                        let seoDesc = p.seoDescription || `Buy the premium structural ${cleanName} at Triton Car Lifts. CE certified, local spares & support. Enquire for Rands price quote.`;
-                        return { ...p, seoTitle, seoDescription: seoDesc, seoScore: Math.max(p.seoScore || 0, 85) };
-                      });
-                      updateProducts(updated);
-                      addLog(`AUTO-FIX AUDITOR: Bulk optimized SEO metadata parameters for ${lowSeoProducts.length} items.`);
-                      alert(`Optimized SEO metadata and increased search engine indexing scores for ${lowSeoProducts.length} items!`);
-                    }
-                  });
-                }
-
-                // Check CE certification coverage
-                const nonSansLifts = currentProducts.filter(p => p.category === 'car-lift' && !(p.description || '').toLowerCase().includes('ce'));
-                if (nonSansLifts.length > 0) {
-                  errorsList.push({
-                    type: "CE Regulatory Safety Compliance",
-                    msg: `${nonSansLifts.length} lifting products are missing explicit European Conformity (CE) compliance certificates in their description.`,
-                    severity: "warning",
-                    actionLabel: "Inject Safety Guarantee",
-                    onAction: () => {
-                      const updated = currentProducts.map(p => {
-                        if (p.category === 'car-lift' && !(p.description || '').toLowerCase().includes('ce')) {
-                          return {
-                            ...p,
-                            description: p.description + "\n\nThis unit is fully certified and tested in compliance with European Conformity (CE) directives, including CE safety directives and related workshop garage equipment safety codes."
-                          };
-                        }
-                        return p;
-                      });
-                      updateProducts(updated);
-                      addLog(`AUTO-FIX AUDITOR: Injected CE Safety & Regulatory Certifications into ${nonSansLifts.length} car lifts.`);
-                      alert(`Successfully appended CE Safety Guarantee to ${nonSansLifts.length} car lifts!`);
-                    }
-                  });
-                }
-
-                const totalErrorsCount = errorsList.filter(e => e.severity === 'error').length;
-                const totalWarningsCount = errorsList.filter(e => e.severity === 'warning').length;
-                const complianceScore = Math.max(0, Math.min(100, 100 - (totalErrorsCount * 15) - (totalWarningsCount * 2)));
-
-                const downloadDiagnosticReport = () => {
-                  let report = `TRITON CAR LIFTS - PRE-DEPLOYMENT HEALTH DIAGNOSTICS REPORT\n`;
-                  report += `Generated at: ${new Date().toLocaleString()}\n`;
-                  report += `Compliance Score: ${complianceScore}%\n`;
-                  report += `========================================================\n\n`;
-                  
-                  report += `1. NAVIGATION & LINK INTEGRITY AUDIT:\n`;
-                  linksToAudit.forEach(l => {
-                    report += `[${l.status}] ${l.name} (${l.target}) - ${l.details}\n`;
-                  });
-                  
-                  report += `\n2. PRODUCT INTEGRITY & COMPLIANCE LOGS:\n`;
-                  if (errorsList.length === 0) {
-                    report += `All systems nominal. 100% database, link, and branding compliance checks PASSED.\n`;
-                  } else {
-                    errorsList.forEach((e, idx) => {
-                      report += `[${e.severity.toUpperCase()}] [${e.type}] ${e.msg}\n`;
-                    });
-                  }
-                  
-                  const blob = new Blob([report], { type: 'text/plain;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement("a");
-                  link.setAttribute("href", url);
-                  link.setAttribute("download", `triton_precheck_report_${new Date().toISOString().split('T')[0]}.txt`);
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  addLog("Audit Diagnostics Report downloaded successfully.");
-                };
-
-                return (
-                  <div className="space-y-6">
-                    {/* Top Alert Bar */}
-                    <div className="bg-[#111111] border border-neutral-800 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div>
-                        <h3 className="text-sm font-extrabold uppercase text-white tracking-wider flex items-center gap-2">
-                          <ShieldCheck size={16} className={complianceScore > 90 ? "text-green-500" : "text-amber-500"} />
-                          Pre-Check Deployment & Link Integrity Centre
-                        </h3>
-                        <p className="text-[11px] text-[#999999] mt-0.5 max-w-xl font-sans">
-                          CE and POPIA compliance checker. Validates that all system links, WooCommerce schemas, Rands pricing tables, and Triton rebranded assets are correct before final deployment.
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={downloadDiagnosticReport}
-                          className="px-3 py-1.5 bg-[#222] hover:bg-[#333] border border-neutral-700 text-neutral-300 rounded text-[10px] font-bold font-mono tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
-                        >
-                          <Printer size={12} />
-                          Download Report (.txt)
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Metric Highlights Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-[#0b0b0b] border border-neutral-900 rounded-lg p-4 text-center">
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-wider block font-bold">Compliance Level</span>
-                        <span className={`text-2xl font-mono font-extrabold block mt-1 ${complianceScore > 90 ? 'text-green-500' : 'text-amber-500'}`}>
-                          {complianceScore}%
-                        </span>
-                        <span className="text-[9px] text-neutral-600 font-mono mt-0.5 block">CE Standard Audit</span>
-                      </div>
-
-                      <div className="bg-[#0b0b0b] border border-neutral-900 rounded-lg p-4 text-center">
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-wider block font-bold">Active Links Checked</span>
-                        <span className="text-2xl font-mono font-extrabold text-white block mt-1">
-                          {linksToAudit.length}
-                        </span>
-                        <span className="text-[9px] text-green-500 font-mono mt-0.5 block">100% OPERATIONAL</span>
-                      </div>
-
-                      <div className="bg-[#0b0b0b] border border-neutral-900 rounded-lg p-4 text-center">
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-wider block font-bold">Critical Errors</span>
-                        <span className={`text-2xl font-mono font-extrabold block mt-1 ${totalErrorsCount > 0 ? 'text-red-500' : 'text-neutral-400'}`}>
-                          {totalErrorsCount}
-                        </span>
-                        <span className="text-[9px] text-neutral-600 font-mono mt-0.5 block">Blocks Production</span>
-                      </div>
-
-                      <div className="bg-[#0b0b0b] border border-neutral-900 rounded-lg p-4 text-center">
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-wider block font-bold">System Warnings</span>
-                        <span className={`text-2xl font-mono font-extrabold block mt-1 ${totalWarningsCount > 0 ? 'text-amber-500' : 'text-neutral-400'}`}>
-                          {totalWarningsCount}
-                        </span>
-                        <span className="text-[9px] text-neutral-600 font-mono mt-0.5 block">Optimisation Suggested</span>
-                      </div>
-                    </div>
-
-                    {/* Tab Body Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      
-                      {/* Left Side: System Error & Warning Tracker */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center px-1">
-                          <span className="text-[11px] text-white uppercase font-bold tracking-widest font-mono">System Integrity Errors & Warnings</span>
-                          <span className="text-[9px] text-neutral-500 font-mono">Real-time DB Scan</span>
-                        </div>
-
-                        <div className="bg-[#050505] border border-neutral-900 rounded-lg p-4 space-y-3 min-h-[320px]">
-                          {errorsList.length === 0 ? (
-                            <div className="h-[280px] flex flex-col items-center justify-center text-center p-6 space-y-2">
-                              <CheckCircle size={32} className="text-green-500 animate-bounce" />
-                              <h4 className="text-xs font-bold text-white uppercase tracking-wider">All Deployment Checks Passed</h4>
-                              <p className="text-[10px] text-neutral-500 max-w-xs font-sans leading-relaxed">
-                                No errors or warnings found in your local database, branding layout, or routing setups. The workspace is fully optimized for WooCommerce sync and production release.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              {errorsList.map((err, idx) => (
-                                <div 
-                                  key={idx} 
-                                  className={`p-3.5 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-colors ${
-                                    err.severity === 'error' 
-                                      ? 'bg-red-950/20 border-red-900/40 text-red-200' 
-                                      : 'bg-amber-950/20 border-amber-900/40 text-amber-200'
-                                  }`}
-                                >
-                                  <div className="space-y-1">
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded font-mono ${
-                                      err.severity === 'error' ? 'bg-red-900 text-white' : 'bg-amber-900 text-white'
-                                    }`}>
-                                      {err.severity.toUpperCase()} - {err.type}
-                                    </span>
-                                    <p className="text-[11px] font-sans leading-relaxed text-neutral-300">
-                                      {err.msg}
-                                    </p>
-                                    {(err as any).details && (
-                                      <p className="text-[9px] text-neutral-400 italic">
-                                        {(err as any).details}
-                                      </p>
-                                    )}
-                                  </div>
-
-                                  {err.onAction && (
-                                    <button
-                                      onClick={err.onAction}
-                                      className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded transition-colors shrink-0 cursor-pointer ${
-                                        err.severity === 'error'
-                                          ? 'bg-red-900 hover:bg-red-800 text-white'
-                                          : 'bg-amber-800 hover:bg-amber-700 text-white'
-                                      }`}
-                                    >
-                                      {err.actionLabel || 'Auto Fix'}
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Right Side: Links & Interactive Anchor Checklist */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center px-1">
-                          <span className="text-[11px] text-white uppercase font-bold tracking-widest font-mono">Routing & Link Verification Matrix</span>
-                          <span className="text-[9px] text-green-500 font-mono">100% Verified OK</span>
-                        </div>
-
-                        <div className="bg-[#050505] border border-neutral-900 rounded-lg p-4 space-y-2 h-[320px] overflow-y-auto">
-                          {linksToAudit.map((link, idx) => (
-                            <div key={idx} className="flex justify-between items-center py-2 px-3 bg-[#0a0a0a] border border-neutral-950 hover:border-neutral-900 rounded-md transition-all">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                <div className="min-w-0">
-                                  <span className="text-[11px] font-bold text-neutral-200 block truncate leading-tight">
-                                    {link.name}
-                                  </span>
-                                  <span className="text-[9px] text-neutral-500 font-mono block truncate">
-                                    {link.target}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <span className="text-[8px] font-extrabold uppercase font-mono tracking-widest text-green-500 bg-green-950/20 px-2 py-0.5 border border-green-900/30 rounded">
-                                  {link.status}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                );
-              })()}
-
-            </div>
-          </div>
-          )}
-
-            {/* Bottom action panel */}
-            <div className="bg-[#1a1a1a] p-4 border-t border-[#333333] flex justify-between items-center text-xs text-[#999999]">
-              <div className="flex items-center gap-1">
-                <ShieldCheck size={14} className="text-green-500" />
-                <span>Sandbox Connection Status: <strong>Secure SSL v3 Client</strong></span>
-              </div>
-              <div>
-                <button 
-                  onClick={() => { if (isFullPage && onBackToShop) { onBackToShop(); } else { setIsOpen(false); } }}
-                  className="px-4 py-2 bg-[#333333] hover:bg-[#444444] text-white font-bold rounded transition-colors cursor-pointer"
-                >
-                  {isFullPage ? "Exit Dashboard" : "Close Console"}
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* CUSTOM DELETE CONFIRMATION MODAL */}
-      {productToDeleteId && (() => {
-        const productBeingDeleted = currentProducts.find(p => p.id === productToDeleteId);
-        return (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-[#0f0f0f] border border-red-900/40 rounded-2xl max-w-sm w-full overflow-hidden shadow-[0_0_50px_rgba(239,68,68,0.15)] animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-6 text-center space-y-4">
-                <div className="w-14 h-14 bg-red-950/40 border border-red-900/30 rounded-full flex items-center justify-center mx-auto text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-                  <AlertCircle size={28} className="text-[#ff0000] animate-pulse" />
-                </div>
-                
-                <div className="space-y-1.5">
-                  <h3 className="text-sm font-extrabold uppercase text-white tracking-wide">
-                    Confirm Product Deletion
-                  </h3>
-                  <p className="text-xs text-neutral-400 font-sans leading-relaxed">
-                    Are you sure you want to delete <strong className="text-neutral-200 font-semibold">"{productBeingDeleted?.name || 'this product'}"</strong> from your live inventory database? This action is irreversible.
-                  </p>
-                </div>
-
-                {productBeingDeleted && (
-                  <div className="bg-[#070707] border border-neutral-900 rounded-xl p-3 flex items-center gap-3 text-left">
-                    <img 
-                      src={productBeingDeleted.image} 
-                      alt="" 
-                      className="w-10 h-10 object-cover rounded-md border border-neutral-800" 
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=150&auto=format&fit=crop';
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-white truncate">{productBeingDeleted.name}</p>
-                      <p className="text-[10px] text-neutral-500 font-mono mt-0.5">SKU: {productBeingDeleted.modelCode}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-[#141414] px-6 py-4 flex gap-3 border-t border-neutral-900">
-                <button
-                  type="button"
-                  onClick={handleCancelDelete}
-                  className="flex-1 px-4 py-2 bg-neutral-900 hover:bg-[#1a1a1a] border border-neutral-800 hover:border-neutral-750 text-neutral-300 hover:text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                >
-                  No, Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-550 text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.2)] flex items-center justify-center gap-1"
-                >
-                  <Trash2 size={11} /> Confirm Yes
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* TRITON PROJECT ASSET LIBRARY PICKER MODAL */}
-      {isAssetPickerOpen && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[10000] flex items-center justify-center p-4 md:p-6 select-none animate-in fade-in duration-200">
-          <div className="bg-[#0f0f0f] border border-neutral-800 rounded-xl max-w-5xl w-full h-[90vh] md:h-[80vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-            
-            {/* Header */}
-            <div className="bg-[#141414] px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></div>
-                <h3 className="text-sm font-black uppercase text-white tracking-widest font-sans flex items-center gap-2">
-                  <ImageIcon size={14} className="text-red-500" />
-                  Triton Asset Library Manager
-                </h3>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsAssetPickerOpen(false)}
-                className="p-1.5 hover:bg-neutral-800 rounded-md text-neutral-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Filter and Search Bar */}
-            <div className="bg-[#111111] px-6 py-3 border-b border-neutral-900 flex flex-col md:flex-row gap-3 justify-between items-center">
-              <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
-                {['all', 'car-lift', 'spray-booth', 'wheel-care', 'welder', 'workshop-equipment'].map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setAssetFilterCategory(cat)}
-                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md border transition-all cursor-pointer ${
-                      assetFilterCategory === cat
-                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
-                        : 'bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-400 hover:text-neutral-200'
-                    }`}
-                  >
-                    {cat === 'all' ? 'All Assets' : cat.replace('-', ' ')}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <div className="relative w-full md:w-64">
-                  <input
-                    type="text"
-                    placeholder="Search local images..."
-                    value={assetSearchQuery}
-                    onChange={(e) => setAssetSearchQuery(e.target.value)}
-                    className="w-full bg-[#161616] border border-neutral-800 rounded-md text-xs font-mono text-white pl-8 pr-3 py-1.5 outline-none focus:border-red-600 placeholder-neutral-600"
-                  />
-                  <Search size={12} className="absolute left-2.5 top-2.5 text-neutral-500" />
-                  {assetSearchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setAssetSearchQuery('')}
-                      className="absolute right-2.5 top-2 text-neutral-400 hover:text-white text-xs font-mono cursor-pointer"
-                    >
-                      clear
-                    </button>
-                  )}
-                </div>
-
-                <label className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase rounded-md border border-indigo-500 hover:border-indigo-400 transition-all cursor-pointer shadow-[0_0_15px_rgba(79,70,229,0.25)] select-none">
-                  <Upload size={11} />
-                  Upload To Library
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => {
-                      const files = e.target.files;
-                      if (files) {
-                        for (let i = 0; i < files.length; i++) {
-                          const file = files.item(i);
-                          if (file) {
-                            handleUploadToLibrary(file);
-                          }
-                        }
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Content Area */}
-            <div className="flex-1 flex overflow-hidden">
-              
-              {/* Asset Grid */}
-              <div className="flex-1 p-6 overflow-y-auto bg-[#090909] custom-scrollbar">
-                {(() => {
-                  const allLibraryAssets = [...PROJECT_ASSET_IMAGES, ...customAssets];
-                  const filteredAssets = allLibraryAssets.filter(img => {
-                    const matchesCategory = assetFilterCategory === 'all' || img.category === assetFilterCategory;
-                    const matchesSearch = img.label.toLowerCase().includes(assetSearchQuery.toLowerCase()) || 
-                                          img.path.toLowerCase().includes(assetSearchQuery.toLowerCase());
-                    return matchesCategory && matchesSearch;
-                  });
-
-                  if (filteredAssets.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-3">
-                        <ImageIcon size={48} className="text-neutral-800" />
-                        <p className="text-xs text-neutral-500 italic">No matching workshop assets found in local workspace.</p>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {filteredAssets.map((asset) => {
-                        const isSelected = editedProduct && (
-                          assetPickerTarget === 'primary' 
-                            ? editedProduct.image === asset.path
-                            : editedProduct.images?.[assetPickerTarget] === asset.path
-                        );
-                        
-                        return (
-                          <div 
-                            key={asset.path}
-                            onClick={() => {
-                              if (editedProduct) {
-                                if (assetPickerTarget === 'primary') {
-                                  setEditedProduct({ ...editedProduct, image: asset.path });
-                                } else {
-                                  const imgs = [...(editedProduct.images || [])];
-                                  imgs[assetPickerTarget] = asset.path;
-                                  setEditedProduct({ ...editedProduct, images: imgs });
-                                }
-                              }
-                            }}
-                            onDoubleClick={() => handleSelectAssetImage(asset.path)}
-                            className={`group relative aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all ${
-                              isSelected 
-                                ? 'border-indigo-600 bg-indigo-950/10 shadow-[0_0_15px_rgba(79,70,229,0.2)] scale-[0.98]'
-                                : 'border-neutral-900 hover:border-neutral-700 bg-neutral-950 hover:scale-[1.02]'
-                            }`}
-                          >
-                            <img 
-                              src={asset.path} 
-                              alt={asset.label}
-                              className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                            />
-                            
-                            {/* Overlay tag */}
-                            <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-sm p-1.5 border-t border-neutral-900 transition-opacity">
-                              <p className="text-[9px] font-sans text-neutral-300 truncate font-semibold flex items-center gap-1" title={asset.label}>
-                                {asset.isCustom && <span className="text-[7px] bg-indigo-900/80 text-indigo-200 px-1 py-0.2 rounded font-mono font-bold tracking-tight">custom</span>}
-                                {asset.label}
-                              </p>
-                              <p className="text-[8px] font-mono text-neutral-500 truncate mt-0.5">
-                                {asset.isCustom ? 'Uploaded File' : asset.path.split('/').pop()}
-                              </p>
-                            </div>
-
-                            {/* Active Select Indicator */}
-                            {isSelected && (
-                              <div className="absolute top-2 right-2 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center border border-indigo-500 shadow-md z-10">
-                                <Check size={11} strokeWidth={4} />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Selection Sidebar Details */}
-              <div className="w-80 bg-[#0d0d0d] border-l border-neutral-900 p-6 flex flex-col justify-between overflow-y-auto hidden md:flex">
-                {(() => {
-                  const currentSelectedPath = editedProduct && (
-                    assetPickerTarget === 'primary'
-                      ? editedProduct.image
-                      : editedProduct.images?.[assetPickerTarget]
-                  );
-                  const allLibraryAssets = [...PROJECT_ASSET_IMAGES, ...customAssets];
-                  const matchedAsset = allLibraryAssets.find(img => img.path === currentSelectedPath);
-
-                  if (!matchedAsset) {
-                    return (
-                      <div className="flex-1 flex flex-col items-center justify-center text-center text-neutral-500 space-y-2">
-                        <ImageIcon size={32} className="text-neutral-800 animate-pulse" />
-                        <span className="text-[10px] uppercase font-bold tracking-wider">Select an Asset</span>
-                        <p className="text-[9.5px] text-neutral-600 leading-relaxed italic max-w-[200px]">
-                          Select an image from the library grid to view high-resolution specs, filepath mapping, and attachment options.
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  const mimeTypeStr = matchedAsset.isCustom 
-                    ? (matchedAsset.path.match(/data:([^;]+);/) ? matchedAsset.path.match(/data:([^;]+);/)?.[1] : 'image/png')
-                    : (matchedAsset.path.endsWith('.png') ? 'image/png' : 'image/jpeg');
-
-                  return (
-                    <div className="space-y-5 flex-1 flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <span className="text-[9px] uppercase font-black text-indigo-500 tracking-widest font-mono">Asset Attachment Inspector</span>
-                        <div className="aspect-square rounded border border-neutral-800 overflow-hidden bg-black flex items-center justify-center relative group">
-                          <img 
-                            src={matchedAsset.path} 
-                            alt={matchedAsset.label} 
-                            className="max-w-full max-h-full object-contain"
-                          />
-                        </div>
-                        <div className="space-y-2.5 font-sans">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="text-[8px] uppercase font-bold text-neutral-500 font-mono">Asset Label</span>
-                              <p className="text-xs text-white font-bold tracking-tight">{matchedAsset.label}</p>
-                            </div>
-                            {matchedAsset.isCustom && (
-                              <span className="text-[8px] bg-indigo-950 text-indigo-400 border border-indigo-900 px-1.5 py-0.5 rounded font-mono uppercase font-bold">Uploaded</span>
-                            )}
-                          </div>
-                          <div>
-                            <span className="text-[8px] uppercase font-bold text-neutral-500 font-mono">Relative Workspace Path</span>
-                            <p className="text-[10px] text-neutral-300 font-mono select-all break-all bg-neutral-950 px-2 py-1.5 rounded border border-neutral-900 mt-1">
-                              {matchedAsset.isCustom ? 'Base64 Encoded Stream' : matchedAsset.path}
-                            </p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <span className="text-[8px] uppercase font-bold text-neutral-500 font-mono">Category ID</span>
-                              <p className="text-[10px] text-indigo-400 uppercase font-bold font-mono bg-indigo-950 px-1.5 py-0.5 rounded mt-0.5 inline-block">{matchedAsset.category}</p>
-                            </div>
-                            <div>
-                              <span className="text-[8px] uppercase font-bold text-neutral-500 font-mono">Mime Type</span>
-                              <p className="text-[10px] text-neutral-400 font-mono mt-0.5">{mimeTypeStr}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4 border-t border-neutral-900 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => handleSelectAssetImage(matchedAsset.path)}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.25)] flex items-center justify-center gap-1.5"
-                        >
-                          <CheckCircle size={12} /> Confirm Attachment
-                        </button>
-                        {matchedAsset.isCustom && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = customAssets.filter(a => a.path !== matchedAsset.path);
-                              setCustomAssets(updated);
-                              try {
-                                localStorage.setItem('triton_custom_assets', JSON.stringify(updated));
-                              } catch(e) {}
-                              addLog(`üìÇ [Media Library] Deleted custom asset '${matchedAsset.label}'`);
-                            }}
-                            className="w-full py-1.5 bg-red-950/20 hover:bg-red-900 border border-red-900/30 hover:border-red-500 text-red-400 hover:text-white rounded text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1"
-                          >
-                            <Trash2 size={11} /> Remove From Library
-                          </button>
-                        )}
-                        <p className="text-[8px] text-center text-neutral-500 italic font-mono">
-                          Tip: Double click on any grid asset thumbnail for quick attachment mapping.
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-            </div>
-
-            {/* Footer */}
-            <div className="bg-[#141414] px-6 py-4 border-t border-neutral-900 flex justify-between items-center">
-              <span className="text-[10px] text-neutral-500 font-mono font-bold uppercase tracking-wider">
-                Target: {assetPickerTarget === 'primary' ? 'Primary Cover Image Node' : `Secondary Gallery Slot ${assetPickerTarget + 1}`}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAssetPickerOpen(false)}
-                  className="px-4 py-1.5 bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-neutral-400 hover:text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const selectedPath = editedProduct && (
-                      assetPickerTarget === 'primary'
-                        ? editedProduct.image
-                        : editedProduct.images?.[assetPickerTarget]
-                    );
-                    if (selectedPath) {
-                      handleSelectAssetImage(selectedPath);
-                    }
-                  }}
-                  disabled={!editedProduct || !(assetPickerTarget === 'primary' ? editedProduct.image : editedProduct.images?.[assetPickerTarget])}
-                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-900 disabled:text-neutral-600 disabled:border-neutral-950 text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <Plus size={11} /> Map Selected Image
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* DEFAULT IMAGES TO WORDPRESS MIGRATION SUMMARY DIALOG */}
-      {defaultImagesMigrationSummary && (
-        <div className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#121212] border border-neutral-800 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="p-5 border-b border-neutral-800 bg-[#181818] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-400">
-                  <CheckCircle size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white uppercase tracking-wider">
-                    Default Images to WordPress Migration Summary
-                  </h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    WordPress Media Library upload summary
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDefaultImagesMigrationSummary(null)}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              {/* Metric Cards */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-4 rounded-lg bg-neutral-900/90 border border-neutral-800 text-center">
-                  <span className="text-2xl font-black text-emerald-400 font-mono">
-                    {defaultImagesMigrationSummary.uploaded}
-                  </span>
-                  <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-wider mt-1">
-                    Images Uploaded
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg bg-neutral-900/90 border border-neutral-800 text-center">
-                  <span className="text-2xl font-black text-blue-400 font-mono">
-                    {defaultImagesMigrationSummary.replaced}
-                  </span>
-                  <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-wider mt-1">
-                    Catalog Paths Replaced
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg bg-neutral-900/90 border border-neutral-800 text-center">
-                  <span className="text-2xl font-black text-purple-400 font-mono">
-                    {Object.keys(defaultImagesMigrationSummary.map || {}).length}
-                  </span>
-                  <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-wider mt-1">
-                    Total Mapped Files
-                  </p>
-                </div>
-              </div>
-
-              {/* Mapped Files Details */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-300">
-                    Filename ‚Üí Returned WordPress URL Map ({Object.keys(defaultImagesMigrationSummary.map || {}).length})
-                  </h4>
-                  <span className="text-[10px] text-neutral-500 font-mono">Saved in WordPress Catalog</span>
-                </div>
-
-                <div className="border border-neutral-800 rounded-lg overflow-hidden bg-black/60 max-h-64 overflow-y-auto divide-y divide-neutral-900">
-                  {(Object.entries(defaultImagesMigrationSummary.map || {}) as [string, string][]).map(([filename, url]) => (
-                    <div key={filename} className="p-2.5 flex items-center justify-between gap-3 text-xs hover:bg-neutral-900/50">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="font-mono text-neutral-200 font-semibold truncate shrink-0 max-w-[200px]" title={filename}>
-                          {filename}
-                        </span>
-                        <span className="text-neutral-600">‚Üí</span>
-                        <span className="font-mono text-emerald-400/90 truncate text-[11px] flex-1" title={url}>
-                          {url}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(url);
-                            setCopiedBlobKey(filename);
-                            setTimeout(() => setCopiedBlobKey(null), 2000);
-                          }}
-                          className="p-1 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                          title="Copy WordPress URL"
-                        >
-                          {copiedBlobKey === filename ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                        </button>
-                        {url.startsWith('http') && (
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
-                            title="Open image in new tab"
-                          >
-                            <ExternalLink size={13} />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-neutral-800 bg-[#181818] flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setDefaultImagesMigrationSummary(null)}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
-              >
-                Close Summary
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+                                <span className="text-[9px] font-mono bg-neutral-800 border border-neutral-700 text-neutral-400 px-2 py-0.5 rounded-fulxúÏ}{W€H“˜ˇœßËavÉŸÉçm0!,∞/2√Ÿ‹`&˚úg"€m[Ÿ“Hr¿À›ﬂ™Óñ‘∫v∑l»e#v3`Î“ÍÆÆ{˝ !sœ£˛¿
+Ë⁄—ˇÂqgB˚Ω§Ó[ﬂŒ!˘…~‘X!ª˛ÇÏìıüËå˙ñ≥~Øº˘¡V‡Y3’ ∂Üˆß£ˇQù'ëÅc¡kkJ◊‡Œ⁄\4ª≠ôZ∑ÕIÛ}wØÌ›^˜ıGé{_ZÛ–%Éy∫”f0]«È[>Ò¸fGcjÓçrxDÓ4&q‡ŒÇêD≥ÙO∫ áπI$˜!0˘çÚŸ?<<$ÎÀo:ˆ(\'˛Y±RÏ‹¿Û≠E≥Ô∫·DÁÙÍ©øÆ5P>ÿÚjﬂdø‡çg∞∆≠–}ÈﬁPˇ(π±—≤gg>§AÉçr}ç©rHG÷‹	◊76¥,]ÒwÌıÊ„1B:Ñæq˝a ´|˘Êó´ü?~qq~r¸˙˜ì7Øﬁû]ù_ùˇzˆ˚?œ˛Ô›õã”À˜Y\„"h\Ó˙Ô™çÅáO√π?ÀèØ5µºF„„Õ&±gCz´MŒ—€¡…‹˜È,|·¬.Ç∑®+Ó}>ÛÊafâBﬂû‚ûR˙x”˙»O,<GgŒìAúœ˛MÅBfcÅ˝.∆ëyö÷t≈÷–$R∆|¥	Ürx«&¸^ˇ¢Ñµ›}ö€ƒwÁpáa”ì>ºıIË[≥¿mw÷¥áåzÀ˛i\áLá˚ÏwﬂΩ¡ﬂÌêNÉÊ V.¸70@{lÄÜ7îŒ»ÿ¬ÑÙ6l:tíøËë?2$ap%≤ãı˛∏π†rÁgΩˆV∑-^.˙p∑›ﬁ⁄iì`b·Ø˜Ìﬂ€øw∫ﬁÌÔ˛∏o5∫ùßõùŒ≥Õ›Õv´≥qΩnˆ}ˆ˜?∂ü‚œuÙ‡ù√ƒ:ÕΩ^õLPtÏgæx⁄kÎ3ƒ˚j©»—Ãè2…◊A…gœö7Õ6ß°V~[FO)∫A:ÈÚ[ﬂ¯ñgtw∏? ˛‘‹Yÿú∫3óìﬁm@ÿ'ù⁄}◊ÚO£YÔ¥Å4|j}lrFP∂=æ·0@é'‹Awqƒh©/ôáeˆ«ì'⁄L&~lv‚ÿƒºﬂC›&Ÿ>∏S‚ÌìŸE=¯nªÕ'T|¥ÛÈ›2öÒÕv´1ælbΩYÕ‡#ÿÊç∑5ûqBéô@'Wñ?¶°È˚◊òˆìï
+ß˛ÀÓ™xÂ˜◊-pb¸/lgæ^Ôü·:gˆJ¥+`óﬁÖÖ€‹åuﬁ85–ÙW◊ôOÈ~ùıƒ˚áæøÏ	€¯‹⁄üÿSÓ·)Ï√È©16ˆÊGøÕªÌn∑ˆıüiINﬁû<Ùzº¡˜≈–Zås∏˝,|Ëı∞ŸSæ/â÷íú⁄£ë= √kQ{Y“œ∏˚ê»W#=õ∞~√xH‹Fcj5i6x:EWÃZ¡ßø¢C{>MÆ∞¶}Pƒ˘¸#üÚét]s≈‡.5D3}¨&9_c®Ë˘Ø§Û5Ô`‚€≥è†‹ÉÓ;j“Ÿ;ˆ;?ÕL€Ôœ√–ùÕ\∏`x¸¬5£+›Ÿâc>ﬁÈ{–‰#†·e⁄—–HtxMﬂAˆnØ]∞ÅÌÅÖˆs√|#‚\¿~	ÊÉÇıMÛ¿N€'"Ø≈⁄_d≥dç8ÆÖ ∏êpBÖWçpÇ+—?|0›ûu&Í ûR¶õØ[¡ÃÕÊé≥±I@∫¥Ôo∂Ÿ•vKó€-hæ0#æc·œud±„G]Æ3Qlﬁ∑ÀÕ{íú‚LˆÒÕ∂¶∞T≠Y ôKí∫ûXNëUïq÷Ê~‡˙MœµŸŒ5€ÜvË¿,\“h√à öàVFåH¢GÆO>Yé=dÀE:¯ò<œåπ˛Ô∂9π4≤Ò∂8K1`ôèÕøÜv`ı:<sûá;–„(ú”∞%ÃH9√'÷lËPq[ö‹TÊq´€+âª Ÿ,âõ ~S¸XvÖ≈ügu$Nˆ}«ÇuœÓ
+ˆaÂ∂(QÂ"áﬂt()˛ñ|ùˆÏ©„yËNampøÒÈçèõ}JCãüA`©»êﬂˆÿ~∫±√Iz~≤-r|˛p;ÏNvˇ√‹ôdÆ¢\–ëOÉ……	ÏˇÄ
+€iﬂÀ$fÕlò3⁄<{∂F∂j8á<œY¿Î¥Z-c˝œ–-Ñ¡•Gò±KœÚ?:4ê&¨ŒºúÛ©!O» ∑)‹Î°Á«ÃmÒm˝+iÉìµ4˝Á~£°úçqÈX w[#ógo»„+L©%€™~xÖÁ_©¸ZŸHêÃâ5Ãâ«ÍS'gAﬂ≤Îò±ˇü±„ZVó2>eúåW»i˘åº∂Ô√7[Ï!É…Y⁄¸—ùv⁄Åjh‘e‚ÒMáŒ∆¿Òè	»ƒ'Oäø=8$ªm›Ë~Å›Æ∞.a„jG˝ÁüeW>mÎ≈ ìaOâDÄ7w™Î7à‹âˆ°æR”«pWÙÜ ¥&ñê7†ˆa2@ìPø≤Q÷ä‚$«£|"WTqr‘z(˜s ˆ‘´π8®††vé·¬ïLª‰⁄
+Ÿ4µÿ4É⁄ù∏òÄ{Ô/π4"ñ√qOö‰lJ–€\Püê+:òÃPﬂ"ó‰O•≥≠Å€˙è•@ï¯œMs))ÏF ÜÏ∏.1ˇ"çòòdÔaÄ‹Ûõ{rÏb«û—ÊÃù	´k?~∆hq˚Z“à%eu‡:ÆØ4¬î¢%¨"∞Q‘õÉ–Á˚ÿÛ›1®kh¢¡Ê3úTÇ%/‰âÏP¸Å	c6D4Ï˚8∑jbát¶#34S'dF>·ÀË˚√πœåZf°k˙RÎrs}æ31s-é∆èRn˛T˜——√ë%<8 É0a¬åÎ¨a.¿™∫ª3iNˆ	pÖWV8iMÌY£”noñà©-Ú¥∑A˛F‡îç˚ø~–Ò)7Àäµ6¶®úJÜ‡wÓ®p^æ 5áï›˜ùn¥Òsﬂ¬æÔ<íóY¢≈Â«≈Õµ∏Ç;{µ¥∏ﬁ™≈eﬂ0ßƒ¡d4;è≠∆·[>µ¥≥¯Ej+gÒÃu3ﬂΩ	Ô∂Mï∏ühH¨~‡:sTÅ|{ ª}ì‹©ÁP¯$ ççJ√`ìy∆`Ö@!¢>∫¶&ˆx‚¿ˇ√Ä˘†ÀÙ¡9°>∆Ëê	ÙæÌÿ·ÇXaV$'ñG…ï{3k}9*·Í¥A*õ˝qπC≠!2Vü:÷->¶¶àk%;8øké‚®+@Es,ñﬂ∫Êò{Î-“ïÒ≥ié *Œ¿-˙ˆ¯‚äúÏ£ﬂw+Ú¯Ú∞›pÃ“åO4_ÿ@¬oÿˆ˚3ª7+ò`ƒÌû¡ñà6Í≠\náDZÍ∂RK’Ke–“v≥.Ùù˚úöö§≤jÑ&;Ez.c…;HûL k6úUwõww≠πò;¥˘Æ2√ ΩBË≤˜∂&;K“è"ÂÙ¿Àßs}9≠KDPV»®&íe\ìëÔNYúyÀmıM‡∞8;†xx,®†Jd,¬öC–jxx⁄Y0!£ïØ∂ñ◊¶Óê:'œ˝Zú¬∂Øò]Oa’e…v¡P8Õ&⁄$Ú›mÂÑ·ñÊ€îtˆıÖ<!ó†,L»Ò4*K$uh»YÕà∑YîªFfØ¬AÌÌhhVPŸ∆ÀµTπ∆zc}„}˚⁄†Œ'ÁäÊ?Ìæ|"ˇ$Wæ/˝¡‡)âN˝·„ÜûOßˆ|*QwÍ·ç=6°»‘[˘ `ò>yâÍ+π<nëÁs€	›Sï«◊ˇL\è÷àÇækÉz2§íéK~µÈM¢j}ÎvW–“{9çS∂∂p
+‚∞5∆Ã–◊ÅK;çÀÌë~]‚Üf¬WAöóY!`0∞É¿ıy-†¯É“»}6˛á^∏V
+ƒÄ∆{ 5ïKº*ø˜1b˝'NÌ1%ìzT[ˆF¶∑ÿëJ›ä≤πåÕ¥åMñî¥U¶ä ´wÁûäWj(b8SΩëËŸº±ÿHLÎd⁄«ÃÊó.ÜH@πò∏¿^L§’é‰E„vhVÀâ¥Ç`6Ûyiñ$øâ2≠µ£C>V∑†~P{Ñœ*ÿÀp‚‰pWÍ`œZﬁd—"†ç¿‘»;¨ıgú≥>!?YÛl∞∂«®>∑4Ü©ùû&…˚ÓæÿB7Iú0à¸ºÔÚ>>Úû«üê∑‹ˇã˘"óR"äk*≈/îÑÁ¸	Oó€BKHñ÷7RZ‰gPù…sã9Ω<ﬂ— #£@5LC@√9˜1É&Ò•»YøiZ`Î‰·|#ıƒàî…Y(G¢ÕÙ“ZÄÍ¸Eâël& ì˛Ú9ƒ#[‡z†è;`]6CÀvÇH§‡Á~oj˘É	}0≤&£;ù¬2€0%Á≥?Ê∂ø¯.<≤G^xÄ˛ëHâøô°û4ûÉF¿Ñ	6jJâS; 53áFÔ7Hñ c∑fÑR0åyÅiPRFÎ7ñ<%\l¢óÕßBºpà‚∞]ö
+´CQ6|[‰åQ%°;¥´<˛CX*{,3±®Ñ-™ñH˛Œ¯k2~)Ú\Ã˘ôZNxâÈ≈˜ﬂM\áñCe~D5u?Ûgç¥Õî∞ènyÓ∫|˝«‹Ö7ÈsÿıÜºø˙,Ω‹ì73⁄ éXD0µ¸0Ú≤À·Sãà¨À”õ›h£ÑE1ÅT∫	r‘}4ê/L$ê„ªØ\$Ò˚è®ŒÅ°_Ò="˙£á•_J˘ öy(•∑Çw–LHYó<˚‘˙¥‡qyÿüÀÇº¢ZYµdw,0„’Qª\eQXSûü›zéãÚsBcp˙$xsáå
+ƒ∏ò◊}¯\^k¯™”nˇ5û¥!Ï±(ròß‹yÓ•æ,‚c_/™ú√ 2CWj˙±àFs‰bA}⁄∂˝ |«¿∂í}T%˚ıW%≠m¿‘Fè∫/“9 Ä˛A÷#∑Ø	 ∆¡˘o˚1ñú¶'A˚k‘◊™5Êı≈Î,<Ÿg·…?Xm&+fÖRlI–sΩπ√˛≤y§éÂ™√Z√<?h≈ˆuwﬂä´äÕîFÔŸ©Í·å^àm≥„:_˘[^NúSÜ2ÂêIîYV¶Ùk"3JgZ%]^˚îŸºä˜âdUñÌ√HˇÂÎrukq5íÏ™hLÚÀd´nw ™n€ı™nÎìY§›•S5öÓJñN≥∂U≥:3_√⁄YæÜUdx†Ãf‚˝'–f∂^´Ne¶nµ™ÓdSj:⁄U©—ÜêﬂìüØÍ=’%ó6îÚù,¨”}ñÕsÇp	é*œØC,¨&yâX«`.[ei›eR’ Ä´ÕŸÍÍ‰ZU§FUeEÂ}º‡≥lk6¿à€)÷zÖãxæ‘ŸP |ún:ß«8’éÇÛ{ä’”…X5ËWºXU¨∞¶j∆@8≤?%9ï ªzœä„◊œgº¬Vs∞#ÀvƒïØÏ ‡>HqùPÁ)fSéÜ[ÌOrFs¬Ò©KÕ7ª¡ÁôÓ_.^÷õÌúÂeg±üı&ΩÂSVñ–ÿ"[„M≤ﬁ\ﬂÿ(ƒ./â7.ÒòöÀ}ÈÃ«K-7ª¡ÁYnŒ–^2ø”2¸Lø∂≤Œ$≥“m^
+d<—˛RUÆ´ıPL≠Ê¨◊™K®3Î¢÷j©y/)Ë“övÂ9◊‡≠öMb9¿Ωñ
+ç«iﬁﬁó∆ò<¶YPÂ SìÑ◊xj‚Û4ˆ ¢@≈˘›ÈÚÃ´∞‚ò≠›·µÒ›kÖY‚I™ÃÓ/≤ YÄÖ‰„GÃw406LmC˛l° °˘0˝ˇƒˆ¿±èr±∑§—©äT∫q¥d“Üº7E≤‘G2√I2õ”cá˙°rN%á…Jß4πo4£Éz»È‘ÉU“F<“<qcÖXFOπWY‘«,úÄImÅ·&Ù≈‘3≥“%∆lò°G*cï{JHt=W§â#“8…√(so»¸ÌáËb√BëÂmZ<›x&¶®{†\≥ÄFÅ“≠õì.z†Ëb°∂Z-Oˆ4“∑2J¢¡Â¶@ZÁ1∏´¥¿~∂uç÷mÓWì%œµßI¶>áRD=AW÷I’H	∏[t]J±ÄÉE∏¢LnÈöX∞ÀKƒ<—'Î¸tÒqH˚~≠E.CtLÇBÿÅà^aÑSéªä÷lÿwo[jSg≤‚W;:Ò+eÙ*W`QÖm"ß†<•
+bπX=ìS‚›SD†Ú±Ä§/œéw˚{ßuÊÈÏnvˆzõùÓ≥Õv´ªq]Õ@’µ†(7í:P•‹eÁGp$∞™q4cX_Äÿ»%L¨Î‘Ìd”.JóÈ\˜]ÙeéDÙ·ﬁŸ3:¨+ˆÍ‹ -Û‚;|óvè%Ì‡°¨n>±€%¢ï_Ú ∫"˘&ï:≤k'ñ]èês±JA∑§¸∫pQG9‹ò±ãà^N9Ωh ∞™s™√üïñ^µG†0f9Õ ≤∞SÀN7Â4À˚µR›´úNÿo“|ÙÎ›^WöÇŸÄ¯v7Ôá`Tyç9‘›´PÖ;¢¿çL≥Y€2ÂfRªëÜ◊é^ª±Ã;ﬁ—°¬]W‹€ÇËdü¸gÅÓ`≈èãq∞ﬁ†œJßFéë¬ã0%k*î,"  i—’dVÃPJØ)˘¢ÿ'ÅÓÁÀyˇ ÍÛ‹ø±„ˆ-gΩ<$øı7Ú;áΩÁeƒØ9'€*Á“˚`7ˆÔJÂÂÅm3≤ÜÏø1ÜQ∑¬·QÚq)a≈v9òlW)wÓÏ‘ù˜j†—¢Ïô∏7ó∏ô-Ô uù†ÒCê˘D!Ç¨·•;n¨˝ˆà´Œ®◊}Jƒ’¿6?Q«Ö=EﬁZ3Í Èé«Â ˝säÅYÄ„˙·`∂÷*V)Î‘[ùK≤≤ñä“~ÃöXº—%√ìcÑºl++∫ïulG√\à)…œﬁÂ>*øk/í7æ˝â;ŸcA∏b≤]Aáj˛∂#Û∑J	àß~è,Ïs¬k˚DR6„oÕ–äû8µÄlnh&ûní9¶LﬁL`Ú>Ÿ3∑Ÿ9wJ=kÃ¸ù"ÂÿIÉ	TX”Ö34»Z§qe{˚$µ:¡U≤ò˙/–OQ…G9ÚaÆ÷–i˚ìÎ¬v¶«¶‚rfÂb›≈óÑQL1Yÿ≠Ç.„2Uô:≈t™:˘î$?UÁï∑ÊÃ6P.FYB,Ω…6WÊe1^ı\>–~u…‘µu≤πä€≈fÒSãwL∞´¨ò‘ÜÛBeãSRa˙•CäzïÇ˙cA¶ryvÒVÖ˛©â˝YFK„Õ
+Z∏sü≥«ö±Õx√Ö1≈
+æ·ÍÚﬁù∏Öc§—\¿^{ée  WUDsub>E;#ïáË!)*·j2§¢0f‰˙û†ûW`P7÷Å·~]o›(Ø˚ÓÉ‘N)◊ûóÌ©ﬂW…*ÙôSMT„‘kqµ6z5	÷q7Ìéª+%=eNêµøµ }Á®∑…)∂íºıöŒ|6¬ö∫}€°ﬂ"]â7˚ »ÍıJ®jE	ÊâÓ$ƒ€s˜ñ©ñëTãÏL≥ y5haß+4Ñ¯Ï‡ÜpØ&ä“ÊûA^S	 |∂'úN.SîeŒ'ÓÁ‘_$Û©â1ü}-¿DœÎ≤JLåÑ&;€Œ¿Œ¯3o¶ï…¢Ÿ+∆¨[ååHŒﬂ%û=6ô:ﬁ¸xÚ¢€ô#ïß!»◊Æ‡›"sv†%g¿Dc!∆å∏ÒV´•3F·ÍÆ°'î∆'ºÔ‘|™±’%«h`_X¡ä©ÎS¯!‰´^ìÛ∆õEÇ∂ò¬÷uD-E;’GäÅıa5œÄrÅÛìöôïˇ2Ì®ﬂ|ÔQí¿™Ö≈â≥∑0∂cFaÑ©qOk/‘Ä÷’»ëÕ-ft
+ﬂ˘kGoYÌ≥œYÃæFBÏ›˚Ntì¨GpÆ¯{á∏.≤ë=0ÚL≤ëı[€∆	À⁄RBÍÔ@|?≠=òiKã⁄n;*¡é¯Æå‚SË7◊g≈U∫')§ôH….◊†u9∞V{ú8ıºÈÓtU∂Á™¥◊≥ã∑±#F T1¥˛!°∑÷ t)Ø≈¯Ù^≥';ˆ …@◊sß2óU{≥¢}ôZ¿”öÔw€â¸G=Pß*fã¨ûê÷'{ Bïï©AﬁtÒˆªëj“çáˆ˛«˛p–Ï^ß”Ôç¸ZE≠?zd“d;öÌ≤≠Lœe¡ÄdGˆ◊é7Ï⁄—ï~Œ¥^k›"çb'ÎèCk8†Qßó)"íåò¸Gg—¡MíŒãöC`Û∑vÙƒ¨?ÊÓﬂó¬˚˜⁄{ª{˝k˘U¯+Œ\jÅ ùÑ°ÏomeöˆË?[s5O√-≈Ÿœ¡Óà{1{Ä˚Î„Üﬁ+(ç~ﬂmK˚hœÍÔåˆÆS`gHÚ>€ƒ“$•UznŒäo
+ˆ`D;˛|Ü—£¨Hí‰Ÿ˚≠ˆ†7TÁ:ƒ3„SÁŒ?GFbÑ^≈wSßÚ±s=á{èêΩKÈ]Ñvˆ«‹ˆ¶òìõhIöÖh≈ á∆µ™âNM∫ê~"!∑∏”¢£¢–¬N;]9‰~6√~≥¶¿–{©„‰Qæ“`-Eò≈›Ê[7Ä–ˇ5“ãÉM2Ñımr¨!	‹>ÇP∆(‹Søk	É"c*ZP•†ê«ñoç)G@ñq/ø“—@ TÚ,ùz+ÂcßõV>0Ø™ºJqk7úh)‹ü 9*áa*Àh+ù¸ˆ®©ïÏÄV≤≥¨V≤˜ ZIN‡F?ïŸ+kG5%¨Å‡+ÃÂgìÙÌÒ&Añ£µ%gÁiÅ‰îÂ]
+ôSÊxÂÒçÔ¢ÖUñI•(T˚äÿxøãBv|¢∞“_P}}Â◊Íî'∂¨yJ˘ä”öJø∏Kßòrû[µãÍvê^u˜Ëïvé3¿ÍŸhEÚ†StCœôTú√‡L‘!ëz›¢˜+G'FW«<´Ú.OµöGÀç£wÍ4é6m≠—0˙Æ¸Ωr=£zLıã™ı*µ?U¿’›ä†m¡+V≥Â¢PÌO˘õòÖi”⁄z™NıÎ~u›õ´^ß∫J‰1ö'Î4N^}”‰UR=^dﬁ8Y¡KüÍ¢≠∑M6mô¨—.Y›*π‚]∑»”ûA√‰jZ÷RŒtU!]≥‚õWà§â¯ÏjQ“X˘9oÏ‘¢Ç.Ë≠(?66|Y+*n•n™ıæ8≠®w-Qä∏€√´E¯éñO´A≤O<¸%û¡HﬂÒ›õ‡n€D)˙BºﬂòñÖ%Ù0¸Úl˚ÚÔXÓX€~¨ò„~õXÓ]∑HTØG’¿*ø¨pè	•‰¯úXÛ–ùZ
+’l58ÊÂEyŸ¬ª¨Ó¶ØS≠ùF¢,âÀÅÒÔîb Óh$åWA∏'!JrÌ∑p‹∆?j‚«…j≥Z`Uà@≠‘®≥ÀÒ˚Í˘ààº—tGÕpBõ¨UßbV
+ÕƒÏ0—ØAWmáwtêÈÚÄº|lM˜ïzÁÈ-ØÈ±ŸtPU£WA'3T7À≥∏qJ¨)UÒ†814›+EÎ⁄8òÓ7ﬁ Ög6«µ¬Ï/‰üı*ÍãóKô∫®Dh]qîdåD2e±Ü^’•TUù'°~”:]Pbv"9(XÓÉ¢ä‚m*ºä§_µ¥˛9çÁ√4årπ}óÖ‡®.	1®ÿZ¡$Æé¥∂≠ùåÃÔ%Â˚2ÓI‡ÿ¯§â¿4M,ÿÿ÷√@)d˘÷é¥áä⁄},ÓWe`'RF9„Iy Bjﬂº∞ä8b…o#…ìΩzY˜±§‡¿ã¿cFñ®kÃ™Úg•\íîr$oï†`øÕªO;=r‚∏∞‘lO*&]‡´¸3ù¨V•Æ>∆4.˜fÊ∏÷êX¢¥Ø…ëV‡^÷pAXÎı"tàxlßaÚ9hù®û$Œi8q¥nßŒ¡ﬁÙàNà†…
+ÿIâ-ñ„é#Ù´`S¬lﬁQï´‘ÌÿPu…nW´ØQ=3Ü]ôÛX˜Å≤Ó‚å¬TZñ5 î∆8˜;íSó¡b¸rÒr_5^ÕÚ^Ω∫YŒ{Êæ≤É]R2À…âX´≥`æLVæÖyqlô«Œ¬ü™B©\âi/˛0ÂìãT_Ï_»îsíó[)@¡´v 7U
+FÚM≈Üy:£Íf*3X£çvÖ.@gÍLÿ/¶çuË/4k9‰Æ ﬂMr∑~Ωå?ldÄx7IäﬁµZªjµ¡e˝áØ|ûU:¬L”X t7z€©o^¿¥˙F3zCû√Øç˜…ã^oíªæ’Ú<G@únÅ@X◊ÏV˚8m¿•ZêR!}”ˇ7Ñwüot+¨>Å{a˚q¬g7<s(˛’X∑t`ñÒ¿˚¥&>¡Õ`x≈éê!©’◊õ$Ôª√EÊ∂Õ…ƒvÜVWc0Üq¶◊T=˚XüNAW3~,.†O?π•ÑπÉ´µ.pÉ‹‡Œ†k6C"ÕdÀûYäπÀ"]ÌÉ…¡ÆΩ:™Ê˘Åï$bDh}#é‘yÛæc3€)BÁDÃ(¶çËuß÷‹òµ;T◊ÏQw©ñß.›ï:"’L ≠~‘∫©WèãÃûç*‰`B‘˜]ﬁf°Gæ¸:∞gÆ¬á»+Ä_léCáÿ„û›±5Ö∞∆Ù^ß]◊gû~Â9fm√Ö¬≈î"–∫∆>ò?∞õõ°€ÙXnÇà‰≤_ü∆ˆd¸≠db∫E JÀÇWó¯'≥…¶…ŒB£»‰4,≤£AyŸÛ9pqlõ\≥•M∞J‡¶Z_ó˜?Jz> *HßÍ~G;5˚≠.b`§°b_wñŒ4Â÷–)˛º(IM±œ3ëÚ§
+ï˚∂ &´x^ÂóÅ5¢/›‹0t1£,Ï®∏±Œùﬂ˘„~®˚{»€ÔÂ *Ü`Ú)Æ%?K~€Ígô!C%@·S«Òtôo=Bó∞w£é!Ãc}2”TÇhïH'˙€ÎÂS…aMz¯∞sê◊káK>#,…∑Ø]!®¶„Çl∑/ßJm[C¶(;-)Bî˜7cÊ‹¶≠ñ¶¢˙û≤å¯“‰AuÛúÅ%¥æJˆˇ∂√©∆mpxú,Í≤1s£ØÙâXÛ°VÙ˘“⁄Ç‘Ìˇ±∫.kGÈ¸™wÍQ‡p INx‡mAŒÅ‘«”ŸÄ>bOà∑‘a∞≈·EaD2‘(T9é6[t‚é0ä5s`âë.ã(FêÄ$épD!≈Eã\MÏ y!»ÙÑ‚	ÈÀpÉS¢Èl(ƒ1í¡†¸t!µ“L*i—¨ñ*i|
+7Ü¡ﬂ¨ÿLKÙé8ı]U	"∫
+≈K˙D$‚Ã=Á ¢Ü	§ÜΩ zZΩ jA)ÔhçÙPîï	%´,/ .À(¡¢>πåö•FÏF
+±#Û˛Ulı£G´\p≈X√72¶>¸oÆ¸A™®è˚ã^ªï6§s97‡+≥A ¨â∏∆Ó≥ß)”‰W:±±]˚œÆ dø‹)Ã†h2É"~–∂µ«”ã9œºd6«sfs†Ed¡ªí7üË¨Ó3—LAÇˇmﬁ›µ:`bIF ;a¬$f÷ˆık?mB©ãeègx?˛ÿgœ~õèh{Dﬁ·∑‰8˙ûvµ)·Ù]˚ôC€œ¿ä≥Õì†‚©ÌµáÚ‘û∆ÁëKê/≥˙O¥løâ“	TÚ Kü£Ó¿Zû'i“«∂œ§∫8MÔa[úK,ó^^ÖD¸ËΩ·ìLÎH¸3æı“eÈS¸Ov6îÎã˘ÏDæW£∑CÀ#¬ﬁçJØ$€c0‡Ê]˜îy◊YGE,;/∂$˛®“Ëf\Uz∆]U›^o≥ç?≠no„˙!9h·bj »j$(≥ìrÈÿ;À§c„	vI’V&c≥°(ÔÆ^ß˚ﬁÈ˛
+“¿M‹èÙVﬁu[=Mxtÿ"â™πäwTa+/ùùπdqVDÇóhb£—∂3˙Ié}jU%{”qqY◊ tÀ∫¿–‹5hË©»’P_π-”›+m1FˆèÜmπùJKMï}+ƒÕ1så±2âT√≥–Â÷aπQ»tˆÿ†¨‹«ÊcóÌzv∆ÌU|/fC3≥ïxñèÄEãï	^ rr∆ﬁÀ±-∞Û£ö*a„éì:íƒ∏Uóë,—xYjKàmd≤#OMïf[Q≤ÄõZÚäÉ ∫ÏÄMÀ©PV√d Å¯@C—+HÚ4)÷ªÚK∆ù–[u	∆Áæ¸Nòo¢πBù#5ÿè¶S@<›†õ¢¢Ñ#e=àÂZÎ§IªÈ…+.…oerƒ
+ªÍ;–¯q\‰’íõ∞—ºpéØõ"œπ£M∑„°Íúí=⁄e–πìÊ˚.áŒçÀ˙¨Ht∆ L®f0]Ï´ì◊~W¿?ZÁ~ÅØÖæbùÛd$ÌíË›ïı%¡OM˙í∞y¨FÌHì÷$x`+òH0§÷‹◊Ëä¡ÓÚ9\˚ˆ‘Ï£^k!B|ÍÆÕ\l{‹bÊ¬£©ÔÎıÛ¡√®êÃã"<ëø?∂≤äúñ`ï0±^∆√$+˘Ó&iÀáa”ÎΩùérçá¢yÆ=kﬁ4€¸ÉÒ|M»rqÔRP‰¨Eô´IÈ¬l»H¸…ú<˜0‚ÆKâ∫‹V˚-±R–£ß—Z5ˇ>ÀÙu¥ØŸ…†Röóò	_ﬁXV=sãZ⁄ ù]0ëÚ±©◊jèøÅ•s‚Ü	Jœ÷≤,ÕÌ–rÏ¡⁄—k7•ˇÛË—∞•Å∫ª“`J]ÔÇ5±‡ ﬁeàô‹„E¢æ.£ÌÌ}Q⁄ûÑN∞RÖOVê≥”∑ÖœPU‚¬kJ„" ú0 &I±jCπF)
+’*ö%Mb7úáàZΩB›8é°y¬∂ƒÃ®i’ÎÙÕ“gπ\;∫àbΩ†aÛ6zƒ"}\}⁄◊Ó!‡Â-I©õAe„FGÒ∫F—Iñb≈®Xñ≈Zóx.´§¬`ZPXõd≤˙÷ò%(D®"ˇv'Í˙sºI>â(ªjÄ)u!"—ÍàDçJ·->F)Åé9k€f0s»bÊ–&òA‡‚ß∞◊‡x<èßﬁëÀ„Uçê√¯‡¶ˆòø•˘≥g ]QáﬂÄY÷∑fõ2¯Õ¿Ì∆πSk0±gte√KGœ¯8∑áÑ}N‚œ£â‚˜-›F>ä∆æÀﬁ"ƒ®⁄ÄG’ƒ+¨jàŸ`£€vI¿Éj—l¶ñŸ±@±õê‰jÇWo¶s&ôπ)Ó¨j¿ôXØ¥ú=Iæg”á$`#≥ÈÄÇÔóò}ƒrP´v&ÿÏpZPGoú?ºO∂Ôfzßl∆dπôßÄÕÇﬂÃø‘uÀûú9»€F’ål∞óØŒ–IØOcÂ9Æ¡ÎGıñf5ç‘RJ≥a„|<U=Gmºä≥Ík¥g,Œ¿Au{
+mW†πË∫ç°y"F3À@[zj9§ÅÿírÚIö›@∂‡m´√<‰Äÿ.oboy‘¶Â"ï˘µœa±∂¸,≠,Kû‘w4ìWQ•íõƒ¶¿7„	◊ò«ü¢|ΩO∂UÃ2ÊBÁsÃ`Ôö±ÔªÇÆß¸íÎà y1«Ö9c®%ÎjuS/ßpÅæYì¥C‰Í6=uQµãØ^[[‹µ 8+Å6LvjQú¨!ÀÕG¥õVÍôãπf†¬µ¶ßêp˝d¯l‡idgùÒØ∂yXi	£ûÛ/c^p◊a¶#∂“∆Ï¶1Ç|j}d>PU˚`ÿ¯åFx^≤ •——ì¥<9˙ $xò6˝ÆDÇ«Ã˙dè^1ºæk˘√÷ç[úuÿ“ô!ÕRÒ•ä„k√ƒµ)Rbı¿ılåFª$~eMT˝¬x£“îm›“x≠“w<“Â*€\ßÏ˘…4ûˆ
+*Qä;∞W§îáCˆ
+=øôäFe6YÏ$÷€L∏Ïák'Æ∑‡$†sô¡{jqΩVö[œ∆˙•ÇÔ*D•
+ëj◊Òı)“ø´≤:Q‰≤Æ`N+W#§Ö˘ÆLËÕ”W§R»ˆªbÒ_¨XHÑç®Kù≤0Oe~5yÃ Snû“¥ìú1c&NC´NtNÂ»w˙F∞“Òk2EòÍ:…Õ%A≈4ﬁ´î¯⁄≈∞/ùÊµ†aù¥„é¢	ƒ4ƒeQæònÀ>¨>0ñ&À‡…Z™`˘j1'%TüzÆ’˘* (£k4kÀ1®˝∑”+/◊K@Æ*gC◊#?ÉæƒyJ+5˛Uî∑/◊Áe∑NüÕxÑ^«e˝n∆ùﬂmWı{…{Ù´o>Èñ÷Êg¿õ´Ùao¡F9·`ÿÕw¨=ıx˛	·¡÷§ª\mû^•>&Âﬁ iËf„ﬁÏM»¿∑nñ‰ 6ê‹ÁÖpÀQæ'î5Ã©Ù`J-‰å–ßíËs\π Ös%\»ESXjVÊÄ\#é3wÍŒg¡˛héÏ[≤pÁ†&Ñò{Í√;≤ÿ˚,ƒZé ÈUÛ&Ì}PL«ä"sAﬂLHJ##&w∞‚TÃ.¯ÛOí|*¬Y Ç…Lo^(âDÅ∑≠æ¥ö•≥ã?%âª5
+≈„⁄I8ë.öΩ^Úô–4g.≥›Z ÑsoiZlQùeeWπÂ`T:iæ¥1ÿ›J%V¯ó"Í¯
+∆§ÜãÂ÷±UõÇSñ‹+˙Ω’j±[]2LN:ïÒΩDeÆä¬GÂ÷™¢°
+ªÌñ!ÎÔ5˘s1Ù÷ÑZN8π „b˙Iß›÷ÆaÊõÚ8ÊáQê˙ÿQÊ%óÌNcVæab÷‘üI«®¸ï∂-ªOq*7e+îIWm˜¯;QÂ,∞"Vµ√Kkß∑ümÓÓ·ˇ ü>n†îb_πàJsÒƒõ≥ÑB⁄î8 o∞ÀYÄ:›ªÙv“_g≥–FlŒ"ÆêP.CVhFÙã∞6÷'U"Äéu]Ÿj©˙‡+◊
+B"{w™™Ç£)Jùo“ÍÓÉú|á_Kîéòñ≥÷B¨´|+®n ¨©ÓçZÙn-d•"èS¯Ò™”§”=OüıX+!Î%ÿNLá :Íwﬁè[ö¶ÔµÀäÓ®lz™Ë}pÇ™ÔâÌcJ¨ÿvªÖ€N5QÖ}ª˜”Õ∞Uì@éJ	˜πW≈ñÄhé≈†(Y|¬¿±U˚£°/D7Í¥O+¥ùÖ`€Í∂À∞·™3ÅÃ”Ír)pµ∫û•:7e¸±&≈Ú•⁄õ@˜9AìèUîãfNÁ±M%∏8QÊ„ÁMâÌü¬Öÿ!
+œW1sçúÆ¬ŸêÃ‹µÑ‡ﬂ˙ÓÛYÔˇ∫äÎZ-≠ªè◊–zMp4Ün¨lm≠Re⁄-ÁßÒÛ5RÆ`6??–Ù™8F±∑ç¡o¨÷m´fÊ∂ﬁÓñó˚°∆>ÌÉR`‚+p,Â—)ïûl6ç∂ﬂÊÑ…ö;±ãJ¯“l·›ö™*ûN∏˚Z∂E◊Ñwõ·É¿ÓaıH8qa}«©
+¨$8ìë«*Hµ:ﬁL∞’73®YœV¬ß|˝@òÂ∆»p.uÉ+q6^—–∑ˇ`¬‚≠+Ö”ÿpë∫ÈÔ\'qô˝°JM~Äâ˘OPñ±´”Ák∑!4´∫î∑Uiﬁ=OQä7ˇ⁄—17,Âà4‹Á?3OÜvŒJfå¬Oµ˘®•ñÆÃÉPiÇDGïsÂËêÏµÀtk≈Öª…Ö÷¥_®í+®∞ ¢#ªKÂ—‹ˇU#ñ¨Uk†qŒ!Zëº‘ßŸŸÕ˛QÖÓµ»ı”8≠^E7gJn˙Î∫˘¨;pùπ& ¡¡ÄdÉ€√µÓﬁ,¯}¯OwM†°Æ·>^Ka£≠Ì¨a3=a`ûÖ≠∆4ãﬂ£áÍ•nèLÎZ1¸*ÇIË˛«NªˇlØ£MÓ?ézœhªœË¸G:⁄Å¨NÉqUN§¡}PäXæo-Ô∫ÑãNZoœ·∑nW/;&πç;4Ãﬂ˛itH≥rb∂–7´—Tè
+E±bﬁ”ÈÙ©l–âl¯Ocç”éoP¸U∫&åÁzVàËxWéß˜`ÉÀOƒÙ~pq|	
+k(ß:§Òƒ	ˇﬁÈµy≤ÈÜ¶P(i¢èPÀ&wÖÔ]*·ehôA¯Ü¯Ç'∞jÔUı
+Läµ£≠º‹Â’√C˛H>(\S^Ö˛†W°≥åW°Ë1pÆ√ÙbÁ¡Zë†QΩ¿´¶k8*Ü≤òﬂ‡Q9¬+õ@˛3¬e¯Ø‰—,º`ô—\|Ì\` ﬂ*zùÔº`y^∑—4‡EÀ≈ÚÉì$çhå
+¬‡øë\r«”e‰xb∫“◊Œf.≠Ôl`y6 ÚÉL9Aj	>Pû†VæD„·îflˆ+ÍOmƒè©Å‰Q›Ï$ìÌûY∂⁄`¨)ÿÒå£?ÏDÖ!+OTÿI{YNJ}òèxÀqÖÃ¿¢57¬yÒŒYåî‘Y–„ÜÕ˛Ñ˝õ⁄ƒÈÓ§ÍeçÕë°ÙòCåÊàHvæ≈&¿};ª´˜çŸÎKwòBÛ¶Æe ºé;Nwº3˜Ëæ∫«àä
+mR≥˜B>Lˆ.
+éòÌ°Cu%ïÌV√Ë‹yÎª√96@ª§c‘tc√Ã?∑¬¡Ñ{ûSï¨¡Ó÷–©@¿V
+	{h¸ÃCÃxC/`ÙIkd;∞ÀûNQ#øÈÓí6CZ∂º˜ZˆZU^Á”pÓœéÇú¬Y9 {ÌÍÎÓUM=±jˆÖ#¬∆,üˆFÙd¨T‹Lú©¢«*â∞ı,õRˇπºóûîñÄLeÚ„6∆›ùﬁfß∑∑ŸÈl∂[mÏc\≥9éã”§H~W©l#L’vïÃ”h#ÌLv Àªáà§8ıÉ»:1™cá˙·ï6Œÿ°≈˝m§q‚[i>ÍÆÑ¥ÔÜ¬	c4,ÙÁ
+_$Ï≠ø™±~ŸmMv4DØÊm'õ2–6òﬁ´	ÖUÛ¢˜cÀúÙŒ»V∫%4ÊûÄXÄ±Ìï∂¥"09Ê≤ù`óÓ>√8˜)C‰õ# \ü¬¨´˚
+Òô”+R◊ó~ÿjˆ¢˙‚d˘$ïG/¸í…êgrçâµóÇ~ïê∂¸(»íÔñd…'õ>„Ï¶3Â∂gÀ'%»ßhÒÍÕ˚ïü∫•)ëÄ€âﬂ“—äainf)_Ω˚Ä˘Í¸`4—‰∫éº	•<NáyW|ãÃ®ΩÜûû¥CÖeı|≠Ïë"6èÍµñv∆èÈh¸–‘Ç¢ÉM”¸Ò˜KÈ@º·hy-mq∂/∞z?Ã’Ÿä§•ÙéLµ•ˆïÆ|*OÍäƒ∏"/ëË$a‘Ù†\{ªÒ-œºÑ7w-¯Àå*#qB`—»Ω¿•ÁÇ˘åky µ·µ#FÙ˚‰N:…√∫Øëáà:ãà&|≠ﬁwYÊ'Íø¢f7X;∫≠3V7ö¬IM˘>ﬂ√CßÓê:'œ˝µ˘£ç:X∞TIÄ0'…üº•÷≠Hd(XD√mÆÏT6¨h¡o£J_Ôï$ÙÛw⁄c:mÅìh6Ü#N≈˙Í–JŸe_êôÑ	%z|oΩm˝µã8ÆµË’îlæ¶™Éâ™†÷Úpå≈œæ6qÔ∂ù„øLE≈c≠ï#ıÑ\Å-˜óGEc·<âqß∞uº§Ú§\©¡¬7ˆ"æ#æ‚c”Ö·¶ßX≠¸0∑]˘Òp,?
+ªU3õÂ“FgOb∏4PŸ’LN‰á¨0
+t≠º e€'•…FäP∆:R 1¿î¯jÖâRm‘îZ>L»ó[ç/Ï[
+÷µ£Ûµ)^HÓ^É4VÖAV9†˚çFyy
+<©çD`g±WÒ4.ƒ	»O®öEguë›&€⁄ä{©GW
+‰ ÂÚ+\0l¨É≠…∂YOØs3õ∆làÖ»<MÿHaøs[}y+É"?àk2Ò’•öCµÉ≥[[(	øäwø§Ó˘ê_p∏ÍGFw|\$}£˘¡"÷°·‡a‡¿P9/ s˘i«Én∫At‡æ°ò]∏7∞≈“ãe£—KE‘] û]®)sG{:÷´`‡G‡ÿäN≠1’,°‡áÂÑákö≈¸H◊—`6¸„ˆˇç‡π¨„±BWdXªFhõ¸àzææuAcY`;ÿ¶iX<‹ŸôÔª>h<‘‚ñ¥%ÿﬁkƒ÷Çyá}ª6	C/ÿﬂ⁄bÛ¥Ê≥¿ÉYö`ßª-o‚Ün≥”€›~⁄mwª€ùΩ^≥˚z{ÿÎÏ>€Ó˝„è√Ωˆìõ√NØ˝]¨áXédÖOFvx8]oMM4W<¥cr&Ã‰¸Â¯rw≠ÈhJ˘ôVÁ·íÚ1
+˚øÆ˝6«8üZ¶ :—¢Ù#|ıe≥∆õõ[]U·Îåvìó&NH›Ë¨Ò uc"¸@âÙ‹b„Û'j√7∫ÚH[* ¯®IgCJÏw‰{#©>fÉ5°Ó;‹€≠
+mÏâP‹Eû6‹Ã‚ ≈‰øßù≠ú¯ÏÖÀΩÒóß⁄ãe‡:µ*àì#≠ÌEEp9«ÕŸœü∫õúG}Òƒt˙°â‡–´Néª‘ò4™Üì√∏Ô∂—ÆMíÚ-ò´+wå9+F{‚—º;ÔK@√≥À¢!Ÿˇ`V,Ù2ﬁòÙÕt{+˜©îÙã≠Bm_≤˝a+w©π\˚ô„Â2Bf€'"õ7º»Q´[&?¥p%3É:ç==_(â&»¨Ω˙ÂπÔ>»N√*≤,2Uy+0Åh Îs∆æ°{h5É^◊Õ‡‘ır–∂“Ÿ$èZiBxÏì&Tƒ%¢Í.I≥KÚ9ªﬁÌÔùBº No„⁄P<=?»,åNb∏|GjåüT< 7ˇ4åäò<[/Ò<uÛWK¨¯ã1‘M‰npÛ!_Ø´÷=_?Å◊@U·éËE˜Û…{KûE“ê0§op‹˝ê£eÃ<Zösö™ÄPBKoïı≠±T≈>¸#XMòr$L/lvI&ã«‘ÙøÀºÛ3≥ﬂìR∫Êä}\πQee'ôê"n*·|v%TœùÔïö+óˆƒ--¶^ñúùB}∆∂ﬁõ#Ij™óohÔ9ìhSe&9p˜ƒ™‹%¬ÀˆM¸ØP˝Ì¿ùëcüZ˙H“óÿmi
+ˆö X˚WAT¢ÂnÎ5QÆ˜¨+„ûEñÆF/áÃ<¢€Ñé–RÖªŒßU∏≈⁄ZîêóSe&òQ©»™~∏≤é˘`ß¢ì˘3çNÊπA‘(◊éS<Ñ‘t˚çoèYΩ&d≠–ZeñIñc >πF¸óY\÷∞D»RÀi⁄J¶÷${ß{Dd-ù´U^#∏]‡ìÊ‘#µWN7VT¶¯‘†c‡^+†nú¶ˆ§€°ñ"v®öQ“ ı»b0í°KÆË‘sÄCFHC&,ÖMó^Èä|¡∑Eo´»ﬁ¨ErèGhÏ≈ö“[à˛∑Ô¥µ/´’H75ÚJ$å(ƒÀÂ2>π……õﬂ©M„û+¢∂(Mªd~Uî√tWoê?Ó∞π¢˜s8u^KBè6r©≤™Id∆Z«#T¬‘∞xˇ„h‘Ü„z´”´∞, ◊{ΩÕ6˛ËV≠WÚã7@§∆_ÂˆGíıŒ·|ö«ÿü˛Œ*k	°°oì‰“·π]"uÑˇnó¨¥ö$œeÛ	´¥PƒÇ”©ÕW÷ú}∆QÌTYÀw	]õÜ∆Í– £/Åx¢íµÔÙ≥zÀ"GB°Ô•™ÂV@PQ=’wÇ™MP≤Ò@Á≥Å3=ôºtñ√¶ë,5ë≠sˇLgfa,K†âµë#U$”/◊Íxê”Õ¬\+ªü≤@KUú•ã˛VÎÎígó^Sp~·π˘@!KÑ={C.é_ˇÛ¸ıO‰ÏÙ¸ÍÕπ:~^`(ﬁY¨w‡ï’Õ©ª^ˆ3ÎRÑÉhµZX‰Råﬂª#˜füô´Ôv|˙Í¸5p®w?ü_ù5_??{I.Œ.œÆ4_—N±Ò≤ŸK Å…ë≈‚íR0N@,˝@6¶‡Û<›
+–Ü>ßò	Slƒ/›4Ü^´íÖN)™ˇŸç¸[ßÑ5ö∑PZæ2‚‡rbS'Í≤—m$0DÓ∂ÉI∑¥[b–k'≤V7æÎN…;<±˘“ÍSÛÁë¯lêVË˙‰ uù‡`k“-ù® ÊπÍ&n(cæâ£«æ†…@‘SE_IyÄXû5>!»ZH±õ5√ˆTlK¡Ã}î5pá¨` gqü›Ÿçö∏EÕ◊≤∆m]àÅrñ∞‚dòÕπ'˙∫Õ=vfÑÏFﬁπÓ	∫*¸%'óø;Íóâphi∑∑R©Z:ÀÂÍ+”ªxúËÏıyu|˛˙ÍÏıÒÎì3ÚÍÕÈ9yÛ˙Í‚ÕÀóg‰‰¯‚¥˛ÊF¥,ÇŒNæè*ﬂ°]	}gçÿ√√5∂2Õ©Öiú3Ñ¬kbP¡Ÿ5wÛCU÷iº¶…7®É-üªÈÚ˙ø‹I3ˆ
+&ÏÈ]4ON{¶k÷E‰“B|<GYcP4ŸMCµïç/‚u}xô-û≤£±NóV≥rÍ“eJÚ·‘8ÿ%„q£LKïAâ`ü“lY©EæJ&ñ‡Ã™Ü•¨-^Q≤X¯«Y≥/©Y»Â—Â|”â¿™ ⁄Ì\Œ^rf/UKTín÷π•nò„~í*ïä¿∫ì≤û#}Ù¯‰Í¸◊3“¯’YÇ5óî¶ˆ--5Ã†ﬁ5ë¨óY…h´ÿJâ-¸T.”Zû7/^ê∆€yﬂ±±ˇEÛ»áÅ¨l ñ¥√¥Tüt SÍ_[™«&«ª	àØ7Ø7A1œÀ'ü"J
+(6Æï64(8c⁄‚z‘Rèk1k2_'´j“ªÑπYÌ∏BÌÂ|ä˛‰DÁ∏ù-—C˛ı¿ÂççÂÂÅE£™Né”’uäÔπS«¬üÎTœI∑)≠õ™“‘∞Äµ√’≠vk1‚Åd@´πË™N]‘˘ ﬂ#]f§	«±®ÀUﬂºV≤Í&j.©—u(S„IÂÃEu±∫ûL∑~ÃwTiŸ.™:œ%Ø9¿J¨-+"≥*VYXO∆K=%i◊¯°Ëæï<XVé„^¥ˆ{5≠NöOyo⁄“*S0ñ&øå)#5(-(ÄLÅ'SÿõòÓŒCéæø±qÃ05í‰£Ç◊ïˇêqK„yS“Ùâ‚3≠ﬁ«:6A÷xZ›Ø∏∫†∏~8kÜlIsV\aÖØ=\uø±3"´›ñﬂ¢R0·6™ú*F◊á·DVé5Sº»)®I—¶¯2“„¯|0xo‡ˇI”‚,ØK‡Å9«V:Ö^VJc Ç∆2"`7GﬂHÛ∂˘îwlï>Q4≠Æ&É*áï¢Ü´BG®ÎÙ8æº<A«ÂŸ…/ÁWˇGû∞œﬁΩπ8nÿì≥◊WgÀ;4eu7Îà˝≤âÎ£ñ?√‘∫Sö`£‹⁄kcRπ‘˛å>èónRmπ∑™ûUFyATm√úi◊`µq∑"òs¬—¯Ñ}∆‹ã‹qy¬f§RßÆ≤◊U∑û√U≤:ò¡QNõ¸‡C_∏s_8RπÌªQ…–ˆÈ t¿I8±·ëêﬂÇ|≤{|l6ÊW„dG±^ˆÿ2(ã;g)4újA(02˛¸cNÉ›ªÿΩ{6V)¨®6ØŸ≥ë˚ˇñﬂtÏQ¥nÎ?XK√ÓpTnÙT<jN•µªu*ªä#Vx É„ò‰xÏ¢&çb≤„Î§oqgà?⁄¨-ÇüÂAI•úHß–®òã^Ωòqr¶a´Ω∫@Yˇ§ã¬æÎ9àuWDÜìö©≠uZÇfb‚$•Üv“qÅh•Ñƒ∫)ÎÓf˝’ÖÆø=Ó˙+(ÿ-z}Â¢à]ƒ&bI#RÌöÆ”ß(ìm¢x°3Fè9v˜„Ä»óŸ∑C €íΩIŒ
+—Â0d¥E ±˙ú	în[N L]¿Ó´úGåìV}œcwv9ÔOÌ0j–√‰(¨FDèlQÓ ≠´ä∞u Ò˘îŸ¢Ñ≤ÕùúÖn`Ø©®f_´F¸‹*ﬁ}ç∑>˝dªÛ@Â»<ÿb£Væõ=ÛÊ’DçwDÅP5ﬁàı9v„ãu"f≈[®3f‹Ÿ	,˜ò∆‡é∞»«≈7k–V»!ŸC5“q<∞îÈVà˙ák⁄Oˇ_ıªß<YRSﬁ¸©í¢yX2â/GÄ8IÊXÅ!ˇ(§ ·£>Öª^q¢^◊Q#ôôQ|∫∫"S+µÍ3obB^çhV#°µ{µ˜Ø˘ŒÌaø˛˛≠ﬁ¡“≠ÃwofˇæñdìŒ[}ÂªS{j¿¬j˜ˇ
+v◊â;Ÿ†.|ÌªLº«™vZÊvKÔ∂höøÔ∏¢cÖçÍ+œâ©%ZWÑ≠uì«VÔr‡»ißˇ®«ÒèR(I1 _6“œ°ñÛóGN∫≤Áaê:€i?
+ÿºa l∆∆äÁÌ~e›,ÄGπ«_ŒπÈ¥Ã¬…HÇπ≈ì „îkÍ-bA"±Œ∫2¥<ÉuÕwâÖ3˝hK≠Î…•E¿Ï[#*‰¢ŸÊ±r/—ùx≥”Y
+ma≥b9≤©÷å\g≤ÁKD9ƒ@,—äkµ;◊ÑÁmDüµ[œû)%ï(G
+∂Ü⁄/‹e€—Ø›V#l°á‚¡≤[Ñ˜˘æ¿}≤-r∆\ﬁ/aõ|w‚~¡N‹W∏JÂ^‹‡„‚1}∏›ñ†)¿C(èÎ≈≈◊ñ}∏b2$âüÆÿÀﬂ>zÈo¿É˚¬ı«Æà∑y¬!Î‰ˇ óÿÉ¿17&ã˝∑ºàAäöÖ¸plc9L∞ï*Ô∞ÜC_ë®Ù„ÜÀï⁄∫µr“ùZµán‰
+NEôÈE2#<tÀàH'’¨:{/i7ê‚ƒÅŸÃ1lÇíÆãBò´°Óä3b›äMà∂
+[™¿F\!ßº‚≤‚Õ“„)≠5UVˆûRVÂ	’—TïßTÊVØsnπB≈Œ”—xı°Î„¥¿t–áÕè¯T^^®,„≤<ïUe¸`˜Vî‘#+);LIfrÉ+õL≈·`»b‘j≥éRlÙUuÆ◊ã_^æ$ÔŒû_û_ùëÁ«'ˇ¸Â-yÇI^Wo.Œæßy}âi^ß¢b≥"’Knï%&{!z;yG˚¨Ù9´E™%¢_eÜ◊i\ÏJÓ‘s(ºô;°«UT∫≤ U“¯–˙w‡Œ>l∞∫yÀ∆>∆ô°'–:ê£`[<`íõ≈Çn{õ$jqFt€P‘ŒF•π!¶âòê“Â¥,ìå=÷
+·‘	Ì)k∆5cSæá.¶ªb&ŸÙ‰ö&.˛Ï-™⁄•h¿›`¨º
+ÿù+îﬁØ!	,^0Aœ›™Œ4ﬂêœ@°ß|©>ÉxΩ ˝fæ–UÂ≈K3¥«ı»nÓ›Ov±ﬂ{≈~ÑNìi•ÿ≠¿ıøÖL∞üË&*§pu¡∑SÃ¸∆'åyÁzDÛˆ#˜WNùÚÇZ·ÃÊŒÀmöú<à?Js~oI#n/≤ iãáÑ˘Ø–ëa±€B˝fùNÿã˝[hgrMüáe^6'E‹s Zôé¶2ÕGK™WEó{jyKPûf]F9ZûÚıLt≤!x™Àw‡ﬂ§_
+∆±ö)/´\;Bu%S´W.˝ï8m∏îƒπ·
+CµÀFnO»ØÑe”π∞–◊-T*4*[çŸπ{∂eøÛc˙{yz.üx™ˆ]–xÌΩ§ı›@˘È÷Äı–Ë'wpAG`]MNn$ì¥VëŸxˆïŸHALå„-¸ë	Z’DŸ_NﬂBÁï≤*:˜ö≈üûDv±ˇf3µJù≠≠Ã7®∫X£aÈ◊Î¯Z◊ˆ⁄OCÃ∫ÇˇØ(Û$ﬁeB≥U¯Òª´Ú‚˜Vùxíâ,à√ ÉA0Ã˝#9¯+ø¨¸¬,â”Íª°Í™/∆ã ÷≠‹á–wÊÙëì2$Ù¬ªÔî9„◊á¿^]v Dsë!MˆÒä]Ÿ˝Ù8ƒ+YqÇ≥à!añä¸	ÿ1*-À;c„™±ÿ-+˘çÉÕÿKÃºBØGg/Û3gÔ˜P-„%`ÆSﬂ√R}◊C«ÒÄ9}ÿ∞<pE≥íª¯+£¯ør#‚7µ1hIö8áV0âa£S\/≈£›ÕdRÏdïVnºuÒÁ:√z´tWŸC¬EÛû„eu‡© aØnRÑÜÎ†Œ⁄∆¢D/<\cD®>=…°Á∂ÀÛx/(Æ:Q^Vm˚ÅÎÃC§fiìHOœAÃÉe¬ˇÛüfßRë«√Xπi>É˚?ÀåƒÃ0ß∫≈ÏæQö0i> H†)õ1ùvO&∏D'a8'Àµ¢•îÅπa÷é∏g√L»<äòﬂÑ˙TΩË—œr¨ª'≥ntt ù∆,e¥#Xëf™`≤|¿4éO±¬VzC◊U≈aW¬`ÂM–≠““ôh©∆QuÃë"U/´‰JÜèŒN—´◊¿ïKˆÛvúê˙Û∫ÓE§¯}∑çæpÕ&ø˝“n∑;£ù¡N·≤µpk‡`ÙPÙu·3´t¬bà+â<˜OÎ≈∏5Gá˚‰Î„OaÇE/à!iX»©∑—
+]ﬁõ‚2D8ß∆∆=i|*ú‡ü∞À{5Z•˛§h∂ –´\¿Cﬂ1»è‘à∆Á˘WoÃ@>i’•ï¡ÏıbUH6J
+ÒH˚7∏œr“Z˝^Z≈âL∑`˛ çeRÛ‘ubö1ØN‰Ú»º4ôOç4)O∆ ≠∫´ÿ[*‡U¯de$¶hSGÜÃ	ºs®äaœ÷‹∂_€*òF√V∑I˙¡W‚ˇ  ˇˇÏ}kC€∆÷Ó˜˜WLhwlZlåÅ\hHí≤Àmc“º=ÑÑ-∞vd…ï‰J˘Ôg≠πH#iF32&I€òΩSê•—\÷¨Y◊g˝%Vbá∫‡_˙·˘ó"U	L´¡î˙{X	Kiy‹’;ÏJû0∑˙ ;Ó¯¿ÕGúÏcYzƒ£Ùä—E…πƒÑô‡/]◊!Ü3ëïg›
+Ôﬁ ìDo´Î K{Sƒ2˚«ËÎ,rgÌp‡kå0Dh—Õ˛Uﬁa&@JŒSRfçëòvàùòuW5˜\ﬁÒñI˙ÂDôe9AπfÇ~]õYUïˆ∞q®ÒéYß≈î'oV>3Î%ªCv”7©jéû+Á˜kÖ÷˙J/[„∏˝K)é{©:êÕdªÓV∏ƒ"Èk‰xSN8"ˆ√¥∆MÈåµF≥bü†ˆ Z≠ÃòUMŒﬂÏé∆¥x3ﬁadfMgpÕ¸ôU©‘Ω'ûàX±
+ÔiZëmäDìöÆ”hÓ9/±∑1É4…aÛÎ0ÎDëŸ∫7X=éEB{û
+∫È%4p¢»61«yü*˘Çk)mLVÏ√2GÎé!%Kÿó—8ƒ jQë-Oµı{R…Í ≤;]¨∆Hx“¡¿∑QAÊ6F#»ïxû¶˛ozB£z¿#“N:Ô;ÔóV«üﬁGóÁN≥€Ì,,?¡ˇu⁄K´ÛwI=ú"πL˝‰¥qˆ∂pÓﬁIó¸0
+/‡»Ç©vR¿∫zïEöãwèRúZ÷[Q&ò÷RûB	’2(÷J€VèY\+¯	∑∏FÓ»õåHÏªÓL0√ àÃ¿â>¥@úAéÅ∞CñìÖÁ@—p£ÿÁ∞ê1ëÀ	å-πq˚û¢ùÀ4ó	Gæ±D’ﬁÜ2I€ZhÎb7Kèp-›†HOaπ≠*b∆^Z'◊“vvÔ≥b±9ŒÌg'≠Îâ˘äú'ëÊ8r‚a˜´h6π¿zƒ÷á‰Z@∞B{î|›≤Ã[oÏ˜ì” ea g°Hÿ{ºä•fyR)ê
+7,çï :N¬ï(ïwhqÉﬂ'^ˇÉÔ4p/úâüò2O≠©&Ömñk6aF""I§˘BˇÃMaWkE…ØNø‡'X^î±É|∫ì`y‰ßg/;õ∂6ˆ_o≠ëC79|¢È›iö:í∆îÈ%ıI#C?rG·GLÊì¬Ê(â2#;¸á◊ÀÛØ€dg‡¬˘ ã"Gl˙)•“∞ti˜}F€àK≈äYˆµ9*ﬂ˙¯≠ºÁÊ
+&ò€Y≠"Z›¯Æ¶z·˜k‚OΩŸo›l6˙Ï/‡ó∂“d/ÑÄ‘bèW$∞tã¯8KyÏ›{¥÷sµÅ"√>®?K}·îÎR#s∫[Å}QÊÕŸ⁄LÏ¬F§O5…JÙ`E∏£¶çœ8	¨Néø~s#¬◊HgÅ¿ø q‹ö©èãvπÁóËÛõ«UÙ§Ñ.˚®¬x-éÇë6πæd´ˇHô˝≤ÿOú™uª≈ -˚n“}‰tﬁM.‹ŒŸÄC¯)â'ë˚î./&}' QÄú”†ì0p‹ó„ôn^[u∏N‡O˝–â]:Òu–'åiö
+’âèsÂx	Øâ{ygƒBØ®Á:ﬁ|o7Á≤mq0ÿÖ˚œ6∂ˆvˆi±ÂÉ˝µœ¿<†B5Åe∆÷Å8˜)4	Lc∫ËπËÒ~âÛ´ÙyÒáˆôuøî«HÃ¨‰ç:≠{#DœfΩâ÷tÄµ÷oø] À∞ß-Ô∑‡-¯)–uk©÷·òÛf/1€â
+FÓ>è…%~>⁄ÏKˇ*ı⁄àcoÈñ`Ò≤∞C…p˝Ü·ﬁ˛Ü	Ù¸€±¡Ø∑ç>£˜~ÜQ!_1∫º…JzJDπL2Y(OÀqﬂ%Iß–ÏËd?\ È'Ëª˛L)¿2
+'bÓE¶Ã±¶@5≠<E%W¯≠˝Ù.Roe©¶d•*ó¬dØr◊¬´,«|ñ+åg~f´§  Áf æ’Xß‹Ûy=Å)^jwW·ﬂ”1R\ÖÂ[Çˇ∑üŒ©›…ìmWl_‘‹E∞Z+>™pæW`ﬁY·[Ô<zw—4°óÅÖ}®®aÃ¬B….@Ñ8ødô{æ·˚ô ÜÖ@£AÇ!f…°[k<â.›Åï·ø&k™j∆àòª¯CÈƒ-|ds;GmÎö‰∫√¸î™†“Ø‘ƒ&©)‡2õ°≠lÜ“öﬂ=7A¿±Ÿ⁄ÿVß≤±Äîpy3ã˘∑›Å«Õl‹åSµ·‹u&¿'häs[<)ˆû≠`”â».™íá§7éúkÚ2ìaúS2>õ}çw˚/`b;*˜t&V6;9+±∂}6≥Z)|ìY÷é\öñ)Ì”4,Ë≥⁄ÿ¥d˚è5≥•ÁBÂ°Öm2Àˇ∆∂îQæ’ç1Îˇ,ì[=+Ó+í§öáG[o6è{÷Êˆ|ÉÆπµ˝j„ÕÓÒ˚W€«oé∂∑ﬁonoø>8⁄Ÿ∂o∂vúê »gg@÷âË‹IÁÙE€ê?ˇ$çF+ô»A∆—Óö¨›⁄FDFi!Rì˙4ﬂ/'R…O∏Å≤2tGé8ÚÎ	ï·g∂*˚µö
+ŸŸ]:€óä6dùﬂLÜV05º…ØÿdXA¢≥∞Æ*§≈'EäZ˘f5Ãﬂ˘y≠ÜZ)Òõ·õ·õ·P’Ï}ãj¢8d>á·Ph´yì·fŒ–p˝E¨áS}ménMc‘∞ñ‰»˚ÉÂê<$ì$la¥ﬂﬂ*Á-hx˝aE∞kZı≥ªVM>∆‹_wƒ+vÀ¥ gÙØ1Xu‰˙;µ≤”Lû0r¢kDº¬Ãpò±Ë‚¥f8˛8mŒuå·Ü!õŸØbåû@ã Ä∂$Ïü0Ω¥Jà≥äÖ-$¸tπ5M>À\©É?ßÂ∂úi£(•¥“1BÖå¥ñ@*Ñs›!/2éŒinàvÁôè‡Üv‡'jn+Í%eg}Ü-ëm0˚,ï∏|XÇÊ%˜1 d„v«Ô$f“•±∆º ≤7ΩÔü˘’,H¨p∫≥E#Õáó…OÀù¡¸4ÀwsVµ~ﬂﬂ\∫…Å?`ojäô&œIáº ç\`t^Anê5˛Ω4Ó∆ÌŸ≠ëîoºÁµ≠ã°ü°ØvÄU◊o„HK&◊õÔúªæÕVØ(ñ$ƒV∏§åL>ˆ{˝°;ò¯†ª>[§Ø4—µîÙ£„OÄŒx}ÀrU∏hw3ÙÕ¶KUwÍ«jvo[k∫ÌƒÅ(i”˜m◊FÖ^„B≠4ï´◊¸ú
+<jÛ∞gQ≥ß[∑?â◊¬IÇ9h è.øƒõóÍ≥Q™•É∫
+ôQRY!q∂:s,˛iÓ—£ù“É˝ ØÅ¡∞ßÍ6Óx˛ı‹sâ–∂
+incÅ5“]!?á0¥iõør›Öˆﬂ“K‚è·}◊∂Õ/°T]}Wôú…z"ÒŸ≥3 ÿ‚Êù“0ØüämLª±p-¸êÓÔMHöƒ…âs^@ëB9_Ä	v§sö–4∑…Æ'¯πÅû'ÈND£1
+)ÏaÈÀ2‘!û˚XeØaFf1mw»∏◊≤'t•«öm—ı·ã¢OgäÚ'†ßıË~jü<˘ÆÎ2åÁZ
+Á‚ötøh"˝é3• L–^	„%ci(§∑ñhZë∂ZÄ¨ñR√“v
+<ôºhÔJ≠“íjgáænœëLGô¨BoN‘´∆B∫˜:ª Ôh ìw9Ã I‘ôaS!ë<∂@"ô≠I¢XiÇ√pèº†5lù¨öPng
+‰;m»’lL'¥%cÈ…BlU=bFî"Åq}ëê®⁄ÜB˚aëÉ~ˇ≈§r	X‰`ÄiÁÚÿº‡#,ñæ≈QRºp8∏«·xB-¶*§a+±)XÀ&¢˘€8O_Í@ıïzÊ#o∆≠ƒ â“WWC¯/°
+Á%ïC/”ÿ$ù[πEÀgLÒ®“i)˙Dı§&^‚√îd%¨"Ω≈IõjUV0Ï°bq¨%#!lE±≥8Í¥ﬂ”:∏£¯¨ÆaTÊ©ÖJá∫áDXˆ¨≠î
+ƒ´ q‰ÙÂ8ñY-ÜÍ3«\v√∂‰FZn£4nÓ\•ÿœ∏6li¨wˆ}ïÿ®vîÒR∫ó“-°•»é÷B˙%À{µ+±!◊.¥Ø≤ë˙[]£M∂p˛?QÇë⁄ øÃ¬∏™¨aØFfíãıPËÇ¢»`_|C)®«GIkI6”¶eÇ‡‘féûäoèI≥‹ñ8„ªCê‹(^#Ω_ﬁ,|ÂH7^˛≥√πIø=∑c€Ü7:QLµ¥∂/íWÆ;@„ πqLÛX´òÂÏx+d”2DÊ
+±A
+1·ö
+¬@hã…»èiL}∏∫©ç`ÃP0≈§ôë/7T≈ø‡[8¬Ê[ )◊®;3∆çÃxΩÓÜ\Zk≈ÚsyøK«R…EE—¡n…∞píXíïXÃVáØ›¨‘—¥Œé¶7„s;•µ^Ã*7‰‚≤%b≠9(%_&QYìÄ{ﬁÚ˙,”a…¡ÿÂUÓ≈rõÀ"“˜⁄ùVy≠ïmÇπÁ«†P¶	hBì:1À£c1‹ÜµGÅ¨,ÉÈ˝5FËÆˆg*#U©uZz‹
+ôBbÂ€Á∂HÈê∑ KÉP>xnj∏ ú£O∏“—FÇ| ¨MW•“[e°ÎF@]–¬)õ∫ï"©f	.˘e'ñû‘1Ÿ//Ô0ß7g™I˝ûœ$}º°¬Ì>µü?Í◊‹í«ÛAÔèÕ√ô’r⁄§$Í˜ıU‰åy‰é—èüäÈµp€ªRü)¨=oC2ƒƒGrÜ+I
+_)Ä©pòCJ“äÈÂ˙∏”ƒ∂kÃcµsYßD(WrUwæ˚õm–%ÌÍ±}u˘j¬˘wwßú˙*Í”ˆqÁoO@ˇÓÏˇE)(Õ®¡¯iA@øzÓï5ƒ•kı≥kJt%Î]â¥LÍ¶Z«yí3Ω˛’l˚⁄Õ”÷My AZò˚›pÖ∞Ks 0Ã·ØåÈ7;∆%ÕŸU€¥œÈ1›c$Õ9M ,Oj#ÉL&îÛb$ZL)FØ:¬≈Á›§˚∏˚AS.‹‘˘ÄÏá‰ âV <".„∞x.Å≈@¬ı0wtBÎ>°5sÏD1˛éê¬®ä•%◊·¢πîùgX-+P	Z&°Âå«ÒcPY‰‰i¿=!J*R∏ìDWî,A^÷ßH
+"2ü?ºjΩ¡ÄïO8˘Æ3Ë<Ó<>-páÈ*fJVP†æe·R4ëH(ö∆
+”U4π.sÜÿ;%Ó§é†n…t,NVjÂÄ!Ï¬ék7<q7Í‘´ÅõÄÇÂV—G5%D÷p∂NñitKFÿ◊-Ã˛˛ƒ˛VÑm%t≥W’2·d›}ﬂc%Jª”0Aœâ›Ωxw§Ÿj©=¥º¡ñu)ºÃN-∂ÉeáyßÛÊŸÆ21`ÓyÔó7œì·Ã[ñÕX"Üü∏üóï≥x2√ÿÌ√â÷'ØòŸÅπh!˜>‚É»ªÙ«_|âŸÓ˘√âÔsË4HNNΩE¿ÎºÓç,˜ƒbçMÒ,9◊Ú`ÄE „n]˛KvYìxëéúq≥	“Ãà1ü®Ú`SXRt0"‹Îıx4gÀœõ&ÿ.E—◊ÿï¯™AqU©Öìy@Çêöõr÷i˜ﬂ¿¯⁄Òá	ÖŸ_‹h‹¬:Xs&ÕÎYqF÷}‹xïâ¥—$¿R∆s<¥áˆ&ÄvnüßøŒ¥gäMÌé<*ûuŸ°íõAöè[`ß‰¶«ôu-ÁûœuH9U!Á	î9À_õu«	kcB£¶(çÆ«é%Çdëı»RDt}ÕÆ⁄3–,uyhŸäïh∞HeÉâ87›%€¬K€õåFòk„£ıÎsÏ©VÃÉ-ÖŒ)‹∑≤'Í©§óåÒx_æ€í‘îú<∑© K+ÄCü‘Öèßä56ª`´SÊòå;˜UlÆí¸g‚¯^rM¯Úöù≤≥ˆfñ2ñ„ëT;t•ú¿\€CYHÑÁ*}OùÒÃﬂuè	≤"óY∏<ÔÜQï—,Ég<œÔ˜vŒjYº~*Á_wôx2KÔÉœ‹±V¢e‚yaëh‚xÃ;mëTãîaÙaQ® ±D@ôfùŒAÆRÓ•~⁄a;˘∂Tä•z≈¨IG·’‘<œê_ó˙B|ü.2!ÕXΩ;  ~LÔ7K£ü5R¡D∆”⁄•1K¥\^◊ÇFóß¢QΩ9T6Åi%(F‚@£K9f≤πEf1cé˙0|T/
+5K¿ﬂƒ´aî`Û≈Läötﬁ‰zº Í rª¶Ãàµ≠ïéFe´©ŸöÕmtøÍhu6öö/M±—J5 ¨—óãã'€»≠Ç‰në!Ü{ÃŒCT{⁄ŒrØÅgéÁÏ¸!˚îπ0µa&-Ü+∫Ô∫0#Ûk˜ÂºPqöä1[êHà≤Ö(ºÇ1M«ÿ≥9ﬁ aâyë;93’˜~™U»¯1∑Y2\'—∑Øï7®ô’»∏‘2<R}dƒ∆8∫X=û9⁄c¶ês∑ÔLböl{M∞à%9wbØü9‚ë⁄œC‡5ÿSäW÷˚ÂÖ:y1zÂÁm<≥úæ7ã÷‚Ñß9∞¥†ËÿÓGå!9t◊ØN”'RHØc6CL3toÜÌ‰Z#Î§–ºåV\Ì]êfüÊ¬{·@î∑>:æ7hÃqØ#7ôDy Z˘ü°Ò˙Ãg}2n{É”jÎÍ≠¬[O¢â[’Ãm%L6õ;>$dj‘*≥vp˛_∑ü¥ÅM≈ME˜÷»OU«/Ôa5[‘A¨ùúèŒÁ0À&òu„Êp£Òò≈hdA6aˇYé»‘≤t1Ü¢" ÈNq4Øyó¢òÆë4*ØRW–åî%k„,√N$€≠£ÖNY÷Œ•ﬁ÷uÕ´9÷mjW$Ø∞ıôÜ¢‹î∂®u,:}—4s'ÍdöÁç‰}ÌΩøÖA›íWæÉÈ≥ñ:f´êÓ‚¿H›xÿg¨S¯+ öcŸLπJÒhç˛RâC∏0¬€é÷TN Ì˙¯SÖÑì3uïR2ßU\¥ÍJ…Ñ a´‹AYñmıÜzA
+êøRﬁﬂô+IñÈ∑∑6Ÿ|Z2e-w÷r&ëùÉ≥ÅãÖ®m^Ä÷∫“∆„8ºM8Ÿ…»oCÔrË£√£–PÊç‹ﬂ'X–¯£a,mπ}fŸò;¨¡Gc ™Ñ$Ú1Îh’¡∏menå<”®∏ÈhúÈõ%Îq«l=Ü˚b◊øhπÅ›—Ùπ√˙7eÈ∏Ÿp|ø~Öåõ39p∫h~®FeKm)ïu.æ∑≠O£ˆqH÷/HCU“É®ˆ≠(¨‡2ÜêdÔ≥kÛˆÃfIÏòn‚¶F¸˘kÂ®däeÂ«ü(>∆-ë*ã_ﬂ∂®tTÄ6ﬁeâi®πïjŸæ˛;å¿∞ÀJgÙl7ÿåﬁ^?¬Älﬁ¶(cnˇÒΩ8ôBÃµ
+ZRÁWp›ù[x‡z∑´\g‡x≠òv˛‹±Qû-"‘Kÿ¢ñ≤àR/cUÆ‡œieUÖﬂMe˘◊5IBêD¿ïm∞u`9¯ù—5c’’ç‘BW∑¬Ωé◊wmIäœƒ8yØÔíÊˇ›8ö∑o◊6∂≤F»∂9`[∂]9ü≠)Dmvm«p,∫M¨Ä¥:œ¸$c·<µ>F®iíß∂≠ì)m®≈ˆÜNº-ö‰m?|»ìLœµE¯Û∑"%o]zM÷:‚X_7]ú∑M±ä‚∑^2l6¯skç˘ö-ΩTµüÖ¶V|ÌÉB∑Í∂}!‚û∂˘RÎñÕ[YÖÂˆ[ﬂLòg)É¸Hº€:OÊ¢]J0˚÷Ú˚÷¶÷≥˘'ó…úf≠6Í6∫¶X‘©˙≈Ã#≈ûeWßÍ[£ÑPWÆ≥ïƒÿÁn1˙¬ü(´%≈œA⁄ªZp‡÷ 5±6ú’l-LyÖ=≠u‚M«"ÑKÜ≈≤üz>.jõÅ≠:=¡ﬂÑ,£˜
+ÕÿŸn‰Óö†ë:ìô,KO¨ºRÖÊã≈∞y⁄âåú$2P∆"UáˇR{Ï∞Í9&nœÖ’ù•Äñ¬e◊Q:ŸmëÆ]ÂgñˇÏ‘NìzO› S<»Oˆ˙ZgJˆëO)∫Séµ)b÷<r≤M1SJifZ~!ãªàQSΩ¥ÎÕ>ıâ?Ô&›N∑KÈcöóN√ecõ‘$ø©ˆ˛¨ıéô∞≤æ3¶c˛pá◊jG>Ÿjn``Q<ÇÚ∫πcXD≥—j,ê±µÜÕpå≈¸⁄
+Ô∫`Íı«;¶öÛ#ù¡ÓÂóJemnœ`œ’fΩJn.≥íu˚:–¸œ+Àπø∑≠™æ?˜∏Bµ“-Kº[vWß≠¶zﬂ“jùC±Ü)ÑìeË˜`)÷oÚ©kâ @Ñ•‚N%Y≥Ó]ãf4ÕGã (Ó(å‹¨LßPì^ªméYKG^É<Ïâc6K^)àwpfk˛ƒb≈Â<L^÷´÷ÔáŸ çå@XVVø£DÈ‹¸%V“:Qÿ2Mÿﬁ≤MU"¬%(c˛‹Ù·:ÂHsZÑ=SÆóV.˛UèYi»i≤ä[Z)]ßmÉ©L˚ÆTy∫Â¯
+1lGa-V©1jÑW&Ñs|⁄B
+/_Û:ÁÁoXJ ≥Å˚«É	~'Q\>ØåπÄW∞ªv≤!√|Òpa¬‰d√1k¥¯Ì.+dê’Í”r[Ù—1Ç˚≤≤~æõX¢è‹8Ù?∫d¿Àú_xÆo™ƒß’2F€Ê6SØ ÊcD@VÁÄÏ2li6K¿÷/#å>∂›û1ßs mYÃµØóhoÛ8-ÑqÌT µt©=-D˚Ω{”Ètñ.V‹’ΩíN+ëÊò’¶ ©°Œf2Ç,Á`U|â =‹˛´⁄ó≠ÆV.Ë"
+∏»>√V°¿K…[©#€√nÿöÙsE◊ûW∏)Ñ
+§`–d˘é8πF’∞∞A2\#gﬂkñ‰å‹⁄…nvGÅı≤Ÿói)»^ñ0	Ï#oåvÑÍÿõ£›xÅƒŒG¸íïx°S‰£ñƒQë·‰/ztª,ä¿ÏE¨µ $∑Ë£ù¿fë02SˆÃèŒç>Â«/iBu	ﬁm·ÏT2'V‹km1C√f\x—k”à îÅÔ“íªp”∆xÏÉä{‘?,`8lÍí§ç’à}ö&˙Iπ§òæf£œ˛Ç©∞∑€®˘Õ£éëw5&'ù2òw°é:∂E‹-<YmçáŒ ¯Ùh ~ÀW≤±õbk=È»Ω æ8‹º wÂkAﬁC,v«jmX∆ÿŸ}1R+o¬YPö¨¯Ï)MN>%Œò∆˝Iú'/6ˇxÏ‹iYÃ«Kcóh∆RêáìC◊-•'/ÄUv|îkxú‰È,¯∑µj'«pi9◊¬m°c◊Ä‚tÏíR˙#Ud‰™⁄(ÄQjf
+õF.ÂÂÄó≈‰‘~G0‡wìÓ#ßÛnr·v.»l˜´w6Ó»ÿxº§î§ÂÙiQN∫ô∂≠KÁB5ûﬁˆ‚>µá4E¿N#¸[äçñ![éú≤{'æ˙ƒúø[Ëpt]„n≠îÅuºt/–`ΩN	±Á&MNØ\K’6Û∞}Ï]üz”€I¯ÈqË±9oã%ıÇ'œ*	™NsµﬂúU⁄Z'Œï„e Ô¡ÄØ°ÀîfæwµÜ…*|âGõÈ[k5R{p¿`À‚–ÿoŸæä¬—{√ÜT¶é&Î˝-£€çdàŸÚ◊œûH·˛5Ÿë`w÷…F9◊Ìò“f°[Û"kûv‰Aq≥µáN‹Ïc_jt´Çp?Æ‡Œ [øìŒÈåﬂC⁄F≠B£y?OÛ‰¥n;ÖlËf˝>lÚ:ùÕ`‚˚”Ω?-é÷ƒˇi«êØ≥÷§¸iä¡‰KX6œzo67∑{Ω5!;Jı€¸kjË¬É8qv¿~”goaœ»úRHmx–>8ªØ}ÊÄˇ]6œÑï≤Ôê<Ÿ~›>z{¥sºMvˆééIÔÕﬁﬁ∆—oßˇ√£KXe€5l¡∆÷s)Ó #J1ÒkÈ†≈çÈ-Tê4 ·¸Z=çº `Ñdììx£
+ÿ,hMΩ√Sπ∆pÉ`hjÔ˚/(3Må‰òøù«HÜF#Ìz7‹Ët3ñòñ„0·≈ùÅÂnIˇ*ΩCæ≥‘ﬂ˝0pI≥3ﬂ∏=´Õ¥tfæjÛ
+d'âŒI≠ÓPcV≠æ‹.êe–j<sã«WH06oÙúk3$ Ωı^…®¶aø)Ô>À»8LU^Û…˝¢Õã]„QÖ¡hu∏ò≠<mi,'E•ÇÂá\¸8&“TøÇŸ$ΩÆ∆ûîl')r£®øEÅ"T¯f˜j∞„F∫ŸZLÚ¬u≤j≈™ïå˘Xk·iã«^ÄÆq…•V/«:‡™V`ZΩ±2∞∑lúËÚ˛‡æEo—˙Õ2µJ˝ÜıÎ9G∏è—Ÿ¬ô}]‘È„FK?„∫wb7Fl)ÎxUQÎ1göΩŒ"ªıf 7ˆ√ ÇæÎ){Í≥≈Ã¿9◊^ÖøÏoz≠¸ÒÂåØÚÓ∫/,w)ËÃ©Ã‚JìÆ©A.≠^Ë≠µﬂÏØﬂÏØ5zÒw∑øäaéŒΩÄæÎƒ¿¬ﬁY p-Ìèuz4~
+Ê]ÒûØ¬∫;Ugæwøòq˜õˆ3⁄as6Jáû√±Á+¥ªnnÔo}3∫~3∫÷£}U¿–ó≥π™zÛó1πŒ¶Û˜jqe<,ÂW{´1÷Òõ›µÍÛÕÓj’ÓΩÿ][¯fvü{0ªÍ9Ô7´´‚Ûèµ∫6´B^Ö‘Éá`Öy6éjgß∑Õ∆àr øµüﬁÕBÀ€Y™m•ÂŸ≤r¿˛r—8+ù∆à_UJt+lUôuY˝;ö&îGe7ù32ˇ÷Z±‹\Û˘=Å©^jwW·ﬂ”7\Eÿ>¯ˇÈú⁄
+DŸﬁ«7à2$KZ∞‰˚Ù8€Ù¢~ña¸D_	x≈™0m∏∆¶˜≥ÔhKØsO˜¸“AWYú’
+‚ìjª‹†1Kêtmâ¡àn/ÊiŒ=ßy—<Ùz ˝?«i 2ïáNLŒ1óïÏˆµDÎÒ›Í¶mò
+$ÈTë€˘¶ˆ’mjø“|°º\>k0Yo˜‡uè¸∫≥˝ñoºT$È›∞ï:vŒıµ≈ü∂|èíÍkÁ3kˆéö?Ò|ÕìÔû“OÆÑ›.ízDÜQàºq¨œqNÍ…çıtÁ∫∆{iH¸Á‚ßŒ"Vñ˛zÍ]òG¥ÑÍ®°*?ı‰ªãã|NπÑágT‰{ÅÔ´>VtªÈªNäÕ%y9π∏p#ÍE%-ÅZ,|ñ3}Ú]gäıGNæ[¶üR}XeLæóNÈ!æ%hgAàKeP+|‹ùÓ&Ê´ñ«ã—Î•jóÏwèËÁîC∏‘xz∂…?˘ÏÿEG<∞^v"vW*íÏáÂù@wcMrÌ&mÚ42Ä%2w◊ﬁÜ·f8ÇC∂íÚZi.› NŸÑn-lDã´“z”ôßËÇ‚õ±ˇË¸S¨>ü"ıIKë*F'ﬂ-—œiZeëQúèqÿØ±è⁄?jNcºJç/å†∆ëÀ™Hfæ¸™3„:Æ?v*Oîy5ﬁªíy‹˝HÿËı∂è…∆õ≠ùcÀCÅ•™ÎéÖ¸vc2x@—caŸ[/∫˛U√£ËÙ€Õ!¬◊Æﬂ‰=ï™gòˇa˝Ü˝WuáÔ!]U‘≈ÔÂ;KI=É{€[;§w|p¥Òzõ<$á€G{˚€˚«dk{w˚x€rZ“—ÕÍ~Ÿë…πtø–º^îú©È´ ~VıKÀ˜Â_o◊ŒÏòˆ…˚¥Î^:˝kÊ§_øÅ|∑pY˝ñ=Ôïù‡R<[∫§~'ª…›bË;ÏŒ„-∞†CD }0‹fËSÓ±\◊rﬂLMˆáG€≠Õü∑72?‹=¯m)˛hõz˜íÌ££É#&o⁄ë?É|mTñ˛\\$[◊Å3ÚtÜÁﬁı¥ +ÅËCºêÓÇ*·—@µKÆê∆•Êx>yRñÖÅäYΩ!Ëá^#s?á#óÏ;ΩK⁄‰‹IúË“M‡´„â√Å∏H
+˜ê]hnåπÉsÓ9Ó\∏â„˘xi3Ñm‘O`HpÊÅBÑµdQíÜ„8™–ú‚·yàE≥<ê}>¡√^UÏ9I'û#∑U}«>Y°BÍ˘ó˚ü˚:7ƒ™ûGﬁÂ%∫Â*û@˛‰stXëç8˚äGaò˝Î©F—É9![Q8∆0ëÜ$ècv-ŸsÉ	yç@÷#¡Ò‹,,—€O◊	ƒ∞å&>LNf¥ûÔŒV<’H^m¸áÜ:¥˜¬Å„ÀÉ¿Ôé›˛0@J'?ª˛d/ ØëÌrÒë6KÂcﬂπÊ9œ1»˛†ıÄ§t|Üäd?Uˇ7ËÊ‡pà˛›ê*√A%Æø÷È.≠Æ>ÍÆ,-:ﬁE·zÌç6Òë˝°ÜÛ1D¿38˙@X±¯2+9}w∑GJEwÒrÆy¡E¯˙ÖﬁE∑˚a˚«–˜=‹≥∞]YÅ<†N$≥áBh: ÿ˛y8›÷Ö7ê-w&‘U‰<Ø√A˜h76CXU–@jÕ∆X’˘C4—”Óˇ‚˘æÓ5y·¬6ÿt∆†
+‡>NtÖ·Ñ^L5Ü∑C'â7∆cG~"òb:ÜÏ[‘û[Iÿ¢∑Y!„ûhÖÇ—§+—waWè)Å¢ÿé≈âZ¿ô¸©FÄÚ »zxMöáë˜ƒÉyyÙzà.tSìfcÃnlÃÜÒj‚c◊brxpÚd‰^N@ap~£±Ô°õ#-û8À…è U«ÿ‹ˇo≥Ô=Ï≥xÍ"&âÀP°6`ﬂ577Êa(ËÕ¢˚@Í<◊‹ˇ>Ωœ8Äîu≤˚©pÄ¡ @2.π8˘ní0HFŒRu£(‚T˜Ç¬å0àäÛÑrcù†ÚáÖ¥∆êT„º>-9 Ä©ˇ¸ìà_©Ca∞¡¨W=7¥o>v√c¨OÄo`nπp⁄{c∫Íp±I/ˆ˙vÊ…3ÚXˇ˛»EV	S|¬ö^[vD√⁄ãùó5u‰^∫ü†ù≈wÁÏ¬ªÛÊãÔ‚õ/÷†«Ó’üxor˝ÁG«ˇËŒœ/^z*´./aSh∑ù4Yeûªéˇ—‹5»Oë2∏ÒV(≥È¯}‰
+¿Œh$öV®fZŸ]ª üÆ¡fBè¯∆¿?ëQ|ô˝c•"Íäc‚xÉ@ˇx„çüƒfyë=¿åGªŒπÎKW√Ä°¡¡%&…√1> ∑'ß(^´∂ÇwAööµó"‘‘OŸ‡⁄„I<l™£¢ÿ†Á^F¿0¿¶2e™s*¶CÿÃú}S›1ÃK´Q)í"¿í9ˆ¿≤/|g∆HöWCK3√	¬—∫’9ˆåÖ@Õ1ê÷π˘ˆô∫gŸ2Õ——k - ∑8T˘{-¸%ÍG≈
+Æ≤}qﬂçbõ¢	OªGÂ&fæSŸ!oqWˆ¬ñwhı3∏G≈3•˝™ÈXπÎyÊ´Éˆ≤ûÚﬂ“˙	ÖFHÉ-_U‡ûﬁ˙®Ì&∂°õŸ‰ﬂÓ©õúŸﬁ`Z√xÅ|fà¥,kiónıÆ8›7Ö‘NÀ⁄€EtÛ∆õ„É÷´ùˇeñ”É£5Ç§OnõàhË˙ ;“2vˆŸ6Èª±º›aøFaåµ_Lá˙⁄˙HZˆªyñ•Œ8åe˚è a˝"!ÁÇu
+TAÆZQ’¸+¢aê2KbŒlè lÜa`˙∫N‹“˙ËXó•rÙä†nöF◊3√3:	ì¡Qß›È¿ÅìÒ÷±vIz1ÅˇIëpZ%‘¢‚‰I-ú$åîGÓÔÿ»ƒ!¥HÉjD¥&+∞e|ª;'–º”¢Îl‹÷LÜtŒp!@Âh¨±¥y˘r∂Î⁄€> ¿`öπÜ\π¿ Æ‹f+9t@ÉKF(∑bêcÒO|’
+„0Â6:£±≈q-¶—Ê¿~9Ò?˝⁄=ﬂl&C˙‹˜Ú÷ÔÔt«√t"'@W\z∑c Ê§Ÿh6ÊO:ßmGÕä#IUlC÷;Œ8ì˙˛&}œ-i~ü´.7Oz@ÁC≤q{œ93æ	µÒ¢ÇFsˆrrMŒ∞ßFX¥Ñ^òåIl ◊'€ﬂDo;µ&ëÕm“«™ÄhúX`πÉËØé`˚>$Òdå)m≤¸>Ò"ÙÔG‰ˆ{ÃÅˇ«=›ÆË~·ƒ”¥@Ú„X”/®v∂Fˆúd+˙©®≤-ê'´Û_Ù`•AêÍ@∑˚Ëli˜µÂëy†~Ú\/ ·tıÅ0°BÀh¢§yz.‚îŸt„>N‹◊4⁄;£0f(ÑM‹«π,Ôqû7='à)}ÙÏ¨Æá‡VRù≠‘li¨+ë◊ÿÜ9Ù'pW≥—wï5oÒêê{4€#ÊÊ(≥™ı®aØ*˙uKp¸ÏPó$ ql∏ü∆häJ»ˆ$
+«¿–8Ü'2÷innœÀñΩl’\Zl	xå…RÓåèóù‡ø.z0ÿ,ºû¿F
+W7	üQ!Dò9©U*4ÇmV‹BK≠º#ßë‰ª¯#ô{º®L7	ºDÏƒq@ôja.Úô2®©%°Åá∆oÔ#&r∞A#È©35Y˙ûæ√ûWaÙ˝ã‰“AÓ@@pÙ∆#4xÚÁ˙ppÇdX1bÌô`°‘çø‡y¬(Ê &âìˇCô1l ¸˜"H÷öÌtIò£®û6ñfÍf]Hw ±x›}!lÎRª"+ª…A$ÀèQ ús…Å˚P∫ µ/Já◊|É∞DöﬁëÌ&∆¨g¬à3Ïw/h.uhº{á¥H≥4Ï∞Ä}˙Mæ√?êÓº2/û„p à-œπ¬‘¥#ó÷»XØ`û(yF‚∂≥„# ’}≤πqDvw^˜†#n!Z¸ºΩ±{¸3Ÿ⁄ŸxΩ–;ﬁŸÏÒÿãwÅR@‰mˇçøÊ¡{¿rû¿åû‰ö•zïÊ÷≤ÛìpIs±sp˚/s3ÎS~ê≠*€Æ~›RõÏo¸∫Ûz„xÊ˘!ÃÚ˛/dgˇx˚5Ã¸oåW¨iZñF⁄¿ã∑ù˛∞ÈÎ5Èµ' ∂ôÍˆ≈DVÕıøÕ‹X∑Hu¯'7Ëñ@Õ(´G˝.Ë∂Åê∂ﬁlK£}H6ˆww6ˆÅa»én‰x4K{Uç’ù∞“€1¬"¶Q1àù4jµç˚Ô_ib¿ù[ªì⁄õd	E‹ò0Ô][71ƒıcW”ô”ïk¬k=_™ÚKòÒ•<n,)˝≈M∫ºnÑG›ÍñP≈¬µÆs?<Á"/·◊Ê	ÎÈÈBÍË°û«æ„?ıáàê¨Oíã÷ìüöp.í∆¬EÌ>Ö$88«S˛n‚;+ƒ%D€pÿü†<¡ﬂˆ]¸´9ÁÃ)ü≈ß⁄9ö Î9ü 7öFÓ≈‹vƒˆ	¡y·©≥Ñ*ﬂÔAMßTÛûMÃ˚ª€È^'å«‘(q€N>%ÍS6÷•l≥£|sË˘É&vIﬂ◊>Ü6®Ì˘&±h‘G◊–$óoÊX‹Zv÷ƒÑü6b2Pcïdè∂j˛oáó‘T!◊∫‹èG∫h˙≈»1»ö¨¢ÊKêbtı°ä-Á¢∂ÕPkü|2n≠¬ÏGÉ5˙{^iRNX¡K∏/ëè±˜Íl—”ä∏¸·r) ”¯•ƒ±,’øêY[Œ…7cñ=Î±†c.ˇ˚ë_<°A¡~äŸ¨£óLfIŒë5R®€9Wô_@»a‰∂ÿ{∑‹±^Sï‚!ç˜¡C∏Pú€Ñ´ëËÛŸ‚pπbnUı‹ñ§|ëƒ*ãê˚ZWHi⁄fÂ‰¡àÁã¬)>n‘&øÚ™õ1ËËNBãé∞cM° )1<6r‹45‰·°FK’Ú(’¥&ß–∞ {9
+ëú3pµöÍ1HgVèHPQÆ2˘†Ç⁄’‡yiπ∂™,c ~ö6•û´R¯‰4‡O≠eë≈NyG∑€=%RM,“Wm*Â∆´≤‡â¿,CIõ,(ƒ∞"‘Ü± TÂé?åXªr≠ßä˚E±BqX4Ò∏SÁù–ÊâÛÊlFÌπ∞Á¬˘€'?{óC˛tO„vmàRµ=‡‚Ÿü+Lºt‹tŒÒGG%OÛâ‚òRfW+RìC´©D©EZ`≈ã•˙ßí∂b©o †-ˆ„Êåæº+$%Á¬A≈^
+¸t©¨›â≥£ë?;hbr˛Ïh‹û›VÊLïÙ∆
+Ç¨7H9a97◊è˛6?1Ëpaf∑IóL≈¨Í∑VWˇ;ê⁄l∆√<f˛w0›JTRõ$eÑg»∂ìurn.ª?‚Iâ\K:T≠=8‹>¢Üç›:ÂlÇåCsòçÌﬁyT…û«ÓiA∫áíå<™ÿÚ=íôèzâˇâEÊ»ˇtJcy2DXl?•ÂÌ√2≠eáﬂÙ‘ñk˝”õbCzìÀKÍ±≤"∫äØÙVÁúº◊w
+óàπV¨»¨≥UhU äü·^$§Ñ∑∆Û±?óØ(sjâ∞µÖØ´6K]¯Ñ™>2u˚/S§Ÿ	úÌ<	Y^ﬁÉq"£mi…T}∆*≥2Ó»Ñö;ÅÁûπp»”%[/IØÔx°âÍ¯°µ¢ÇfïÕG^–∂Nñª»‰™çô›àåXÏ2ºÆ˚Ñi≠÷ÿ2¯lît f†|F”r∑å—î…OoÒ¶¨ÔZ 6=Æ®‡_
+Uä§[ƒeBWÑdü⁄‰~4º /Æ{°2A©O.n}ä%–0;˘≥rœÜ"älhqBì»5Ç,±h≤Ãïí:P|æOQ•±Jn2«mr<tY$ Æpîê[a4SŒúÖïú†’£Ü+£LËò)qÉá…åï9oey√Q‡¯;ÛY†ËY÷6°%"îX‹,ã%„÷räX"sò¸∂éGv∂n∏Ød|ZVX≠æ∑Ü…RFÿ‚ÜÉ¥$U¥Óv‰R÷¿QW:Y)È. RñÌÆ—vôñoô_ì⁄fW∞uã∆An3ﬁ5MQíº»∂&âZ|=yí∑Sj≈gì··cg&¸YÆHKõÉ4n‰'ˇù’K≤≥¸πëªWp⁄í˚özmÌ&›7Ø Y°=JFhKZ‡√Dó≥Â09mô!qb
+;.‚Ï¿E˘õìPñÊÇì·dYX”7[L]Î∞BÈ5IìŸáÆì©¥ü»z»«©KE~Y}¥a8y>—∫W„RM¬}¨Ê.©Û§tÆßQ—-bÕoÙ«∫R‡MπJôO¶`HÏ#≥µ.3ªÙx™ÜmŒ¸‘‚R@0¢≈6Ú ˚dZMŸbY.œﬂÀ≥‚˘ g´77⁄é–{≈çÃB˛ê™¡áaXL◊AÃ¸«öé∏¬£~•`<[aœI"Ô”L
+=∑ ˇ*¿A~˘∫Ï]í⁄ä†ñ5ú5ëÜ—Ÿi/r¢W N¥ !ZÒ√ﬁÜ°;¯£˙j ıs2∞‰Õ6·óf0ƒ@∑ß ®•(%Èø¢ß«Täñ±Äõ.∂lﬂ'√~‘‘}ÏbâJjØN¢I–ßòù\‹LêaŸbT”6¨j%	ÕXZoÍ+å®÷xîÌGaupŸ›§ëçËπbeì∂¢û”L%T†i"Y0b?œNSäÁ˙4≠ë√S˚ûﬂ÷°H¸|◊X-[(&m1˝6Àd1ˇfŸ·>Ñá∫hﬂ•ËMÜ2ûªXz¥t°¯
+0/CêÊF<Må¿úÇXXîQ‘Òô˛ú“√åØ}¢@s6û&j,Ô…ÿ1|ïh£äã\©0O+9:›^œ{N08?a:V¿QÆD	ªgXg'∏|ﬁsAπqIØ∑K>.#∞tàï}©¶ZÂö´#M+p»‰74nﬂã_¡Åuàπ^†pÜ¡KÿÂ«!¬)Œ√ÚﬂÕ˘ü“ zZÀ0>ªAÛ¬Å+Ù+eQá|ﬁ
+D»% )
+oÖ~rBdv~Èµ∆º≤XéîSm£i‡/»‹ˆ'åñpö4¿u”a®à[˙Ó\yl:=G±XÂç^∏)˜g∂	q˚mæÈÏ	Ã‡ÕÉ˝W;G{,?eÔ`kcW⁄ã7‹˙~nπXqg†ÑMeÒ¯¸ﬁó.E~•Âïâæ¡@§˘z™Oó^"±Epxi[züh*#PPãÁ>êÿ‚”≈7D·ÆL"ã˛N|€o*@VÊSÀ‡¯SD%k≤‚–œœ<4–éMü ﬁCo0p^Ó¨u“yﬂyø
+“˘˚ËÚ‹ivóü.<zÇˇÎ¥óVÁOSWñêg@ˇ˚Gé‡øpT¶eQP 3r4t∫…N∏™⁄
+
+Qu%’"Y‘Wä•pƒTd'3ªqFü æHìõ°ÆzÜÊ’˛Œg4% Á0Ï*ä∫d5ƒ,è'¿ç‘¸Y}n'.5Ω∑W’]ùQHøF‚•_D$°õŒSZ˚t·Ò
+3´8Mek]G‰b◊·Ñƒ˛À‚– (_Á]È›≤
+¬ﬁÈé<§3w£‡J/2xÆ•˘-ç€πÙ‘dÂkôªm*Y!·˜|Ahí5bB'Bõ(ˆŒ}•ãRi÷	l™nÎÏ∑j∆Ùlå4ïeY'æl¨BÃ]Íºdq‘_Wç§Ì!"∏÷3È¯…˙‹úÓ€<Í Íêê&çµ(Ö¨‚k3y¥ÕSº»ç˙Á˙\Ä`vÏí.b>hÏ	àAÆ°‹´+J©SÂ∞Gdcò$„xmqëNK‹ûÒ9l˜√—‚x&akiı—Úc,≈ªºÙdµµ¥‘È,Vó=]^}Ò˚˙ìŒ√´ı•’ŒCdòÎõˆ·Öó¨˜·Ï”¢»i*fiLssÎ≠{jN°¢»îl%…Pì@U≤â}§D1‰lÓyÔó7k ='a˚hﬂ][±*Nºö	®5†¸9Ee¯Jæ+$MêY.©D“nWùÁZ'è©îe*ˆ≥Í¨."õ0É¿ŒJÊ‰vô'…T∏Æßœ≈Sö¯´ÍN≤;%ZÀ%€‰“¶‰îÑä:íz/«ÏVä˝S/äaèä¨’’\·{ò⁄úÿ∑¥™˚∫Û2Ω¶2¢rÎG¿ÄªRM€≈Á©‰Ùõ[¿≠Øªi/§⁄OŒ‡BÉTZ√·—¡ø∑7èyEù›ùóGGøë√ùÕ_∂è *ú”J9áÜã¢Çùó#¶’¶‡p˝9,ñm‘)Lò¢A~@}},‰∏*UF´ø‘–ø4ªLˇZÖﬂ∏6u∞Ûqxä]Éﬂü–ﬂÛqNv:ZgÅ˛¥üî¥èíÒÎgÖaªñ‹û\%–’/ugÈ—∞R—©‘-˘,«»kSœu’§*4JÜZèpfUS-söü—25;}êÊı;Æàj<0<¡ñÓ7≤ÎùG({N Ìñãﬂ©î+µYNgÄ´Ê˛ÂÅ;EN¿MmÂì g"†©bÕÁ'WZQ˜+πuœOu¸Øîb^ö5VâV∏_eUczeOP	 6Â≤yS*òÃv˜˝J§„xbØ‡n≤+ùS˜Ê§·¯~cAB<Éﬂ„q‰@W∞j˛y5t]ø7∏Ù/◊á¡—ﬂ8§W+≈Újú2w0»ÔZGpUPı
+√√jïƒ\ZΩLÎî“Ÿ*Û"_◊¥wÍ7TG!ì±3&T÷4´Îìk£éúrw©i∫¨U&≥†¢GπPŸÙV4ö-)çf =È„ÉXòëRJóôÅ‚Ë≠b
+íÕF˝ju íZC“·%Å®qb0Ó~Éó\√YL°√-$a“–T9‘…‡eóú÷Öb>Qóm∂h±)
+®á∂(˘ŸGö*∏^0û®)ám&\ıV¢≥4qØØœqﬁ»"˛πu¢≠¡Í˚Ë¯ÿ?îíŸsˇô∏—µz√¡ÜÂ˘∏ÕDlYÈ…¶À}Ëm⁄¥qÎÊJæ.=¬¡pT–U≤:∞l7ç·v2é2∏ápí`Õ(&¡^Ñ˝Iº&Ì∏G¥§g:árÆõjﬁîrƒ3>Ô∆Ç4JÁ<˝	Ø∏H(´JBvR4th§î“ÈC´AÕ|YÀôÂen®˜baq”a”0Öl‹6¢GiyM™;~tÜ&Ñ^Æ_ X1DùÌ˜ôO%eèÅb’ÇyêâºÀ0Ø¨Ûk´˘√¢˛«â]j.gâ·◊q%™CµVˇ¯È¬„ŒB∑˚œ%twI˙¢ö◊ΩaÖµeU]qøÎ8Ç˘4lÛ¬Û]5µ8˝æ;N÷Á(ì\¸A}”h‚'ﬁÿW„ïXb5Ù-vÅîS&I/ËåΩËòß7T‘bVÒ!=h∑Û¸Á{çÄ¡$ﬁè?V#‹f}É&ÿ≥HÆMØu=Î]u€Ñ0+[…„êØ#{≤™y}0çÓıuç≈\NÇ§FK>ˇlënÙ©º˝‹ì˚”
+7"◊1*/‹†GYH¡™Q⁄WÖ?i˘f™‘j≤£5ÔBsO±j:3€<≈üS‡qéZ¨pÁπ£J„ø—i‘¨Öìì¯∞¯H)‹JˆûZ…ﬁÔÏmºﬁÓ- ∫2{)ª˜T/» b›A⁄hÒ=B`⁄Ì ⁄a7ŒD{≠¿œ$ÿ?ˇiÎ2èM≠xBMÙπWrIbù∂GÈMá_]î
+Ú˜—Bcïõ3ˇ¡◊ç w∫∑©G∆ÉAä≥	‚Kn¥:S≈eŒy§Ö∂’B‚GØßõ2¢áLÑÕ'F?!Vq˘E˚’ä"æ!Á≠à"∂ØJYT˚![å∂Oø9∫\ö<Ã¥à4∏=rú Tq±rëå^ÒHBrXÆáˆuS )j°”a≥≠Î˚9Œ˜–À@kR∏úÃæ«<Ãåßå#K¢kC6Îã¸ªòì>c=t;W6∞¶j ~—>)uÎ‘∂Ÿäs]˚Öas‚«úDM-RY´£Éãqê>I—çÂô2…=‚!√Ú⁄4Éeím˘ÂMZ≈%◊ü¶ÎØI+TÅóü}*ëÛNÈ£Kq\7U¥ÉáŒ…ÈºÚî.M¥•§4i6ÌÿœOº∆`55Ü;™ø◊Hû‚[·‰‹wsT»Ñe∆I(¢ÁC3õCÜõlΩ-pLRîèQ%ãü t®îeTÙñqç±†¯‘Bc*¶ƒçÛåF—ú˙à•ø0Fq©c£z¢ÊâıpS˚Èì
+˚®¯¨•oVÿJÀ †≤M5ÕW‚o\jw∫Ü7VÁiÚ*B∂ƒáÜnI¸œt?∆lÒ˚©îi¢˜≤Ÿéã>πH.âRËØ€D(1∂‰	[ÍT†ô‚«ê/U˘%*?¨3IúÀälJˆ)J©·ä˘‘?°Wù&@»Óı'ä`efÿ©Íëß'ë KÆÕIl∫˘ÃiZ
+üI∫r¡ï:c‘I∞XûÃŸ8¸v/ﬁ§ÍJ:ö¸¢«ÿ]iKw:8}Ù;~	A«T≈t°ÆnBë? ≥‘òv»≥&ÃIAuhﬁ@µ<Y>UföñÖtyD4[Ìπ¶…å*0G†aR»ålÔº˙≈∆|{åYwßÄµ9∞Ñf∆˝…,n+Á∑‡çtbXÄhw,30sÉ3πjaff—ºZ}≤p◊ZS˘·Dlñ¨ÚryFK∑X*0¸‡æı…‘@B3m¡ú¥VπÍÜÁµÚ—≠¶Um{ ÊeäTí£öEÂ‹s'"[fƒl’∫j=Èp˚’ Ñw©Â´ò3øÚä—◊_4çq°â	Le„·≈Ç˙Qr∑÷!ÍÖfïj£Êﬁ¢›‚ﬂ≥êôïòØ∂ aˇ/Ê∑/ØÉﬁ ı@~ÕMN¬⁄[ãØtƒÿ ÛïÏO*@>ŸkŒ∞IõÆÇp5ÇBDsœ˘	‚ÿ,#ÉJHjØ*ÒKãòJÃ$∆cO@1!0f}cöyÇÖ_}@FMS¿>zÓ´
+πÙÄB.ÜöXº@]-î¯FŒx›aú$q˙Cä<“˙ÄÒ¨Î8ÿ[„¯ÜÚFÓÒıòWüóÈ>ìFî/zAöπª«¨–\i.bJŒZÛ‰ˇ˝t˙„¸OãÛpØÌ≠¿yñNQscnª1÷|Sæ~Mız7ƒoΩdÿl¥Èì(GeeÕ˛wÏ^6‘€øñçRÏ¬U¢‹›Ö„≈∫AU“_˙L|Bq“@MYgB™¶Öq◊çåVwj_#„>-
+n*ªDEH…\¡’1≥ñöB®2Znc‘∂©Æ]"/É MÓ‹CL©~JŒ‡°äÖ¡ØEı; ©H’Åü*~]-Íc:ÏJÁò√¨l7C÷ûQFÆ@ªPûA ¬<BÃUBÔè)fµZë‹"ÑQ5˜∂—∑*f2g™ÀqëïN1∑83 ·%4˜\Ëº6Kpı«ÜæfI]GÇ9ΩMwQ µ¶e›r.ãéGË†-˜<rùÏ∑º}S†∑H¿Fπ©∆:¯— ¬/aÆ≠êÌ kÆ3¬πÃdª†rõX-{•ì—\aÌÛÛ¶‘≠æ≥55oíiF⁄æ™ÆHXKπ≠Øﬁ—ºFÄ–L^* O"hb&LÓsO˛Ç £Ä<ì©/%„Áí^o$a|ìe:Ù-pã‘_Zä±„DÅ
+$3+%÷à|jÙäüÇOX„ç+1§ s¶Ï4ôôˆÒûwÀœ4Ñqfò•0NªÏÃ©À“ïÎ∞“ti“f¶_Tê®	gt:ô«N◊ñ¨j"ª¨à=≈„…,_"ÇÕ¡ÜfΩz∞æ^>&çn∏qSj∏…ﬂg|.Ås∆.@#áz†¬ñ¡Jº;R⁄‡ÖwŸÄﬁ≥h£∆˘wÔ`ø”Zª@]iOå]¡™˜h#¿(TìáÉ◊ƒ={˜¶”È,]¨Ùª‰dœxé.>%¥ÉuèŸVI„{ï4ﬁPóˇï∫fÎ©óÿó†ÓsY€OK“¥Ñ‘ìsZã4¢4ˇQc_]ærJ÷2mFwˆ1úi™,Ô#ZôºB3ú>T<m¬»3™∞¸tﬁæJc,∑0JRCEˇéΩÒa—!Ñ÷Ö˛ÅÊÃ™»®2NFÁÅ„˘4¸˜	ﬁ%ôπIq÷¶√˚Òh”=√0πs“µR®ò"È∫V=2ïÀZ_n¶4qÃô≤∆=æëÅ†5≤ﬂ·ƒƒ–*üê}P†Pq:ÎπpêÎ◊∞Q1i®Áá	˘^—èd©ù¢Å!‘V˚Ω¿í)R°ïÄÉúπV'EÆ9¨mn‰∆(˘¯$U≤ì`‚©\ö”:5Îπ5ÔÍÿ‘z»—;(\·©—/‚ºRı§ä‰ï«¿ã±ò¯`˝ÊA~ˆˇ¸ì<0≈¶j¢ãkÃ[ÕΩi–àƒ`÷
+€8Ω^rÙeOî—∆Ôˇ¶FoeÜ‹°?âÛBŒû3&iàÃéí¥?È÷ˆ´ç7ª«Ñ9Á…Òy{p¥ux¥›ÎëΩù◊¨Æ-ÈΩŸ€Cêõ≠ùç›É◊2ºÕ¿Ωp&>#˜xœªdË1Ω…àûe5†n24õ,*oµïW9T-dtÒ«∑Ükÿ›∏Ü˘nB—ÖU¿õ†érS8QiIÙp‡¯∂à4„VåXB∫x“·Å1KOßJ€◊9d,3Á-Â«çâ˝rG.Ùí)BOäß≤¯rU*—%Æ≠hj")Ã›é2ŒJát£ÉåS ‡ú+Ãá¶∫ÉJNø≈∂
+€Ô1ÜºÖ)8å‹8&ÈŒ!|Î®:w78– D©'≤Cd…Ωù“√j⁄\‘».u±u∂™ÿP3ÄMk≥#ë≠Y@T¬pÃfÁ…ùavÉ°uuÕÏ•ú+*,∂èt0ìÙnÅ:ºÈDõ æÇfπ[Y)∞In†¯h’¬~E°jCÈz)¢BbLF@ı—ÿûpÔßEÁ}®·q0fU˘˘8ì>⁄;Ì¸Øt1A§pg±í⁄Êk]…M'q¸í˙†crƒ;˚w\–Ò$˚ñKz@m⁄‹Î∏YΩº#ê’A≈∫πùÁπ…_È:c	y‘,∆<ç†åí9≈q≠‚¯“+jÑoW˘ˇfPd¨≠W—ö)∆!SÏÚwìÓ“”.l&Ñπ»ƒß7GªTªkﬁâ¬TQê∫z’S4Áû˜úèTˇízœyÖéöµê9EÀ®V©íÖ⁄˜®√ßG+%ë^÷∫øTc,c»>_†¢»sÌWKçû07÷aˇ==9ùgπ‰'ú»$ÚO+äØeE◊ƒ#∑]©Ωj÷÷d,x Ëí‰â<vUü™bâ3J,A≈$ßIè*U»í•RL•|§∂H^Kg´ πí›U·1Ñ∞*7èˆúÌı⁄¶DíÒ8LÁÅoVV⁄çÕªò ≠Í·„Séº:ƒÆPÆEµ≤{È®ˆ[ŒGÔ≥’⁄}ﬂ”"@Ì´qﬁÑô3¯|—£é=w“œqÃ“ö˘πco‰Üì§ô*ß˘Ü®2∫@Ä‡;’∞Iñ°(∞©’S≠ìŒV˛0bùÉ1^Áè¡È"In˙ÚdQ#∂òyÚ¢êj∑\Npë-Ghh]ÉG∞gŸãY•(@9X±.JxÍ÷éhÃCPúJ¢FÓ≈zıv∆C[ü{Ád°:L%r},ûé› ˆköäh∞œ=ìUıÀ9%QåtÊû Ÿ$pØ`‹Áw2ÿ˛8>-B+”A’z-:SDLÂm◊#/Võ},ùÓ™b~’ve!ú∏¡@cΩ˘j¨züZ´iåû`9óîd}V•C‡l)ƒ#≥ê´SÉ+çÄ⁄E'ªÜ‡∫˝üˇ  ˇˇ nû›Ω
