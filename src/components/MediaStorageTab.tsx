@@ -84,7 +84,12 @@ export default function MediaStorageTab({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Auto-assign WP media images by matching product category with pools and round-robin variety
+  // ONLY fills empty or broken/placeholder slots, never overwriting working URLs (/assets/images/... or https://)
   const handleAutoAssignWpMediaByCategory = async () => {
+    if (!window.confirm("This will only fill EMPTY image slots. Continue?")) {
+      return;
+    }
+
     setIsAutoAssigning(true);
     try {
       addLog('[Auto-Assign] Fetching WordPress Media items from /api/list-images...');
@@ -156,68 +161,90 @@ export default function MediaStorageTab({
         return allWpUrls;
       };
 
-      // Helper to test if an image needs replacement
-      const needsReplacement = (url?: string): boolean => {
+      // Helper to test if an image slot is empty, broken, or a placeholder
+      // Working URLs (valid /assets/images/... paths, http://, https://) return false and are NEVER touched
+      const isSlotEmptyOrPlaceholder = (url?: string): boolean => {
         if (!url || typeof url !== 'string' || url.trim() === '') return true;
-        const lower = url.toLowerCase();
-        if (lower.startsWith('/assets/images/') || lower.startsWith('/images/')) return true;
-        if (lower.includes('woocommerce-placeholder') || lower.includes('placeholder.jpg') || lower.includes('placeholder.png') || lower === '/placeholder.jpg') return true;
+        const lower = url.toLowerCase().trim();
+        if (lower === 'undefined' || lower === 'null') return true;
+        if (lower.includes('placeholder')) return true;
+        if (lower.includes('woocommerce-placeholder')) return true;
         return false;
       };
 
-      // 3. For every product whose image or any images[] entry still starts with "/assets/images/" or "/images/" or is placeholder:
-      // pick its pool by category (car-lift or wheel-care -> LIFT pool, spray-booth -> BOOTH pool, anything else -> WORKSHOP pool)
-      // assign pool[i % pool.length] round-robin so neighbouring products get DIFFERENT photos
-      // set product.image to that URL, and fill images[] with 3 URLs from the same pool.
+      // 3. For every product, ONLY replace slots that are completely empty or point to broken/placeholder URLs.
+      // Never overwrite working URLs (/assets/images/... or https://).
       let reassignedProductsCount = 0;
       let liftCounter = 0;
       let boothCounter = 0;
       let workshopCounter = 0;
 
       const updatedProducts = products.map(p => {
-        const hasLegacyMain = needsReplacement(p.image);
-        const hasLegacyGallery = Array.isArray(p.images) && p.images.some(img => needsReplacement(img));
+        const pool = getPoolForCategory(p.category || p.name);
+        if (pool.length === 0) return p;
 
-        if (hasLegacyMain || hasLegacyGallery || !p.images || p.images.length === 0) {
-          const pool = getPoolForCategory(p.category || p.name);
-          if (pool.length > 0) {
-            let poolIdx = 0;
-            const cat = (p.category || '').toLowerCase();
-            if (cat === 'car-lift' || cat === 'wheel-care' || cat.includes('lift') || cat.includes('wheel') || cat.includes('parking') || cat.includes('triton')) {
-              poolIdx = liftCounter++;
-            } else if (cat === 'spray-booth' || cat.includes('spray') || cat.includes('booth') || cat.includes('auto-spray') || cat.includes('bus-spray')) {
-              poolIdx = boothCounter++;
-            } else {
-              poolIdx = workshopCounter++;
+        let poolIdx = 0;
+        const cat = (p.category || '').toLowerCase();
+        if (cat === 'car-lift' || cat === 'wheel-care' || cat.includes('lift') || cat.includes('wheel') || cat.includes('parking') || cat.includes('triton')) {
+          poolIdx = liftCounter++;
+        } else if (cat === 'spray-booth' || cat.includes('spray') || cat.includes('booth') || cat.includes('auto-spray') || cat.includes('bus-spray')) {
+          poolIdx = boothCounter++;
+        } else {
+          poolIdx = workshopCounter++;
+        }
+
+        let hasChanged = false;
+        let mainImg = p.image;
+
+        // Check main product image: ONLY fill if empty or placeholder
+        if (isSlotEmptyOrPlaceholder(mainImg)) {
+          mainImg = pool[poolIdx % pool.length];
+          hasChanged = true;
+        }
+
+        // Check gallery images: ONLY fill empty or placeholder slots
+        let gallery: string[] = [];
+        if (Array.isArray(p.images) && p.images.length > 0) {
+          let galleryOffset = 0;
+          gallery = p.images.map(gImg => {
+            if (isSlotEmptyOrPlaceholder(gImg)) {
+              hasChanged = true;
+              return pool[(poolIdx + (galleryOffset++)) % pool.length];
             }
-
-            const mainImg = pool[poolIdx % pool.length];
-            const gallery = [0, 1, 2].map(offset => pool[(poolIdx + offset) % pool.length]);
-
-            reassignedProductsCount++;
-            return {
-              ...p,
-              image: mainImg,
-              images: gallery
-            };
+            return gImg; // Keep existing working image intact
+          });
+        } else {
+          // If images array is completely missing, initialize with mainImg and fill up to 3 slots
+          hasChanged = true;
+          gallery = [mainImg];
+          for (let offset = 1; offset <= 2; offset++) {
+            gallery.push(pool[(poolIdx + offset) % pool.length]);
           }
+        }
+
+        if (hasChanged) {
+          reassignedProductsCount++;
+          return {
+            ...p,
+            image: mainImg,
+            images: gallery
+          };
         }
         return p;
       });
 
-      // 4. For every featured category whose img still starts with "/assets/images/" or "/images/" or placeholder:
-      // assign the first pool URL not already used by another category.
+      // 4. For every featured category: ONLY fill if empty or placeholder
       let reassignedCategoriesCount = 0;
       const usedCategoryUrls = new Set<string>();
       (featuredCategories || []).forEach(cat => {
-        if (!needsReplacement(cat.img)) {
+        if (!isSlotEmptyOrPlaceholder(cat.img)) {
           usedCategoryUrls.add(cat.img);
         }
       });
 
       let catCounter = 0;
       const updatedCategories = (featuredCategories || []).map(cat => {
-        if (needsReplacement(cat.img)) {
+        if (isSlotEmptyOrPlaceholder(cat.img)) {
           const pool = getPoolForCategory(cat.id + ' ' + cat.name);
           if (pool.length > 0) {
             let chosenUrl = pool.find(u => !usedCategoryUrls.has(u));
@@ -233,7 +260,7 @@ export default function MediaStorageTab({
             };
           }
         }
-        return cat;
+        return cat; // Keep existing working category image intact
       });
 
       // Update state in app & localStorage
@@ -654,7 +681,7 @@ export default function MediaStorageTab({
                   ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                   : 'border-emerald-500/40 bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60'
               } disabled:opacity-50`}
-              title="Auto-match products with missing/deleted images to WordPress Media Library assets by category"
+              title="Fill empty or placeholder image slots with WordPress Media Library assets by category (never overwrites existing working images)"
             >
               <Package size={14} className={isAutoAssigning ? 'animate-spin text-emerald-400' : 'text-emerald-400'} />
               <span>{isAutoAssigning ? 'Auto-Assigning...' : 'AUTO-ASSIGN WP MEDIA BY CATEGORY'}</span>
