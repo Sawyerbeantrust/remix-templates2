@@ -1,4 +1,5 @@
 import type React from 'react';
+import { logSystemError } from './errorLogger.js';
 
 export const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800&h=600';
 
@@ -99,4 +100,12 @@ export function handleImageElementError(
   const { nextUrl, nextStep } = getNextImageFallbackUrl(currentSrc, step, fallbackSrc);
   target.dataset.fallbackStep = String(nextStep);
   target.src = nextUrl;
+
+  if (nextStep >= 99 && currentSrc && !currentSrc.includes('unsplash.com')) {
+    logSystemError(
+      `Image asset missing or 404: ${getFilenameFromPath(currentSrc)}`,
+      `Attempted URL: ${currentSrc} -> Switched to fallback placeholder`,
+      'Media'
+    );
+  }
 }

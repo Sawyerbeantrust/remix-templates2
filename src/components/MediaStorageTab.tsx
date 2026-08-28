@@ -162,18 +162,29 @@ export default function MediaStorageTab({
       };
 
       // Helper to test if an image slot is empty, broken, or a placeholder
-      // Working URLs (valid /assets/images/... paths, http://, https://) return false and are NEVER touched
+      // Working URLs (valid /assets/images/... paths, https:// WordPress URLs, http://, data:image, etc.) return false and are NEVER touched
       const isSlotEmptyOrPlaceholder = (url?: string): boolean => {
-        if (!url || typeof url !== 'string' || url.trim() === '') return true;
-        const lower = url.toLowerCase().trim();
-        if (lower === 'undefined' || lower === 'null') return true;
-        if (lower.includes('placeholder')) return true;
-        if (lower.includes('woocommerce-placeholder')) return true;
+        if (!url || typeof url !== 'string') return true;
+        const trimmed = url.trim();
+        if (trimmed === '') return true;
+        const lower = trimmed.toLowerCase();
+        if (lower === 'undefined' || lower === 'null' || lower === 'none' || lower === 'about:blank' || lower === 'n/a') return true;
+        if (lower.includes('placeholder') || lower.includes('woocommerce-placeholder') || lower.includes('dummy') || lower.includes('no-image')) return true;
+        
+        // If it points to local assets or remote WordPress URLs, it is a valid working URL and must NEVER be overwritten
+        if (trimmed.startsWith('/assets/') || trimmed.startsWith('assets/') || trimmed.startsWith('https://') || trimmed.startsWith('http://') || trimmed.startsWith('data:image/')) {
+          return false;
+        }
+
+        if (trimmed.startsWith('/') || trimmed.includes('/')) {
+          return false;
+        }
+
         return false;
       };
 
       // 3. For every product, ONLY replace slots that are completely empty or point to broken/placeholder URLs.
-      // Never overwrite working URLs (/assets/images/... or https://).
+      // Never overwrite working URLs (/assets/images/... or https:// WordPress Media URLs). Never touch manually-assigned images.
       let reassignedProductsCount = 0;
       let liftCounter = 0;
       let boothCounter = 0;
@@ -202,24 +213,17 @@ export default function MediaStorageTab({
           hasChanged = true;
         }
 
-        // Check gallery images: ONLY fill empty or placeholder slots
-        let gallery: string[] = [];
-        if (Array.isArray(p.images) && p.images.length > 0) {
+        // Check gallery images: ONLY fill existing empty or placeholder slots
+        let gallery: string[] = Array.isArray(p.images) ? [...p.images] : [];
+        if (gallery.length > 0) {
           let galleryOffset = 0;
-          gallery = p.images.map(gImg => {
+          gallery = gallery.map(gImg => {
             if (isSlotEmptyOrPlaceholder(gImg)) {
               hasChanged = true;
               return pool[(poolIdx + (galleryOffset++)) % pool.length];
             }
             return gImg; // Keep existing working image intact
           });
-        } else {
-          // If images array is completely missing, initialize with mainImg and fill up to 3 slots
-          hasChanged = true;
-          gallery = [mainImg];
-          for (let offset = 1; offset <= 2; offset++) {
-            gallery.push(pool[(poolIdx + offset) % pool.length]);
-          }
         }
 
         if (hasChanged) {

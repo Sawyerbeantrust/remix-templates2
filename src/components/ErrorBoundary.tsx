@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { logSystemError } from '../utils/errorLogger.js';
+import { safeLocalStorage } from '../utils/safeStorage.js';
 
 interface Props {
   children: React.ReactNode;
@@ -24,14 +26,22 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Uncaught error in Triton app:', error, errorInfo);
+    try {
+      logSystemError(
+        error,
+        `React Component Stack: ${errorInfo.componentStack?.slice(0, 300) || 'N/A'}`,
+        'React ErrorBoundary',
+        error.stack
+      );
+    } catch {}
   }
 
   private handleReset = () => {
     try {
-      localStorage.removeItem('triton_products_db_v3');
-      localStorage.removeItem('triton_featured_categories_db_v3');
-      localStorage.removeItem('triton_wishlist_storage');
-      localStorage.removeItem('triton_cart');
+      safeLocalStorage.removeItem('triton_products_db_v3');
+      safeLocalStorage.removeItem('triton_featured_categories_db_v3');
+      safeLocalStorage.removeItem('triton_wishlist_storage');
+      safeLocalStorage.removeItem('triton_cart');
     } catch {}
     this.setState({ hasError: false, error: null });
     window.location.reload();
