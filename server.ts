@@ -7,6 +7,7 @@ import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
 import { apiRouter, apiRateLimiter, DEFAULT_FEATURED_CATEGORIES, DEFAULT_CATEGORIES_LIST } from "./server/routes/api.js";
+import { requireTritonKey } from "./server/middleware/requireTritonKey.js";
 import { logger } from "./server/utils/logger.js";
 import { sendError } from "./server/utils/asyncHandler.js";
 import { PRODUCTS } from "./src/data/products.js";
@@ -33,18 +34,43 @@ app.use(compression());
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
+  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
   : ["http://localhost:3000", "https://car-lifts.co.za", "https://store.car-lifts.co.za"];
+
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, server-to-server) or matching allowed origins
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".run.app") || origin.endsWith(".vercel.app")) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Permissive fallback for showroom embeds
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) {
+        return callback(null, true);
       }
+
+      // Check if origin is explicitly allowed
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // In development mode, automatically allow localhost and preview subdomains
+      if (!isProduction) {
+        if (
+          origin.startsWith("http://localhost:") ||
+          origin.startsWith("http://127.0.0.1:") ||
+          origin.endsWith(".run.app") ||
+          origin.endsWith(".vercel.app")
+        ) {
+          return callback(null, true);
+        }
+      }
+
+      // In production, block origins not in ALLOWED_ORIGINS
+      if (isProduction) {
+        logger.warn({ origin, allowedOrigins }, "CORS blocked request from untrusted origin in production");
+        return callback(null, false);
+      }
+
+      return callback(null, true);
     },
     credentials: true,
   })
@@ -99,7 +125,7 @@ app.use("/api", apiRateLimiter, apiRouter);
 let customSitemapXmlOverride: string | null = null;
 let customRobotsTxtOverride: string | null = null;
 
-app.post("/api/seo/update-files", (req, res) => {
+app.post("/api/seo/update-files", requireTritonKey, (req, res) => {
   try {
     const { sitemapXml, robotsTxt } = req.body || {};
     if (typeof sitemapXml === "string" && sitemapXml.trim()) {

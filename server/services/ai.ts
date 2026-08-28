@@ -149,7 +149,14 @@ export function getGeminiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
   if (!geminiClientInstance) {
-    geminiClientInstance = new GoogleGenAI({ apiKey });
+    geminiClientInstance = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
   }
   return geminiClientInstance;
 }
@@ -192,44 +199,59 @@ export async function generateContentWithResilience(
     primaryModel?: string;
   }
 ) {
-  const model = options.primaryModel || "gemini-2.5-flash";
+  const primaryModel = options.primaryModel || "gemini-3.7-flash";
+  const fallbackModels = [primaryModel, "gemini-flash-latest", "gemini-3.1-pro-preview"].filter(
+    (m, idx, arr) => arr.indexOf(m) === idx
+  );
   aiTelemetry.totalRequests++;
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: options.contents,
-        config: options.config,
-      });
-      aiTelemetry.successfulAiResponses++;
-      return response;
-    } catch (err: any) {
-      if (isQuotaOrBillingError(err)) {
-        aiTelemetry.quotaErrors++;
-        aiTelemetry.fallbacksTriggered++;
-        logger.warn({ model, err: err?.message }, "Gemini quota or billing limit reached. Triggering local matchmaker fallback.");
-        throw err;
-      }
+  let lastError: any = null;
 
-      const isTransient =
-        String(err?.message || "").includes("503") ||
-        String(err?.message || "").includes("500") ||
-        String(err?.message || "").includes("UNAVAILABLE");
+  for (const model of fallbackModels) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: options.contents,
+          config: options.config,
+        });
+        aiTelemetry.successfulAiResponses++;
+        return response;
+      } catch (err: any) {
+        lastError = err;
+        if (isQuotaOrBillingError(err)) {
+          aiTelemetry.quotaErrors++;
+          aiTelemetry.fallbacksTriggered++;
+          logger.warn({ model, err: err?.message }, "Gemini quota or billing limit reached. Triggering local matchmaker fallback.");
+          throw err;
+        }
 
-      if (isTransient && attempt === 1) {
-        aiTelemetry.transientErrors++;
-        const delay = 500 + Math.floor(Math.random() * 200);
-        logger.warn({ model, attempt, delay }, "Gemini transient error; retrying with backoff...");
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      } else {
-        aiTelemetry.fallbacksTriggered++;
-        logger.warn({ model, err: err?.message }, "Gemini call failed. Triggering local fallback.");
-        throw err;
+        const isNotFound = String(err?.message || "").includes("404") || String(err?.message || "").includes("NOT_FOUND");
+        if (isNotFound) {
+          logger.warn({ model, err: err?.message }, "Model not found or deprecated, trying fallback model...");
+          break; // Try next model in fallbackModels
+        }
+
+        const isTransient =
+          String(err?.message || "").includes("503") ||
+          String(err?.message || "").includes("500") ||
+          String(err?.message || "").includes("UNAVAILABLE");
+
+        if (isTransient && attempt === 1) {
+          aiTelemetry.transientErrors++;
+          const delay = 500 + Math.floor(Math.random() * 200);
+          logger.warn({ model, attempt, delay }, "Gemini transient error; retrying with backoff...");
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        } else {
+          break; // Try next model in fallback list
+        }
       }
     }
   }
-  throw new Error("Gemini generateContent failed after retries");
+
+  aiTelemetry.fallbacksTriggered++;
+  logger.warn({ primaryModel, err: lastError?.message }, "Gemini call failed. Triggering local fallback.");
+  throw lastError || new Error("Gemini generateContent failed after retries");
 }
 
 /**

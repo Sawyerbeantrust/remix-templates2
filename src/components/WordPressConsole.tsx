@@ -262,6 +262,8 @@ export default function WordPressConsole({
     assetFilterCategory,
     setAssetFilterCategory,
     isGeneratingAiImage,
+    isUploadingImage,
+    uploadStatusText,
     handleUploadToLibrary,
     handleSelectAssetImage,
     handleAiSimulateImage,
@@ -447,6 +449,8 @@ export default function WordPressConsole({
             }}
             onAiSimulateImage={handleAiSimulateImage}
             isGeneratingAiImage={isGeneratingAiImage}
+            isUploadingImage={isUploadingImage}
+            uploadStatusText={uploadStatusText}
             onUploadDeviceImage={handleDeviceImageUpload}
             handleUpdateSpecKey={handleUpdateSpecKey}
             handleUpdateSpecValue={handleUpdateSpecValue}

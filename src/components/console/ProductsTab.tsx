@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Package, Plus, Search, Filter, Edit, Trash2, CheckCircle2,
   ChevronUp, ChevronDown, Sparkles, ImageIcon, Upload, Save,
-  X, AlertCircle, FileText, Check
+  X, AlertCircle, FileText, Check, Loader2, CloudUpload, HardDrive
 } from 'lucide-react';
 import { Product } from '../../types/index.js';
 import { formatZarPrice } from '../../utils/console/formatters.js';
@@ -27,7 +27,9 @@ interface ProductsTabProps {
   onOpenAssetPicker: (target: 'primary' | number) => void;
   onAiSimulateImage: () => void;
   isGeneratingAiImage: boolean;
-  onUploadDeviceImage: (file: File) => void;
+  isUploadingImage?: boolean;
+  uploadStatusText?: string;
+  onUploadDeviceImage: (file: File, target?: 'primary' | number | 'new-gallery') => void;
   handleUpdateSpecKey: (oldKey: string, newKey: string) => void;
   handleUpdateSpecValue: (key: string, value: string) => void;
   handleMoveSpecUp: (key: string) => void;
@@ -67,6 +69,8 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
   onOpenAssetPicker,
   onAiSimulateImage,
   isGeneratingAiImage,
+  isUploadingImage,
+  uploadStatusText,
   onUploadDeviceImage,
   handleUpdateSpecKey,
   handleUpdateSpecValue,
@@ -126,9 +130,9 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
       </div>
 
       {/* Main Layout: Products List and/or Editor */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="flex flex-col md:flex-row gap-6 items-start">
         {/* Products List (Left side or Full width) */}
-        <div className={editedProduct ? 'lg:col-span-5 space-y-4' : 'lg:col-span-12 space-y-4'}>
+        <div className={editedProduct ? 'w-full md:w-72 lg:w-80 xl:w-96 shrink-0 space-y-4' : 'w-full space-y-4'}>
           {/* Action Toolbar */}
           <div className="p-4 bg-neutral-900/80 border border-neutral-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 min-w-[240px]">
@@ -265,7 +269,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
 
         {/* Product Editor Drawer / Panel (Right side) */}
         {editedProduct && (
-          <div className="lg:col-span-7 bg-[#141414] border border-neutral-800 rounded-xl overflow-hidden shadow-xl sticky top-4">
+          <div className="flex-1 min-w-0 w-full min-h-[500px] md:min-h-[600px] lg:min-h-[750px] bg-[#141414] border border-neutral-800 rounded-xl overflow-hidden shadow-xl sticky top-4 flex flex-col">
             {/* Editor Header */}
             <div className="p-4 border-b border-neutral-800 bg-[#181818] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -329,7 +333,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
             </div>
 
             {/* Editor Body */}
-            <div className="p-5 space-y-4 max-h-[620px] overflow-y-auto">
+            <div className="p-5 space-y-4 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] md:max-h-[600px] lg:max-h-[750px]">
               {activeEditorTab === 'basic' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -525,100 +529,240 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
               )}
 
               {activeEditorTab === 'images' && (
-                <div className="space-y-5">
-                  {/* Primary Cover Image */}
-                  <div className="p-3.5 bg-neutral-950 border border-neutral-850 rounded-xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
-                        Primary Cover Image Node
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onOpenAssetPicker('primary')}
-                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
-                        >
-                          <ImageIcon size={12} /> Select Asset
-                        </button>
-                        <button
-                          type="button"
-                          onClick={onAiSimulateImage}
-                          disabled={isGeneratingAiImage}
-                          className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors disabled:opacity-50"
-                        >
-                          <Sparkles size={12} className="text-purple-400" /> AI Render
-                        </button>
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+                  {/* Controls & Gallery Upload Slots (xl:col-span-8) */}
+                  <div className="xl:col-span-8 space-y-5">
+                    {/* Primary Cover Image */}
+                    <div className="p-4 bg-neutral-950 border border-neutral-850 rounded-xl space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
+                          <ImageIcon size={13} className="text-indigo-400" />
+                          <span>Primary Cover Image Node</span>
+                        </label>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors shadow-sm">
+                            <CloudUpload size={12} />
+                            <span>Upload to Storage</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={isUploadingImage}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) onUploadDeviceImage(f, 'primary');
+                                e.target.value = '';
+                              }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => onOpenAssetPicker('primary')}
+                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors shadow-sm"
+                          >
+                            <ImageIcon size={12} /> Select Asset
+                          </button>
+                          <button
+                            type="button"
+                            onClick={onAiSimulateImage}
+                            disabled={isGeneratingAiImage}
+                            className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors disabled:opacity-50"
+                          >
+                            <Sparkles size={12} className="text-purple-400" /> AI Render
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex gap-4 items-center">
-                      <div className="w-20 h-20 bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
-                        <img
-                          src={editedProduct.image}
-                          alt={editedProduct.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
+                      {isUploadingImage && (
+                        <div className="flex items-center gap-2 p-2.5 bg-emerald-950/60 border border-emerald-500/40 rounded-lg text-xs text-emerald-300 animate-pulse">
+                          <Loader2 size={14} className="animate-spin text-emerald-400" />
+                          <span>{uploadStatusText || 'Uploading image to WordPress Media storage...'}</span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-3 items-center">
+                        <div className="w-16 h-16 bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                          <img
+                            src={editedProduct.image}
+                            alt={editedProduct.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={editedProduct.image}
+                          onChange={(e) => setEditedProduct({ ...editedProduct, image: e.target.value })}
+                          placeholder="https://... or /assets/..."
+                          className="flex-1 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
                         />
                       </div>
-                      <input
-                        type="text"
-                        value={editedProduct.image}
-                        onChange={(e) => setEditedProduct({ ...editedProduct, image: e.target.value })}
-                        className="flex-1 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
-                      />
+
+                      <label className="border border-dashed border-neutral-800 hover:border-emerald-500/60 bg-neutral-900/40 hover:bg-emerald-950/20 rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors group">
+                        <div className="flex items-center gap-2 text-neutral-400 group-hover:text-neutral-200">
+                          <CloudUpload size={15} className="text-emerald-400" />
+                          <span className="text-xs">Pick from device to upload to WordPress Media & assign as primary cover</span>
+                        </div>
+                        <span className="px-2 py-0.5 bg-neutral-800 group-hover:bg-emerald-600 group-hover:text-white text-[10px] font-bold uppercase rounded text-neutral-300 transition-colors">
+                          Browse Device
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={isUploadingImage}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) onUploadDeviceImage(f, 'primary');
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Secondary Gallery Images */}
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
+                            Secondary Gallery Angles ({editedProduct.images?.length || 0})
+                          </label>
+                          <p className="text-[11px] text-neutral-500 mt-0.5">Additional multi-angle inspection and exploded view photographs.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="px-2.5 py-1 bg-emerald-600/90 hover:bg-emerald-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors shadow-sm">
+                            <CloudUpload size={12} /> <span>Upload & Add</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={isUploadingImage}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) onUploadDeviceImage(f, 'new-gallery');
+                                e.target.value = '';
+                              }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleAddAdditionalImage}
+                            className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
+                          >
+                            <Plus size={12} /> Add Slot
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {(editedProduct.images || []).map((img, idx) => (
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-neutral-950 border border-neutral-850 rounded-lg">
+                            <div className="w-10 h-10 bg-neutral-900 rounded border border-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                              <img
+                                src={img}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={img}
+                              onChange={(e) => handleUpdateAdditionalImage(idx, e.target.value)}
+                              placeholder="Image URL or asset path..."
+                              className="flex-1 px-2.5 py-1 bg-neutral-900 border border-neutral-800 rounded text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                            />
+                            <label
+                              className="p-1.5 text-neutral-400 hover:text-emerald-400 cursor-pointer transition-colors"
+                              title="Upload and assign from device"
+                            >
+                              <Upload size={14} />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={isUploadingImage}
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) onUploadDeviceImage(f, idx);
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => onOpenAssetPicker(idx)}
+                              className="p-1.5 text-neutral-400 hover:text-indigo-400 transition-colors"
+                              title="Select from library"
+                            >
+                              <ImageIcon size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAdditionalImage(idx)}
+                              className="p-1.5 text-neutral-400 hover:text-red-400 transition-colors"
+                              title="Remove"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+
+                        {(editedProduct.images?.length || 0) === 0 && (
+                          <div className="p-4 text-center bg-neutral-950/60 border border-dashed border-neutral-800 rounded-xl text-neutral-500 text-xs">
+                            No secondary gallery images configured yet. Click &quot;Upload & Add&quot; or &quot;Add Slot&quot; to configure multi-angle views.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Secondary Gallery Images */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
-                        Secondary Gallery Angles ({editedProduct.images?.length || 0})
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleAddAdditionalImage}
-                        className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1"
-                      >
-                        <Plus size={12} /> Add Gallery Slot
-                      </button>
-                    </div>
+                  {/* Live Cover Preview (xl:col-span-4) */}
+                  <div className="xl:col-span-4 space-y-3 sticky top-0">
+                    <div className="p-4 bg-neutral-950 border border-neutral-850 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          Live Cover Preview
+                        </span>
+                        <span className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-800 text-[10px] font-mono text-neutral-400 rounded">
+                          Showcase Frame
+                        </span>
+                      </div>
 
-                    <div className="space-y-2">
-                      {(editedProduct.images || []).map((img, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 bg-neutral-950 border border-neutral-850 rounded-lg">
-                          <div className="w-10 h-10 bg-neutral-900 rounded border border-neutral-800 overflow-hidden shrink-0">
-                            <img
-                              src={img}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
-                            />
-                          </div>
-                          <input
-                            type="text"
-                            value={img}
-                            onChange={(e) => handleUpdateAdditionalImage(idx, e.target.value)}
-                            className="flex-1 px-2.5 py-1 bg-neutral-900 border border-neutral-800 rounded text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => onOpenAssetPicker(idx)}
-                            className="p-1.5 text-neutral-400 hover:text-indigo-400"
-                            title="Select from library"
-                          >
-                            <ImageIcon size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveAdditionalImage(idx)}
-                            className="p-1.5 text-neutral-400 hover:text-red-400"
-                            title="Remove"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                      <div className="relative aspect-video sm:aspect-square w-full rounded-lg bg-neutral-900 border border-neutral-800 overflow-hidden flex items-center justify-center group shadow-inner">
+                        <img
+                          src={editedProduct.image}
+                          alt={editedProduct.name}
+                          className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
+                        />
+                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                          {editedProduct.category || 'Product'}
                         </div>
-                      ))}
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm border border-white/10 rounded text-[10px] font-mono text-amber-400 font-bold">
+                          {formatZarPrice(editedProduct.price)}
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 bg-neutral-900/80 border border-neutral-800 rounded-lg space-y-1.5 text-[11px]">
+                        <div className="flex items-center justify-between text-neutral-400">
+                          <span>Product Model</span>
+                          <span className="font-mono text-white font-semibold">{editedProduct.modelCode || editedProduct.id}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-neutral-400">
+                          <span>Availability</span>
+                          <span className={editedProduct.inStock !== false ? 'text-emerald-400 font-semibold' : 'text-amber-400 font-semibold'}>
+                            {editedProduct.inStock !== false ? 'In Stock' : 'On Order'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-neutral-400">
+                          <span>Catalog Status</span>
+                          <span className={editedProduct.status === 'draft' ? 'text-amber-400 font-semibold' : 'text-emerald-400 font-semibold'}>
+                            {editedProduct.status === 'draft' ? 'Draft' : 'Published'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

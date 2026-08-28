@@ -427,7 +427,7 @@ export default function CartDrawer({
                         required
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder="e.g. 52 Montague Drive"
+                        placeholder="e.g. Unit 4, 13 Killarney Avenue"
                         className="w-full bg-neutral-900 border border-neutral-800 text-white text-xs p-3 rounded outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/20 transition-colors"
                       />
                     </div>
@@ -441,7 +441,7 @@ export default function CartDrawer({
                           required
                           value={suburb}
                           onChange={(e) => setSuburb(e.target.value)}
-                          placeholder="e.g. Montague Gardens"
+                          placeholder="e.g. Killarney Gardens"
                           className="w-full bg-neutral-900 border border-neutral-800 text-white text-xs p-3 rounded outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/20 transition-colors"
                         />
                       </div>

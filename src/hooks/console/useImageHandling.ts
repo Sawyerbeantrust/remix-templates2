@@ -26,6 +26,9 @@ export function useImageHandling({
   const [assetSearchQuery, setAssetSearchQuery] = useState('');
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
 
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState<string>('');
+
   const [customAssets, setCustomAssets] = useState<ProjectAssetImage[]>(() => {
     const saved = safeLocalStorage.getItem('triton_custom_assets');
     if (saved) {
@@ -37,10 +40,49 @@ export function useImageHandling({
     return [];
   });
 
+  // Automatically fetch all WordPress Media items from /api/list-images to populate media storage options
+  useEffect(() => {
+    let isMounted = true;
+    const fetchWpMedia = async () => {
+      try {
+        const res = await fetch('/api/list-images');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.images)) {
+            const fetchedAssets: ProjectAssetImage[] = data.images.map((img: any) => ({
+              path: img.url,
+              label: img.filename || img.url.split('/').pop() || 'Media Asset',
+              category: 'wp-media',
+              isCustom: true,
+            }));
+            if (isMounted && fetchedAssets.length > 0) {
+              setCustomAssets((prev) => {
+                const existingPaths = new Set(prev.map((a) => a.path));
+                const uniqueNew = fetchedAssets.filter((a) => !existingPaths.has(a.path));
+                if (uniqueNew.length === 0) return prev;
+                const merged = [...uniqueNew, ...prev];
+                safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(merged));
+                return merged;
+              });
+            }
+          }
+        }
+      } catch (e) {
+        // silent fail on network retry
+      }
+    };
+    fetchWpMedia();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const allAssets = [...PROJECT_ASSET_IMAGES, ...customAssets];
 
   const handleUploadToLibrary = useCallback(
     async (file: File) => {
+      setIsUploadingImage(true);
+      setUploadStatusText(`Uploading ${file.name}...`);
       try {
         addLog(`Uploading image [${file.name}] to WordPress Media...`, 'info');
         const savedPath = await uploadImageToWordPress(file);
@@ -55,12 +97,28 @@ export function useImageHandling({
           setCustomAssets(updated);
           safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(updated));
           addLog(`Asset [${file.name}] mapped to ${savedPath}`, 'success');
+
+          if (editedProduct) {
+            if (assetPickerTarget === 'primary') {
+              setEditedProduct({ ...editedProduct, image: savedPath });
+              addLog(`Assigned uploaded asset as Primary Cover: ${savedPath}`, 'success');
+            } else if (typeof assetPickerTarget === 'number') {
+              const currentImages = [...(editedProduct.images || [])];
+              currentImages[assetPickerTarget] = savedPath;
+              setEditedProduct({ ...editedProduct, images: currentImages });
+              addLog(`Assigned uploaded asset to Gallery slot ${assetPickerTarget + 1}: ${savedPath}`, 'success');
+            }
+            setIsAssetPickerOpen(false);
+          }
         }
       } catch (err: any) {
         addLog(`Image upload failed: ${err?.message || 'Upload error'}`, 'error');
+      } finally {
+        setIsUploadingImage(false);
+        setUploadStatusText('');
       }
     },
-    [customAssets, addLog]
+    [customAssets, editedProduct, assetPickerTarget, setEditedProduct, addLog]
   );
 
   const handleSelectAssetImage = useCallback(
@@ -122,20 +180,48 @@ export function useImageHandling({
   }, [addLog]);
 
   const handleDeviceImageUpload = useCallback(
-    async (file: File) => {
+    async (file: File, target: 'primary' | number | 'new-gallery' = 'primary') => {
       if (!editedProduct) return;
+      setIsUploadingImage(true);
+      setUploadStatusText(`Uploading ${file.name} to WordPress Media...`);
       try {
-        addLog(`Uploading [${file.name}] from local storage to WordPress...`, 'info');
+        addLog(`Uploading [${file.name}] to WordPress Media storage...`, 'info');
         const url = await uploadImageToWordPress(file);
         if (url) {
-          setEditedProduct({ ...editedProduct, image: url });
-          addLog(`Assigned WordPress Media URL: ${url}`, 'success');
+          // Register in library for reuse
+          const newAsset: ProjectAssetImage = {
+            path: url,
+            label: file.name.replace(/\.[^/.]+$/, ''),
+            category: 'custom',
+            isCustom: true,
+          };
+          const updated = [newAsset, ...customAssets.filter((a) => a.path !== url)];
+          setCustomAssets(updated);
+          safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(updated));
+
+          // Assign to product
+          if (target === 'primary') {
+            setEditedProduct({ ...editedProduct, image: url });
+            addLog(`Uploaded and assigned Primary Cover image: ${url}`, 'success');
+          } else if (target === 'new-gallery') {
+            const currentImages = [...(editedProduct.images || []), url];
+            setEditedProduct({ ...editedProduct, images: currentImages });
+            addLog(`Uploaded and added new Gallery image: ${url}`, 'success');
+          } else if (typeof target === 'number') {
+            const currentImages = [...(editedProduct.images || [])];
+            currentImages[target] = url;
+            setEditedProduct({ ...editedProduct, images: currentImages });
+            addLog(`Uploaded and assigned to Gallery slot ${target + 1}: ${url}`, 'success');
+          }
         }
       } catch (err: any) {
         addLog(`Upload failed: ${err?.message}`, 'error');
+      } finally {
+        setIsUploadingImage(false);
+        setUploadStatusText('');
       }
     },
-    [editedProduct, setEditedProduct, addLog]
+    [editedProduct, customAssets, setEditedProduct, addLog]
   );
 
   return {
@@ -150,6 +236,8 @@ export function useImageHandling({
     assetFilterCategory,
     setAssetFilterCategory,
     isGeneratingAiImage,
+    isUploadingImage,
+    uploadStatusText,
     aiSimulationStep,
     aiPreviewData,
     handleUploadToLibrary,

@@ -126,7 +126,7 @@ Inquiry Data:
 
       const response = await Promise.race([
         ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.7-flash",
           contents: prompt,
           config: {
             responseMimeType: "application/json",

@@ -1,6 +1,6 @@
 import path from "path";
 import type { SafeWpResult } from "../types/index.js";
-import { logger } from "./logger.js";
+import { fetchWithRetry, FetchRetryOptions, FetchRetryResult } from "./fetchWithRetry.js";
 
 export const DEFAULT_TIMEOUT_MS = 5000;
 export const MEDIA_UPLOAD_TIMEOUT_MS = 15000;
@@ -77,7 +77,7 @@ export function getWpHeaders(extra?: Record<string, string>): Record<string, str
   };
 
   // Only set Authorization header when credentials/token explicitly exist
-  if (user || pass) {
+  if (user && pass) {
     headers["Authorization"] = "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
   } else if (token) {
     headers["Authorization"] = token.startsWith("Bearer ") || token.startsWith("Basic ")
@@ -103,7 +103,7 @@ export function getWpHeaders(extra?: Record<string, string>): Record<string, str
 }
 
 /**
- * Robust fetch with timeout and response validation
+ * Legacy fetchWithTimeout wrapper using fetchWithRetry with 0 retries
  */
 export async function fetchWithTimeout(
   url: string,
@@ -123,7 +123,8 @@ export async function fetchWithTimeout(
 }
 
 /**
- * Resilient fetch with jittered backoff for transient 5xx/503 errors
+ * Resilient fetch with jittered backoff for transient 5xx/503 errors and network drops.
+ * Backed by the central fetchWithRetry engine.
  */
 export async function fetchWpSafe(
   url: string,
@@ -131,70 +132,21 @@ export async function fetchWpSafe(
   timeoutMs = DEFAULT_TIMEOUT_MS,
   maxRetries = 2
 ): Promise<SafeWpResult> {
-  let attempt = 0;
-  let lastError: any = null;
-
-  while (attempt <= maxRetries) {
-    try {
-      const response = await fetchWithTimeout(url, options, timeoutMs);
-      const status = response.status;
-      const contentType = response.headers.get("content-type") || "";
-      const text = await response.text().catch(() => "");
-
-      // If transient 502/503/504, retry with exponential backoff + jitter
-      if ((status === 502 || status === 503 || status === 504) && attempt < maxRetries) {
-        attempt++;
-        const jitter = Math.floor(Math.random() * 200);
-        const delay = Math.pow(2, attempt) * 250 + jitter;
-        logger.warn({ url, status, attempt, delay }, "Transient 5xx error from WordPress; retrying with backoff...");
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
-      }
-
-      let data = null;
-      if (contentType.includes("application/json") || text.trim().startsWith("{") || text.trim().startsWith("[")) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          // not JSON
-        }
-      }
-
-      return {
-        ok: response.ok,
-        status,
-        data,
-        text,
-        contentType,
-      };
-    } catch (err: any) {
-      lastError = err;
-      const isAbort = err?.name === "AbortError";
-
-      if (attempt < maxRetries && !isAbort) {
-        attempt++;
-        const jitter = Math.floor(Math.random() * 200);
-        const delay = Math.pow(2, attempt) * 250 + jitter;
-        logger.warn({ url, err: err?.message, attempt, delay }, "Network error fetching WordPress; retrying...");
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
-      }
-
-      return {
-        ok: false,
-        status: 0,
-        data: null,
-        text: "",
-        error: isAbort ? "Connection timed out" : (err?.message || "Network error"),
-      };
-    }
-  }
+  const res: FetchRetryResult = await fetchWithRetry(url, options, {
+    timeoutMs,
+    retries: maxRetries,
+    backoffMs: 250,
+    jitter: true,
+  });
 
   return {
-    ok: false,
-    status: 0,
-    data: null,
-    text: "",
-    error: lastError?.message || "Max retries exceeded",
+    ok: res.ok,
+    status: res.status,
+    data: res.data,
+    text: res.text,
+    contentType: res.contentType,
+    error: res.error,
   };
 }
+
+export { fetchWithRetry };

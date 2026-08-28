@@ -4,6 +4,8 @@ import rateLimit from "express-rate-limit";
 import { PRODUCTS } from "../../src/data/products.js";
 import { asyncHandler, sendSuccess, sendError } from "../utils/asyncHandler.js";
 import { detectContentType, fetchWpSafe, getWpHeaders, extractCleanError } from "../utils/http.js";
+import { requireTritonKey } from "../middleware/requireTritonKey.js";
+import { validateBase64Image } from "../utils/uploadHelpers.js";
 import { logger } from "../utils/logger.js";
 import { uploadBufferToWordPress, listWpImages, deleteWpImage } from "../services/wp.js";
 import {
@@ -97,19 +99,13 @@ apiRouter.post(
     const imgData = data || image;
     const imgName = name || `upload_${Date.now()}.jpg`;
 
-    if (!imgData || typeof imgData !== "string") {
-      return sendError(res, "Missing base64 image data in request body", 400);
+    const validation = validateBase64Image(imgData, imgName);
+    if (!validation.valid) {
+      return sendError(res, validation.error, validation.status);
     }
 
-    const contentType = detectContentType(imgData, imgName);
-    const base64Data = imgData.replace(/^data:[^;]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    if (buffer.length > MAX_UPLOAD_BYTES) {
-      return sendError(res, `Image payload exceeds maximum limit of 5MB (${Math.round(buffer.length / 1024)}KB received)`, 400);
-    }
-
-    const result = await uploadBufferToWordPress(buffer, imgName, contentType);
+    const { buffer, contentType, filename } = validation;
+    const result = await uploadBufferToWordPress(buffer, filename, contentType);
 
     if (result.success) {
       const sanitizedUrl = result.url ? result.url.replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za") : result.url;
@@ -136,19 +132,13 @@ apiRouter.post(
     const imgData = data || image;
     const imgName = name || `category_${Date.now()}.jpg`;
 
-    if (!imgData || typeof imgData !== "string") {
-      return sendError(res, "Missing base64 image data in request body", 400);
+    const validation = validateBase64Image(imgData, imgName);
+    if (!validation.valid) {
+      return sendError(res, validation.error, validation.status);
     }
 
-    const contentType = detectContentType(imgData, imgName);
-    const base64Data = imgData.replace(/^data:[^;]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    if (buffer.length > MAX_UPLOAD_BYTES) {
-      return sendError(res, "Image payload exceeds maximum limit of 5MB", 400);
-    }
-
-    const result = await uploadBufferToWordPress(buffer, imgName, contentType);
+    const { buffer, contentType, filename } = validation;
+    const result = await uploadBufferToWordPress(buffer, filename, contentType);
 
     if (result.success) {
       return res.status(200).json({
@@ -174,9 +164,10 @@ apiRouter.get(
   })
 );
 
-// 4) POST /api/delete-image
+// 4) POST /api/delete-image (protected with TRITON_KEY)
 apiRouter.post(
   "/delete-image",
+  requireTritonKey,
   asyncHandler(async (req, res) => {
     const { id, url, path: assetPath } = req.body || {};
     const targetUrl = url || assetPath || "";
@@ -218,9 +209,10 @@ apiRouter.get(
   })
 );
 
-// 6) POST /api/catalog
+// 6) POST /api/catalog (protected with TRITON_KEY)
 apiRouter.post(
   "/catalog",
+  requireTritonKey,
   asyncHandler(async (req, res) => {
     const incomingData = req.body || {};
     if (incomingData.products) memoryCatalog.products = incomingData.products;
@@ -257,9 +249,10 @@ apiRouter.post(
   })
 );
 
-// 8) POST /api/wipe-imported-images
+// 8) POST /api/wipe-imported-images (protected with TRITON_KEY)
 apiRouter.post(
   "/wipe-imported-images",
+  requireTritonKey,
   asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, empty: true, message: "Imported images reset." });
   })
@@ -627,7 +620,7 @@ Company: Triton Car Lifts (Cape Town, South Africa)
 Website: car-lifts.co.za
 Phone: 021 556 2413 / +27 (0) 21 556 2413
 Email: info@car-lifts.co.za
-Address: 52 Montague Drive, Montague Gardens, Cape Town
+Address: Unit 4, 13 Killarney Avenue, Killarney Gardens, Cape Town, 7441
 Operating Hours: Mon-Thurs 8 am - 4pm | Fri 8am - 2:30 pm
 Warranty: 3-Year Structural Warranty & 12-Month Electro-Hydraulic Guarantee
 
@@ -643,7 +636,7 @@ ${JSON.stringify(catalogContext, null, 2)}
     }
     formattedPrompt += `User: ${message}\nAssistant:`;
 
-    const candidateModels = ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "gemini-2.5-flash"];
+    const candidateModels = ["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.1-pro-preview"];
     let response: any = null;
 
     for (const model of candidateModels) {
