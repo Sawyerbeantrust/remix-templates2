@@ -9,6 +9,7 @@ import { useResolvedImage } from '../hooks/useResolvedImage';
 import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../utils/imageFallback';
 import { uploadImageToWordPress } from '../utils/imageUpload';
 import { safeLocalStorage } from '../utils/safeStorage';
+import { notifyMediaStorageChanged, subscribeToMediaStorage } from '../utils/mediaSync';
 
 function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
   const resolved = useResolvedImage(url, DEFAULT_FALLBACK_IMAGE);
@@ -290,6 +291,7 @@ export default function MediaStorageTab({
       const toast = `${reassignedProductsCount} products + ${reassignedCategoriesCount} categories reassigned to WordPress Media`;
       setToastMessage(toast);
       addLog(`[Auto-Assign] ${toast}`);
+      notifyMediaStorageChanged('assign');
       setTimeout(() => {
         setToastMessage(null);
       }, 5000);
@@ -322,6 +324,12 @@ export default function MediaStorageTab({
 
   useEffect(() => {
     fetchServerImages();
+    const unsubscribe = subscribeToMediaStorage(() => {
+      fetchServerImages();
+    });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   // Aggregate all unique media assets from products, categories, and WordPress Media
@@ -509,6 +517,7 @@ export default function MediaStorageTab({
       setUploadStatus(`Assigned image to category '${targetCat.name}' successfully!`);
     }
 
+    notifyMediaStorageChanged('assign', { url: imageUrl });
     setAssignModal({ isOpen: false, asset: null });
     setTimeout(() => setUploadStatus(null), 3500);
   };
@@ -565,6 +574,7 @@ export default function MediaStorageTab({
 
       setUploadStatus('Image(s) uploaded successfully to WordPress!');
       await fetchServerImages();
+      notifyMediaStorageChanged('upload');
       setTimeout(() => setUploadStatus(null), 3500);
     } catch (err: any) {
       console.error('[MediaStorageTab] Upload failed:', err);
@@ -640,6 +650,7 @@ export default function MediaStorageTab({
 
     // 4. Refresh server images list
     await fetchServerImages();
+    notifyMediaStorageChanged('delete');
 
     // 5. Clear selection and modal
     setSelectedImageIds(prev => prev.filter(id => !assetsToDelete.some(a => a.id === id)));

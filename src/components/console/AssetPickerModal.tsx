@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { ImageIcon, X, Plus, Search, HardDrive, Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ImageIcon, X, Plus, Search, HardDrive, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react';
 import { ProjectAssetImage } from '../../types/console.js';
 import { DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
+import {
+  subscribeToMediaStorage,
+  fetchWordPressMediaAssets,
+  notifyMediaStorageChanged,
+} from '../../utils/mediaSync.js';
+import { safeLocalStorage } from '../../utils/safeStorage.js';
 
 interface AssetPickerModalProps {
   isOpen: boolean;
@@ -140,16 +146,81 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   onUploadFile,
   onOpenMediaStorageTab,
 }) => {
+  const [liveWpAssets, setLiveWpAssets] = useState<ProjectAssetImage[]>([]);
+  const [liveCustomAssets, setLiveCustomAssets] = useState<ProjectAssetImage[]>([]);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  const refreshLiveAssets = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      const fetched = await fetchWordPressMediaAssets();
+      if (fetched && fetched.length > 0) {
+        setLiveWpAssets(fetched);
+      }
+
+      const saved = safeLocalStorage.getItem('triton_custom_assets');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setLiveCustomAssets(parsed);
+          }
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.warn('[AssetPickerModal] Sync error:', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  // Sync whenever modal opens or when external media mutations occur
+  useEffect(() => {
+    if (!isOpen) return;
+
+    refreshLiveAssets();
+    const unsubscribe = subscribeToMediaStorage(() => {
+      refreshLiveAssets();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [isOpen, refreshLiveAssets]);
+
+  // Merge external assets prop with live WP items and custom uploads
+  const unifiedAssets = useMemo(() => {
+    const combined = [...liveCustomAssets, ...liveWpAssets, ...assets];
+    const seen = new Set<string>();
+    return combined.filter((a) => {
+      const key = a.path || a.url || a.thumbnail || a.originalUrl || a.label;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [liveCustomAssets, liveWpAssets, assets]);
+
   if (!isOpen) return null;
 
-  const categories = Array.from(new Set(assets.map((a) => a.category).filter(Boolean)));
+  const categories = Array.from(new Set(unifiedAssets.map((a) => a.category).filter(Boolean)));
 
-  const filtered = assets.filter((a) => {
+  const filtered = unifiedAssets.filter((a) => {
     const searchTarget = `${a.label || ''} ${a.path || ''} ${a.url || ''} ${a.category || ''}`.toLowerCase();
     const matchesSearch = !searchQuery || searchTarget.includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || a.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleModalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onUploadFile(file);
+      notifyMediaStorageChanged('upload');
+      setTimeout(() => {
+        refreshLiveAssets();
+      }, 800);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
@@ -168,7 +239,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
                 </span>
               </h3>
               <p className="text-xs text-neutral-400 mt-0.5">
-                Pick from WordPress Media Storage or catalog assets to assign directly to this product.
+                Pick from WordPress Media Storage ({unifiedAssets.length} total items) or catalog assets to assign directly to this product.
               </p>
             </div>
           </div>
@@ -199,13 +270,24 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
               onChange={(e) => onFilterChange(e.target.value)}
               className="px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-neutral-300 focus:outline-none focus:border-indigo-500 font-mono"
             >
-              <option value="all">All Assets ({assets.length})</option>
+              <option value="all">All Assets ({unifiedAssets.length})</option>
               {categories.map((c) => (
                 <option key={c} value={c}>
-                  {c.toUpperCase()} ({assets.filter((a) => a.category === c).length})
+                  {c.toUpperCase()} ({unifiedAssets.filter((a) => a.category === c).length})
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={refreshLiveAssets}
+              disabled={isSyncing}
+              className={`p-1.5 rounded-lg border border-neutral-800 bg-neutral-950 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors ${
+                isSyncing ? 'animate-spin text-indigo-400' : ''
+              }`}
+              title="Sync & refresh media items"
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -216,10 +298,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onUploadFile(file);
-                }}
+                onChange={handleModalUpload}
               />
             </label>
             {onOpenMediaStorageTab && (
@@ -262,7 +341,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
         {/* Footer */}
         <div className="p-3 border-t border-neutral-800 bg-[#181818] flex items-center justify-between">
           <span className="text-xs text-neutral-400">
-            Showing <strong className="text-white">{filtered.length}</strong> of {assets.length} storage images
+            Showing <strong className="text-white">{filtered.length}</strong> of {unifiedAssets.length} storage images
           </span>
           <button
             type="button"

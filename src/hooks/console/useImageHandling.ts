@@ -5,6 +5,11 @@ import { PROJECT_ASSET_IMAGES, normalizeCategoryImagePath } from '../../utils/co
 import { uploadImageToWordPress } from '../../utils/imageUpload.js';
 import { safeLocalStorage } from '../../utils/safeStorage.js';
 import { PRODUCTS } from '../../data/products.js';
+import {
+  notifyMediaStorageChanged,
+  subscribeToMediaStorage,
+  fetchWordPressMediaAssets,
+} from '../../utils/mediaSync.js';
 
 interface UseImageHandlingOptions {
   editedProduct: Product | null;
@@ -43,42 +48,40 @@ export function useImageHandling({
     return [];
   });
 
-  // Automatically fetch all WordPress Media items from /api/list-images to populate media storage options
-  useEffect(() => {
-    let isMounted = true;
-    const fetchWpMedia = async () => {
-      try {
-        const res = await fetch('/api/list-images');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && Array.isArray(data.images)) {
-            const fetchedAssets: ProjectAssetImage[] = data.images.map((img: any) => ({
-              path: img.url,
-              label: img.filename || img.url.split('/').pop() || 'Media Asset',
-              category: 'wp-media',
-              isCustom: true,
-            }));
-            if (isMounted && fetchedAssets.length > 0) {
-              setCustomAssets((prev) => {
-                const existingPaths = new Set(prev.map((a) => a.path));
-                const uniqueNew = fetchedAssets.filter((a) => !existingPaths.has(a.path));
-                if (uniqueNew.length === 0) return prev;
-                const merged = [...uniqueNew, ...prev];
-                safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(merged));
-                return merged;
-              });
-            }
-          }
-        }
-      } catch (e) {
-        // silent fail on network retry
+  const [wpServerAssets, setWpServerAssets] = useState<ProjectAssetImage[]>([]);
+
+  // Function to refresh media assets from server and storage
+  const syncAllMediaAssets = useCallback(async () => {
+    try {
+      const fetched = await fetchWordPressMediaAssets();
+      if (fetched && fetched.length > 0) {
+        setWpServerAssets(fetched);
       }
-    };
-    fetchWpMedia();
-    return () => {
-      isMounted = false;
-    };
+
+      const saved = safeLocalStorage.getItem('triton_custom_assets');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setCustomAssets(parsed);
+          }
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.warn('[useImageHandling] Sync error:', e);
+    }
   }, []);
+
+  // Initial fetch and real-time subscription across all components and storage events
+  useEffect(() => {
+    syncAllMediaAssets();
+    const unsubscribe = subscribeToMediaStorage(() => {
+      syncAllMediaAssets();
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [syncAllMediaAssets]);
 
   const productAssets = useMemo<ProjectAssetImage[]>(() => {
     const list = products && products.length > 0 ? products : PRODUCTS;
@@ -89,6 +92,7 @@ export function useImageHandling({
       if (p.image && !seen.has(p.image)) {
         seen.add(p.image);
         res.push({
+          id: `prod-main-${p.id}`,
           path: p.image,
           url: p.image,
           thumbnail: p.image,
@@ -103,6 +107,7 @@ export function useImageHandling({
           if (img && !seen.has(img)) {
             seen.add(img);
             res.push({
+              id: `prod-gallery-${p.id}-${idx}`,
               path: img,
               url: img,
               thumbnail: img,
@@ -120,7 +125,7 @@ export function useImageHandling({
   }, [products]);
 
   const allAssets = useMemo(() => {
-    const combined = [...customAssets, ...PROJECT_ASSET_IMAGES, ...productAssets];
+    const combined = [...customAssets, ...wpServerAssets, ...PROJECT_ASSET_IMAGES, ...productAssets];
     const seenPaths = new Set<string>();
     return combined.filter((a) => {
       const key = a.path || a.url || a.thumbnail || a.originalUrl || a.label;
@@ -128,7 +133,7 @@ export function useImageHandling({
       seenPaths.add(key);
       return true;
     });
-  }, [customAssets, productAssets]);
+  }, [customAssets, wpServerAssets, productAssets]);
 
   const handleUploadToLibrary = useCallback(
     async (file: File) => {
@@ -139,14 +144,19 @@ export function useImageHandling({
         const savedPath = await uploadImageToWordPress(file);
         if (savedPath) {
           const newAsset: ProjectAssetImage = {
+            id: `custom-${Date.now()}`,
             path: savedPath,
+            url: savedPath,
+            thumbnail: savedPath,
+            originalUrl: savedPath,
             label: file.name.replace(/\.[^/.]+$/, ''),
             category: 'custom',
             isCustom: true,
           };
-          const updated = [newAsset, ...customAssets];
+          const updated = [newAsset, ...customAssets.filter((a) => a.path !== savedPath)];
           setCustomAssets(updated);
           safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(updated));
+          notifyMediaStorageChanged('upload', { url: savedPath });
           addLog(`Asset [${file.name}] mapped to ${savedPath}`, 'success');
 
           if (editedProduct) {
@@ -249,6 +259,7 @@ export function useImageHandling({
           const updated = [newAsset, ...customAssets.filter((a) => a.path !== url)];
           setCustomAssets(updated);
           safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(updated));
+          notifyMediaStorageChanged('upload', { url });
 
           // Assign to product
           if (target === 'primary') {
