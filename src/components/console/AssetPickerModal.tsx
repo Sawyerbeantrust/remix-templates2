@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ImageIcon, X, Plus, Search, HardDrive, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react';
 import { ProjectAssetImage } from '../../types/console.js';
-import { DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
+import { normalizeImageKey } from '../../hooks/useResolvedImage.js';
 import {
   subscribeToMediaStorage,
   fetchWordPressMediaAssets,
@@ -29,35 +29,19 @@ interface AssetCardItemProps {
 }
 
 const AssetCardItem: React.FC<AssetCardItemProps> = ({ item, onSelect }) => {
-  const primarySrc = item.url || item.thumbnail || item.path || item.originalUrl || DEFAULT_FALLBACK_IMAGE;
-  const secondarySrc = (item.path && item.path !== primarySrc)
-    ? item.path
-    : (item.originalUrl && item.originalUrl !== primarySrc)
-    ? item.originalUrl
-    : DEFAULT_FALLBACK_IMAGE;
+  const rawUrl = (item.url || item.thumbnail || item.originalUrl || item.path || '').trim();
+  const resolvedUrl = normalizeImageKey(rawUrl);
 
-  const [currentSrc, setCurrentSrc] = useState<string>(primarySrc);
-  const [hasFailed, setHasFailed] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   // Sync if item changes
-  React.useEffect(() => {
-    setCurrentSrc(primarySrc);
-    setHasFailed(false);
+  useEffect(() => {
+    setHasError(false);
     setIsLoaded(false);
-  }, [primarySrc]);
+  }, [rawUrl]);
 
-  const handleError = () => {
-    if (currentSrc !== secondarySrc && secondarySrc) {
-      setCurrentSrc(secondarySrc);
-    } else if (currentSrc !== DEFAULT_FALLBACK_IMAGE) {
-      setCurrentSrc(DEFAULT_FALLBACK_IMAGE);
-    } else {
-      setHasFailed(true);
-    }
-  };
-
-  const selectPath = item.path || item.url || item.originalUrl || item.thumbnail || primarySrc;
+  const selectPath = item.path || item.url || item.originalUrl || item.thumbnail || resolvedUrl;
 
   return (
     <div
@@ -66,16 +50,16 @@ const AssetCardItem: React.FC<AssetCardItemProps> = ({ item, onSelect }) => {
     >
       {/* Thumbnail Container */}
       <div className="h-32 w-full bg-neutral-950 relative overflow-hidden flex items-center justify-center shrink-0 border-b border-neutral-800/80">
-        {!hasFailed ? (
+        {!hasError && resolvedUrl ? (
           <img
-            src={currentSrc}
+            src={resolvedUrl}
             alt={item.label || 'Asset Preview'}
             loading="eager"
             decoding="async"
             crossOrigin="anonymous"
             referrerPolicy="no-referrer"
             onLoad={() => setIsLoaded(true)}
-            onError={handleError}
+            onError={() => setHasError(true)}
             className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
               isLoaded ? 'opacity-100' : 'opacity-90'
             }`}
@@ -192,12 +176,26 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   const unifiedAssets = useMemo(() => {
     const combined = [...liveCustomAssets, ...liveWpAssets, ...assets];
     const seen = new Set<string>();
-    return combined.filter((a) => {
-      const key = a.path || a.url || a.thumbnail || a.originalUrl || a.label;
-      if (!key || seen.has(key)) return false;
+    const result: ProjectAssetImage[] = [];
+
+    for (const a of combined) {
+      const rawUrl = (a.url || a.thumbnail || a.originalUrl || a.path || '').trim();
+      if (!rawUrl) continue;
+      const normalizedPath = normalizeImageKey(rawUrl);
+      const key = String(a.id || normalizedPath || a.label || '').toLowerCase();
+      if (seen.has(key)) continue;
       seen.add(key);
-      return true;
-    });
+
+      result.push({
+        ...a,
+        path: normalizedPath,
+        url: a.url ? normalizeImageKey(a.url) : normalizedPath,
+        thumbnail: a.thumbnail ? normalizeImageKey(a.thumbnail) : normalizedPath,
+        originalUrl: a.originalUrl ? normalizeImageKey(a.originalUrl) : normalizedPath,
+      });
+    }
+
+    return result;
   }, [liveCustomAssets, liveWpAssets, assets]);
 
   if (!isOpen) return null;

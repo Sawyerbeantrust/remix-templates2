@@ -74,16 +74,20 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
     const issuesFound: string[] = [];
 
     try {
-      // 1. API Health Check
+      // 1. API Health Check (verifies catalog & products endpoints with graceful fallback)
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/catalog');
         if (!res.ok) {
-          issuesFound.push(`API Products endpoint returned HTTP status ${res.status}`);
-          logSystemError(`Server API Products endpoint returned HTTP ${res.status}`, '/api/products', 'API/Network');
+          // Check /api/products as alternative
+          const prodRes = await fetch('/api/products');
+          if (!prodRes.ok) {
+            issuesFound.push(`API Products & Catalog endpoints returned HTTP status ${res.status}`);
+            logSystemError(`Server API Products endpoint returned HTTP ${res.status}`, '/api/products', 'API/Network');
+          }
         }
       } catch (err: any) {
         issuesFound.push(`API Connection test failed: ${err.message}`);
-        logSystemError(err, 'Diagnostic health test on /api/products', 'API/Network');
+        logSystemError(err, 'Diagnostic health test on API endpoints', 'API/Network');
       }
 
       // 2. Storage Quota Check

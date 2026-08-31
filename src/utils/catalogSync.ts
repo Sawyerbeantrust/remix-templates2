@@ -68,9 +68,10 @@ export async function syncCatalogToServer(
       : safeLocalStorage.getItem('triton_maintenance_mode') === 'true';
 
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
+    const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET || safeLocalStorage.getItem('triton_cf_secret') || safeLocalStorage.getItem('triton_key');
     if (cfSecret) {
       headers['X-Vercel-Secret'] = cfSecret;
+      headers['X-Triton-Key'] = cfSecret;
     }
 
     const response = await fetch('/api/catalog', {

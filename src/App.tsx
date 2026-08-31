@@ -460,9 +460,10 @@ export default function App() {
         safeLocalStorage.setItem('triton_featured_categories_db_v3', JSON.stringify(sanitizedCategories));
 
         const catalogHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-        const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET;
+        const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET || safeLocalStorage.getItem('triton_cf_secret') || safeLocalStorage.getItem('triton_key');
         if (cfSecret) {
           catalogHeaders['X-Vercel-Secret'] = cfSecret;
+          catalogHeaders['X-Triton-Key'] = cfSecret;
         }
 
         const isMaintenance = typeof maintenanceMode === 'boolean'

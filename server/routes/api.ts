@@ -209,6 +209,30 @@ apiRouter.get(
   })
 );
 
+// 5b) GET /api/products (supports WooCommerce REST /wp-json/wc/v3/products proxy with graceful fallback to local PRODUCTS)
+apiRouter.get(
+  "/products",
+  asyncHandler(async (req, res) => {
+    const wpBase = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za").replace(/\/+$/, "");
+    const wcEndpoint = `${wpBase}/wp-json/wc/v3/products?per_page=100`;
+
+    try {
+      const wpRes = await fetchWpSafe(wcEndpoint, { method: "GET", headers: getWpHeaders() }, 5000);
+      if (wpRes.ok && Array.isArray(wpRes.data) && wpRes.data.length > 0) {
+        return res.status(200).json({ success: true, source: "woocommerce", count: wpRes.data.length, products: wpRes.data });
+      }
+    } catch {
+      // Fallback below
+    }
+
+    const currentProducts = memoryCatalog?.products && memoryCatalog.products.length > 0
+      ? memoryCatalog.products
+      : PRODUCTS;
+
+    return res.status(200).json({ success: true, source: "local", count: currentProducts.length, products: currentProducts });
+  })
+);
+
 // 6) POST /api/catalog (protected with TRITON_KEY)
 apiRouter.post(
   "/catalog",

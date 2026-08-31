@@ -596,19 +596,41 @@ export default function MediaStorageTab({
     addLog(`[Media Delete] Starting permanent deletion of ${assetsToDelete.length} media asset(s)...`);
 
     // 1. Send delete API request
+    const deleteHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+    const cfSecret = (import.meta as any).env?.VITE_CF_BYPASS_SECRET || safeLocalStorage.getItem('triton_cf_secret');
+    if (cfSecret) {
+      deleteHeaders['X-Vercel-Secret'] = cfSecret;
+      deleteHeaders['X-Triton-Key'] = cfSecret;
+    }
+
     for (const asset of assetsToDelete) {
       try {
         await fetch('/api/delete-image', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: deleteHeaders,
           body: JSON.stringify({ 
             id: typeof asset.id === 'number' ? asset.id : undefined,
-            url: asset.url 
+            url: asset.url,
+            path: asset.url
           })
         });
       } catch (e) {
         console.warn('[MediaStorageTab] Error deleting media asset:', e);
       }
+    }
+
+    // 1b. Remove from localStorage custom assets
+    try {
+      const savedCustom = safeLocalStorage.getItem('triton_custom_assets');
+      if (savedCustom) {
+        const parsed = JSON.parse(savedCustom);
+        if (Array.isArray(parsed)) {
+          const updatedCustom = parsed.filter((item: any) => !urlsToRemove.has(item.path) && !urlsToRemove.has(item.url));
+          safeLocalStorage.setItem('triton_custom_assets', JSON.stringify(updatedCustom));
+        }
+      }
+    } catch (e) {
+      console.warn('[MediaStorageTab] Error cleaning custom assets:', e);
     }
 
     // 2. Unlink/Replace images in Products Database
