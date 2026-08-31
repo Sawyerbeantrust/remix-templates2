@@ -13,11 +13,11 @@ import {
   generateContentWithResilience,
   cleanJsonText,
   matchLocalActionImage,
-  SimulateImageSchema,
-  SeoSchema,
-  GlobalSeoSchema,
-  SeoHealthSchema,
-  CategoryAuditSchema,
+  SimulateImageSchema as AiSimulateImageSchema,
+  SeoSchema as AiSeoSchema,
+  GlobalSeoSchema as AiGlobalSeoSchema,
+  SeoHealthSchema as AiSeoHealthSchema,
+  CategoryAuditSchema as AiCategoryAuditSchema,
 } from "../services/ai.js";
 import {
   buildSimulateImagePrompt,
@@ -30,11 +30,19 @@ import { generateEmailPayloadWithGemini, sendSmtpEmail } from "../services/email
 import { CONFIG } from "../config.js";
 import {
   UploadImageSchema,
+  SaveCategoryImageSchema,
   DeleteImageSchema,
   SendInquirySchema,
   GenerateEmailSchema,
+  SimulateImageRequestSchema,
+  GenerateSeoSchema,
+  GenerateGlobalSeoSchema,
+  SeoHealthSchema,
+  CategoryAuditSchema,
+  AssistantChatSchema,
+  UpdateCatalogSchema,
 } from "../types/validation.js";
-import type { CatalogData, FeaturedCategory } from "../types/index.js";
+import type { CatalogData, FeaturedCategory, EmailResult } from "../types/index.js";
 
 export const apiRouter = Router();
 
@@ -54,9 +62,6 @@ export const apiRateLimiter = rateLimit({
     error: "Too many requests. Please slow down and try again shortly.",
   },
 });
-
-// Maximum upload size limit: 5MB
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 export const DEFAULT_FEATURED_CATEGORIES: FeaturedCategory[] = [
   { id: "cat-auto-spray", name: "AUTOMOTIVE SPRAY BOOTHS", count: "12 Products", img: "https://images.unsplash.com/photo-1590623091395-e3ae3f6d71b4?auto=format&fit=crop&q=80&w=800&h=600" },
@@ -108,7 +113,7 @@ apiRouter.post(
     }
 
     const { name, data, image } = parseResult.data;
-    const imgData = data || image;
+    const imgData = (data || image) as string;
     const imgName = name || `upload_${Date.now()}.jpg`;
 
     const validation = validateBase64Image(imgData, imgName);
@@ -116,23 +121,22 @@ apiRouter.post(
       return sendError(res, validation.error, validation.status);
     }
 
-    const { buffer, contentType, filename } = validation;
-    const result = await uploadBufferToWordPress(buffer, filename, contentType);
+    const uploadResult = await uploadBufferToWordPress(
+      validation.buffer,
+      validation.filename,
+      validation.contentType
+    );
 
-    if (result.success) {
-      const sanitizedUrl = result.url ? result.url.replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za") : result.url;
-      const sanitizedPath = result.path ? result.path.replaceAll("http://store.car-lifts.co.za", "https://store.car-lifts.co.za") : result.path;
-      return res.status(200).json({
-        success: true,
-        id: result.id,
-        url: sanitizedUrl,
-        path: sanitizedPath,
-        filename: result.filename,
-      });
+    if (!uploadResult.success) {
+      return sendError(
+        res,
+        uploadResult.error || "Failed to upload image to WordPress",
+        uploadResult.status || 502,
+        uploadResult.details
+      );
     }
 
-    const httpStatus = result.status && result.status >= 400 && result.status <= 599 ? result.status : 500;
-    return sendError(res, result.error || "WordPress media upload failed", httpStatus, result.details);
+    return res.status(200).json(uploadResult);
   })
 );
 
@@ -140,13 +144,13 @@ apiRouter.post(
 apiRouter.post(
   "/save-category-image",
   asyncHandler(async (req, res) => {
-    const parseResult = UploadImageSchema.safeParse(req.body);
+    const parseResult = SaveCategoryImageSchema.safeParse(req.body);
     if (!parseResult.success) {
       return sendError(res, parseResult.error.issues[0]?.message || "Invalid upload payload", 400);
     }
 
     const { name, data, image } = parseResult.data;
-    const imgData = data || image;
+    const imgData = (data || image) as string;
     const imgName = name || `category_${Date.now()}.jpg`;
 
     const validation = validateBase64Image(imgData, imgName);
@@ -154,30 +158,32 @@ apiRouter.post(
       return sendError(res, validation.error, validation.status);
     }
 
-    const { buffer, contentType, filename } = validation;
-    const result = await uploadBufferToWordPress(buffer, filename, contentType);
+    const uploadResult = await uploadBufferToWordPress(
+      validation.buffer,
+      validation.filename,
+      validation.contentType
+    );
 
-    if (result.success) {
-      return res.status(200).json({
-        success: true,
-        id: result.id,
-        url: result.url,
-        path: result.path,
-        filename: result.filename,
-      });
+    if (!uploadResult.success) {
+      return sendError(
+        res,
+        uploadResult.error || "Failed to upload category image to WordPress",
+        uploadResult.status || 502,
+        uploadResult.details
+      );
     }
 
-    const httpStatus = result.status && result.status >= 400 && result.status <= 599 ? result.status : 500;
-    return sendError(res, result.error || "WordPress media upload failed", httpStatus, result.details);
+    return res.status(200).json(uploadResult);
   })
 );
 
-// 3) GET /api/list-images
+// 3) GET /api/images
 apiRouter.get(
-  "/list-images",
+  "/images",
   asyncHandler(async (req, res) => {
-    const images = await listWpImages(100);
-    return res.status(200).json({ success: true, images });
+    const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 50)));
+    const result = await listWpImages(perPage);
+    return res.status(200).json(result);
   })
 );
 
@@ -203,7 +209,7 @@ apiRouter.post(
 apiRouter.get(
   "/catalog",
   asyncHandler(async (req, res) => {
-    const wpBase = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za").replace(/\/+$/, "");
+    const wpBase = CONFIG.WP_BASE_URL;
     const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
 
     const localData = {
@@ -232,11 +238,11 @@ apiRouter.get(
   })
 );
 
-// 5b) GET /api/products (supports WooCommerce REST /wp-json/wc/v3/products proxy with graceful fallback to local PRODUCTS)
+// 5b) GET /api/products
 apiRouter.get(
   "/products",
   asyncHandler(async (req, res) => {
-    const wpBase = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za").replace(/\/+$/, "");
+    const wpBase = CONFIG.WP_BASE_URL;
     const wcEndpoint = `${wpBase}/wp-json/wc/v3/products?per_page=100`;
 
     try {
@@ -261,13 +267,18 @@ apiRouter.post(
   "/catalog",
   requireTritonKey,
   asyncHandler(async (req, res) => {
-    const incomingData = req.body || {};
+    const parseResult = UpdateCatalogSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid catalog payload", 400);
+    }
+
+    const incomingData = parseResult.data;
     if (incomingData.products) memoryCatalog.products = incomingData.products;
     if (incomingData.featuredCategories) memoryCatalog.featuredCategories = incomingData.featuredCategories;
     if (incomingData.categoriesList) memoryCatalog.categoriesList = incomingData.categoriesList;
     if (typeof incomingData.maintenanceMode === "boolean") memoryCatalog.maintenanceMode = incomingData.maintenanceMode;
 
-    const wpBase = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za").replace(/\/+$/, "");
+    const wpBase = CONFIG.WP_BASE_URL;
     const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
 
     try {
@@ -309,11 +320,12 @@ apiRouter.post(
 apiRouter.post(
   "/simulate-image",
   asyncHandler(async (req, res) => {
-    const { name, description, category, specifications } = req.body || {};
-
-    if (!name || typeof name !== "string") {
-      return sendError(res, "Missing or invalid name in request body", 400);
+    const parseResult = SimulateImageRequestSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid simulate image payload", 400);
     }
+
+    const { name, description, category, specifications } = parseResult.data;
 
     const fallbackMatch = matchLocalActionImage(name, category, description);
     const ai = getGeminiClient();
@@ -338,7 +350,7 @@ apiRouter.post(
       if (response && response.text) {
         const text = cleanJsonText(response.text);
         const parsed = JSON.parse(text);
-        const validated = SimulateImageSchema.safeParse(parsed);
+        const validated = AiSimulateImageSchema.safeParse(parsed);
 
         if (validated.success) {
           return res.status(200).json({
@@ -368,11 +380,12 @@ apiRouter.post(
 apiRouter.post(
   "/generate-seo",
   asyncHandler(async (req, res) => {
-    const { name, category, currentDescription, currentSeo, specifications } = req.body || {};
-
-    if (!name || typeof name !== "string") {
-      return sendError(res, "Missing product name for SEO generation", 400);
+    const parseResult = GenerateSeoSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid SEO generation payload", 400);
     }
+
+    const { name, category, currentDescription, currentSeo, specifications } = parseResult.data;
 
     const fallbackSeo = {
       metaTitle: `${name} | Triton Automotive Equipment SA`,
@@ -394,7 +407,7 @@ apiRouter.post(
         if (response && response.text) {
           const text = cleanJsonText(response.text);
           const parsed = JSON.parse(text);
-          const validated = SeoSchema.safeParse(parsed);
+          const validated = AiSeoSchema.safeParse(parsed);
           if (validated.success) {
             return res.status(200).json({ success: true, source: "gemini-ai", data: validated.data });
           }
@@ -412,7 +425,12 @@ apiRouter.post(
 apiRouter.post(
   "/generate-global-seo",
   asyncHandler(async (req, res) => {
-    const { storeName, targetAudience, primaryKeywords, location, catalogSummary } = req.body || {};
+    const parseResult = GenerateGlobalSeoSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid global SEO payload", 400);
+    }
+
+    const { storeName, targetAudience, primaryKeywords, location, catalogSummary } = parseResult.data;
 
     const fallbackGlobalSeo = {
       globalTitle: "Triton Car Lifts & Automotive Equipment South Africa",
@@ -425,7 +443,8 @@ apiRouter.post(
     const ai = getGeminiClient();
     if (ai) {
       try {
-        const prompt = buildGlobalSeoPrompt(storeName, targetAudience, primaryKeywords, location, catalogSummary);
+        const keywordsStr = Array.isArray(primaryKeywords) ? primaryKeywords.join(", ") : (primaryKeywords || "");
+        const prompt = buildGlobalSeoPrompt(storeName || "Triton Equipment", targetAudience || "", keywordsStr, location || "", catalogSummary || "");
         const response = await generateContentWithResilience(ai, {
           contents: prompt,
           config: { responseMimeType: "application/json" },
@@ -434,7 +453,7 @@ apiRouter.post(
         if (response && response.text) {
           const text = cleanJsonText(response.text);
           const parsed = JSON.parse(text);
-          const validated = GlobalSeoSchema.safeParse(parsed);
+          const validated = AiGlobalSeoSchema.safeParse(parsed);
           if (validated.success) {
             return res.status(200).json({ success: true, source: "gemini-ai", data: validated.data });
           }
@@ -470,7 +489,13 @@ apiRouter.post(
       location,
     });
 
-    let smtpResult: { sent: boolean; reason?: string } = { sent: false, reason: "SMTP not configured" };
+    let smtpResult: EmailResult = {
+      sent: false,
+      reason: "SMTP credentials not configured on server",
+      retryable: true,
+      timestamp: new Date().toISOString(),
+    };
+
     if (process.env.SMTP_HOST && process.env.SMTP_PASS) {
       smtpResult = await sendSmtpEmail({
         replyTo: finalEmail,
@@ -480,10 +505,23 @@ apiRouter.post(
       });
     }
 
-    return res.status(200).json({
+    // Determine status code:
+    // - 200 OK: Email dispatched via SMTP successfully
+    // - 207 Multi-Status: Email generated & logged, but SMTP not configured
+    // - 202 Accepted: Email generated & queued for retry after SMTP error
+    const httpStatus = smtpResult.sent
+      ? 200
+      : !process.env.SMTP_HOST || !process.env.SMTP_PASS
+      ? 207
+      : 202;
+
+    return res.status(httpStatus).json({
+      success: true,
       ...payload,
-      smtpStatus: smtpResult.sent ? "sent" : "logged",
-      smtpNotice: smtpResult.reason,
+      smtpStatus: smtpResult.sent ? "sent" : !process.env.SMTP_HOST ? "not_configured" : "queued",
+      smtpNotice: smtpResult.reason || "Email queued for processing. Sales team will contact you shortly.",
+      ...(smtpResult.reason && { smtpError: smtpResult.reason }),
+      timestamp: smtpResult.timestamp,
     });
   })
 );
@@ -512,11 +550,17 @@ apiRouter.post(
       email,
       phone,
       equipment: itemsList,
-      message: message || (deliveryPreference ? `Delivery Requested: ${deliveryPreference === "yes" ? "YES" : "NO"}` : undefined),
+      message: message || (deliveryPreference ? `Delivery Requested: ${deliveryPreference}` : undefined),
       location: loc,
     });
 
-    let smtpResult: { sent: boolean; reason?: string } = { sent: false, reason: "SMTP not configured" };
+    let smtpResult: EmailResult = {
+      sent: false,
+      reason: "SMTP credentials not configured on server",
+      retryable: true,
+      timestamp: new Date().toISOString(),
+    };
+
     if (process.env.SMTP_HOST && process.env.SMTP_PASS) {
       try {
         smtpResult = await sendSmtpEmail({
@@ -527,18 +571,31 @@ apiRouter.post(
         });
       } catch (smtpErr: any) {
         logger.warn({ err: smtpErr?.message }, "SMTP Send warning");
-        smtpResult = { sent: false, reason: smtpErr?.message || "SMTP error" };
+        smtpResult = {
+          sent: false,
+          reason: smtpErr?.message || "SMTP error",
+          retryable: true,
+          timestamp: new Date().toISOString(),
+        };
       }
     }
 
     const refId = `CL-REQ-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    return res.status(200).json({
+    const httpStatus = smtpResult.sent
+      ? 200
+      : !process.env.SMTP_HOST || !process.env.SMTP_PASS
+      ? 207
+      : 202;
+
+    return res.status(httpStatus).json({
       success: true,
       message: "Success! Inquiry processed and notification sent to sales team.",
       referenceId: refId,
-      smtpStatus: smtpResult.sent ? "sent" : "logged",
-      smtpNotice: smtpResult.reason,
+      smtpStatus: smtpResult.sent ? "sent" : !process.env.SMTP_HOST ? "not_configured" : "queued",
+      smtpNotice: smtpResult.reason || "Email queued for delivery. Sales team will contact you shortly.",
+      ...(smtpResult.reason && { smtpError: smtpResult.reason }),
+      timestamp: smtpResult.timestamp,
       emailPayload,
     });
   })
@@ -548,7 +605,12 @@ apiRouter.post(
 apiRouter.post(
   "/seo-health",
   asyncHandler(async (req, res) => {
-    const { siteUrl, pageTitle, metaDescription, productsCount, categoriesCount, sampleProducts } = req.body || {};
+    const parseResult = SeoHealthSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid SEO health payload", 400);
+    }
+
+    const { siteUrl, pageTitle, metaDescription, productsCount, categoriesCount, sampleProducts } = parseResult.data;
 
     const fallbackHealth = {
       score: 88,
@@ -573,7 +635,7 @@ apiRouter.post(
         if (response && response.text) {
           const text = cleanJsonText(response.text);
           const parsed = JSON.parse(text);
-          const validated = SeoHealthSchema.safeParse(parsed);
+          const validated = AiSeoHealthSchema.safeParse(parsed);
           if (validated.success) {
             return res.status(200).json({ success: true, source: "gemini-ai", data: validated.data });
           }
@@ -591,7 +653,12 @@ apiRouter.post(
 apiRouter.post(
   "/seo-category-audit",
   asyncHandler(async (req, res) => {
-    const { categoryName, categoryDescription, productCount, sampleProducts } = req.body || {};
+    const parseResult = CategoryAuditSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid category audit payload", 400);
+    }
+
+    const { categoryName, categoryDescription, productCount, sampleProducts } = parseResult.data;
 
     const fallbackAudit = {
       categoryScore: 90,
@@ -617,7 +684,7 @@ apiRouter.post(
         if (response && response.text) {
           const text = cleanJsonText(response.text);
           const parsed = JSON.parse(text);
-          const validated = CategoryAuditSchema.safeParse(parsed);
+          const validated = AiCategoryAuditSchema.safeParse(parsed);
           if (validated.success) {
             return res.status(200).json({ success: true, source: "gemini-ai", data: validated.data });
           }
@@ -633,11 +700,12 @@ apiRouter.post(
 
 // 16) Assistant chat handler
 async function handleAssistantChat(req: any, res: any) {
-  const { message, history } = req.body || {};
-
-  if (!message || typeof message !== "string") {
-    return sendError(res, "Missing message parameter in request body", 400);
+  const parseResult = AssistantChatSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return sendError(res, parseResult.error.issues[0]?.message || "Invalid chat message", 400);
   }
+
+  const { message, history } = parseResult.data;
 
   const phoneFallback = "For exact pricing/specs on that, our sales team can help directly — call 021 556 2413 and they'll sort you out.";
   const ai = getGeminiClient();
@@ -696,7 +764,7 @@ ${JSON.stringify(catalogContext, null, 2)}
     }
     formattedPrompt += `User: ${message}\nAssistant:`;
 
-    const candidateModels = ["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.1-pro-preview"];
+    const candidateModels = [CONFIG.GEMINI_MODELS.primary, ...CONFIG.GEMINI_MODELS.fallbacks];
     let response: any = null;
 
     for (const model of candidateModels) {

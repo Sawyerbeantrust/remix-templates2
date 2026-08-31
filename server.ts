@@ -12,6 +12,7 @@ import { requireTritonKey } from "./server/middleware/requireTritonKey.js";
 import { logger } from "./server/utils/logger.js";
 import { sendError } from "./server/utils/asyncHandler.js";
 import { CONFIG } from "./server/config.js";
+import { UpdateSeoFilesSchema } from "./server/types/validation.js";
 import { PRODUCTS } from "./src/data/products.js";
 
 dotenv.config();
@@ -151,7 +152,11 @@ let customRobotsTxtOverride: string | null = null;
 
 app.post("/api/seo/update-files", requireTritonKey, (req, res) => {
   try {
-    const { sitemapXml, robotsTxt } = req.body || {};
+    const parseResult = UpdateSeoFilesSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid SEO files update payload", 400);
+    }
+    const { sitemapXml, robotsTxt } = parseResult.data;
     if (typeof sitemapXml === "string" && sitemapXml.trim()) {
       customSitemapXmlOverride = sitemapXml;
     }

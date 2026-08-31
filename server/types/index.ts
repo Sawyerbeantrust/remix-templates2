@@ -59,3 +59,12 @@ export interface SafeWpResult {
   error?: string;
   contentType?: string;
 }
+
+export interface EmailResult {
+  sent: boolean;
+  reason?: string;
+  retryable?: boolean;
+  timestamp?: string;
+}
+
+export type EmailDeliveryStatus = "sent" | "queued" | "failed" | "not_configured";

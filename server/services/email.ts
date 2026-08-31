@@ -2,7 +2,11 @@ import nodemailer from "nodemailer";
 import { getGeminiClient, cleanJsonText } from "./ai.js";
 import { logger } from "../utils/logger.js";
 import { CONFIG } from "../config.js";
+import type { EmailResult } from "../types/index.js";
 
+/**
+ * Transmits structured email notification to the sales team inbox via SMTP
+ */
 export async function sendSmtpEmail({
   replyTo,
   subject,
@@ -13,7 +17,7 @@ export async function sendSmtpEmail({
   subject: string;
   body: string;
   fromName?: string;
-}): Promise<{ sent: boolean; reason?: string }> {
+}): Promise<EmailResult> {
   let host = (process.env.SMTP_HOST || "").trim();
   const port = Number(process.env.SMTP_PORT || CONFIG.SMTP_PORT);
   const user = (process.env.SMTP_USER || CONFIG.SMTP_USER).trim();
@@ -27,8 +31,13 @@ export async function sendSmtpEmail({
   }
 
   if (!host || !pass) {
-    logger.info("SMTP_HOST or SMTP_PASS not configured. Email payload logged successfully.");
-    return { sent: false, reason: "SMTP credentials not configured on server" };
+    logger.info("SMTP_HOST or SMTP_PASS not configured. Email payload logged to database/memory.");
+    return {
+      sent: false,
+      reason: "SMTP credentials not configured on server",
+      retryable: true,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   try {
@@ -50,19 +59,49 @@ export async function sendSmtpEmail({
       text: body,
     });
 
-    logger.info({ subject, to: user }, "Successfully dispatched email to sales team via SMTP");
-    return { sent: true };
+    logger.info({ subject, to: user, timestamp: new Date().toISOString() }, "Successfully dispatched email to sales team via SMTP");
+    return {
+      sent: true,
+      timestamp: new Date().toISOString(),
+    };
   } catch (err: any) {
     const isDnsError = err?.code === "ENOTFOUND" || err?.message?.includes("ENOTFOUND");
+    const isNetworkError = err?.code === "ECONNREFUSED" || err?.code === "ETIMEDOUT" || err?.code === "ECONNRESET";
+    const isAuthError = err?.code === "EAUTH" || err?.message?.includes("Invalid login") || err?.message?.includes("authentication");
+
     const failureReason = isDnsError
       ? `Mail host '${host}' unreachable (DNS lookup failed)`
+      : isAuthError
+      ? "SMTP authentication failed - check credentials"
+      : isNetworkError
+      ? "Network connection error - will retry"
       : err?.message || "SMTP transmission error";
 
-    logger.warn({ host, error: err?.message }, "Could not transmit email via SMTP");
-    return { sent: false, reason: failureReason };
+    const retryable = isNetworkError || !isAuthError;
+
+    logger.warn(
+      {
+        host,
+        error: err?.message,
+        errorCode: err?.code,
+        retryable,
+        timestamp: new Date().toISOString(),
+      },
+      "Could not transmit email via SMTP"
+    );
+
+    return {
+      sent: false,
+      reason: failureReason,
+      retryable,
+      timestamp: new Date().toISOString(),
+    };
   }
 }
 
+/**
+ * Generates structured inquiry email text with resilient Gemini AI and deterministic fallback
+ */
 export async function generateEmailPayloadWithGemini({
   name,
   email,
@@ -125,6 +164,16 @@ Inquiry Data:
 - Equipment Requested: ${equipmentRequested}
 - Message/Notes: ${customerNotes}`;
 
+      let timeoutOccurred = false;
+      let timer: NodeJS.Timeout | null = null;
+
+      const timeoutPromise = new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+          timeoutOccurred = true;
+          resolve(null);
+        }, 4000);
+      });
+
       const aiPromise = ai.models
         .generateContent({
           model: CONFIG.GEMINI_MODELS.primary,
@@ -133,15 +182,22 @@ Inquiry Data:
             responseMimeType: "application/json",
           },
         })
+        .then((res) => {
+          if (timer) clearTimeout(timer);
+          return res;
+        })
         .catch((err: any) => {
-          logger.warn({ err: err?.message }, "Gemini request failed during email generation");
+          if (!timeoutOccurred) {
+            logger.warn({ err: err?.message }, "Gemini request failed before timeout during email generation");
+          }
           return null;
         });
 
-      const response = await Promise.race([
-        aiPromise,
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
-      ]);
+      const response = await Promise.race([aiPromise, timeoutPromise]);
+
+      if (timeoutOccurred && !response) {
+        logger.warn("Email generation timed out after 4000ms, using fallback template");
+      }
 
       if (response && (response as any).text) {
         const text = cleanJsonText((response as any).text);
