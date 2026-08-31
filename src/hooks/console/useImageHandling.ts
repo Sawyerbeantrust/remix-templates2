@@ -1,20 +1,23 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Product } from '../../types/index.js';
 import { ProjectAssetImage } from '../../types/console.js';
 import { PROJECT_ASSET_IMAGES, normalizeCategoryImagePath } from '../../utils/console/productNormalization.js';
 import { uploadImageToWordPress } from '../../utils/imageUpload.js';
 import { safeLocalStorage } from '../../utils/safeStorage.js';
+import { PRODUCTS } from '../../data/products.js';
 
 interface UseImageHandlingOptions {
   editedProduct: Product | null;
   setEditedProduct: React.Dispatch<React.SetStateAction<Product | null>>;
   addLog: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  products?: Product[];
 }
 
 export function useImageHandling({
   editedProduct,
   setEditedProduct,
   addLog,
+  products,
 }: UseImageHandlingOptions) {
   const [isGeneratingAiImage, setIsGeneratingAiImage] = useState(false);
   const [aiSimulationStep, setAiSimulationStep] = useState<string>('');
@@ -77,7 +80,55 @@ export function useImageHandling({
     };
   }, []);
 
-  const allAssets = [...PROJECT_ASSET_IMAGES, ...customAssets];
+  const productAssets = useMemo<ProjectAssetImage[]>(() => {
+    const list = products && products.length > 0 ? products : PRODUCTS;
+    const seen = new Set<string>();
+    const res: ProjectAssetImage[] = [];
+
+    list.forEach((p) => {
+      if (p.image && !seen.has(p.image)) {
+        seen.add(p.image);
+        res.push({
+          path: p.image,
+          url: p.image,
+          thumbnail: p.image,
+          originalUrl: p.image,
+          label: p.name,
+          category: p.category || 'products',
+          isCustom: false,
+        });
+      }
+      if (Array.isArray(p.images)) {
+        p.images.forEach((img, idx) => {
+          if (img && !seen.has(img)) {
+            seen.add(img);
+            res.push({
+              path: img,
+              url: img,
+              thumbnail: img,
+              originalUrl: img,
+              label: `${p.name} (Gallery #${idx + 1})`,
+              category: p.category || 'products',
+              isCustom: false,
+            });
+          }
+        });
+      }
+    });
+
+    return res;
+  }, [products]);
+
+  const allAssets = useMemo(() => {
+    const combined = [...customAssets, ...PROJECT_ASSET_IMAGES, ...productAssets];
+    const seenPaths = new Set<string>();
+    return combined.filter((a) => {
+      const key = a.path || a.url || a.thumbnail || a.originalUrl || a.label;
+      if (!key || seenPaths.has(key)) return false;
+      seenPaths.add(key);
+      return true;
+    });
+  }, [customAssets, productAssets]);
 
   const handleUploadToLibrary = useCallback(
     async (file: File) => {

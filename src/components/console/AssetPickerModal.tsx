@@ -1,7 +1,7 @@
-import React from 'react';
-import { ImageIcon, X, Plus, Search, Filter, HardDrive } from 'lucide-react';
+import React, { useState } from 'react';
+import { ImageIcon, X, Plus, Search, HardDrive, Sparkles, CheckCircle2 } from 'lucide-react';
 import { ProjectAssetImage } from '../../types/console.js';
-import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
+import { DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
 
 interface AssetPickerModalProps {
   isOpen: boolean;
@@ -14,7 +14,118 @@ interface AssetPickerModalProps {
   onFilterChange: (cat: string) => void;
   onSelectImage: (path: string) => void;
   onUploadFile: (file: File) => void;
+  onOpenMediaStorageTab?: () => void;
 }
+
+interface AssetCardItemProps {
+  item: ProjectAssetImage;
+  onSelect: (path: string) => void;
+}
+
+const AssetCardItem: React.FC<AssetCardItemProps> = ({ item, onSelect }) => {
+  const primarySrc = item.url || item.thumbnail || item.path || item.originalUrl || DEFAULT_FALLBACK_IMAGE;
+  const secondarySrc = (item.path && item.path !== primarySrc)
+    ? item.path
+    : (item.originalUrl && item.originalUrl !== primarySrc)
+    ? item.originalUrl
+    : DEFAULT_FALLBACK_IMAGE;
+
+  const [currentSrc, setCurrentSrc] = useState<string>(primarySrc);
+  const [hasFailed, setHasFailed] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+
+  // Sync if item changes
+  React.useEffect(() => {
+    setCurrentSrc(primarySrc);
+    setHasFailed(false);
+    setIsLoaded(false);
+  }, [primarySrc]);
+
+  const handleError = () => {
+    if (currentSrc !== secondarySrc && secondarySrc) {
+      setCurrentSrc(secondarySrc);
+    } else if (currentSrc !== DEFAULT_FALLBACK_IMAGE) {
+      setCurrentSrc(DEFAULT_FALLBACK_IMAGE);
+    } else {
+      setHasFailed(true);
+    }
+  };
+
+  const selectPath = item.path || item.url || item.originalUrl || item.thumbnail || primarySrc;
+
+  return (
+    <div
+      onClick={() => onSelect(selectPath)}
+      className="group relative bg-[#181818] hover:bg-[#202020] border border-neutral-800 hover:border-indigo-500/80 hover:ring-1 hover:ring-indigo-500/50 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 flex flex-col min-h-[190px] h-full shadow-md hover:shadow-indigo-950/30"
+    >
+      {/* Thumbnail Container */}
+      <div className="h-32 w-full bg-neutral-950 relative overflow-hidden flex items-center justify-center shrink-0 border-b border-neutral-800/80">
+        {!hasFailed ? (
+          <img
+            src={currentSrc}
+            alt={item.label || 'Asset Preview'}
+            loading="eager"
+            decoding="async"
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
+            onLoad={() => setIsLoaded(true)}
+            onError={handleError}
+            className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
+              isLoaded ? 'opacity-100' : 'opacity-90'
+            }`}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-neutral-900 to-neutral-950 text-neutral-400">
+            <ImageIcon size={28} className="text-neutral-600 mb-1.5 group-hover:text-indigo-400 transition-colors" />
+            <span className="text-[10px] font-mono text-neutral-400 line-clamp-1 max-w-[90%] font-medium">
+              {item.label}
+            </span>
+          </div>
+        )}
+
+        {/* Hover Overlay with Action Button */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 backdrop-blur-[1px]">
+          <span className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase rounded-lg shadow-lg flex items-center gap-1.5 transform group-hover:scale-100 scale-95 transition-all">
+            <Sparkles size={13} className="text-indigo-200" />
+            <span>Select Asset</span>
+          </span>
+        </div>
+
+        {/* Badge in top right corner */}
+        <div className="absolute top-2 right-2">
+          {item.isCustom ? (
+            <span className="px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-bold text-[9px] uppercase tracking-wider backdrop-blur-sm">
+              Storage
+            </span>
+          ) : (
+            <span className="px-1.5 py-0.5 rounded bg-neutral-900/80 border border-neutral-700/60 text-neutral-300 font-mono text-[9px] uppercase backdrop-blur-sm">
+              Catalog
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Info & Footer */}
+      <div className="p-3 flex-1 flex flex-col justify-between gap-2 bg-[#181818]">
+        <div>
+          <p className="text-xs font-semibold text-neutral-200 line-clamp-2 group-hover:text-indigo-300 transition-colors">
+            {item.label || 'Unnamed Asset'}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-neutral-800/60 text-[10px] text-neutral-400">
+          <span className="uppercase font-mono text-[9px] px-1.5 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-neutral-300">
+            {item.category || 'general'}
+          </span>
+          <span className="text-[10px] text-indigo-400 font-medium group-hover:underline flex items-center gap-0.5">
+            <CheckCircle2 size={11} />
+            <span>Assign</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   isOpen,
@@ -27,32 +138,37 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   onFilterChange,
   onSelectImage,
   onUploadFile,
+  onOpenMediaStorageTab,
 }) => {
   if (!isOpen) return null;
 
-  const categories = Array.from(new Set(assets.map((a) => a.category)));
+  const categories = Array.from(new Set(assets.map((a) => a.category).filter(Boolean)));
 
   const filtered = assets.filter((a) => {
-    const matchesSearch = !searchQuery || a.label.toLowerCase().includes(searchQuery.toLowerCase()) || a.path.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchTarget = `${a.label || ''} ${a.path || ''} ${a.url || ''} ${a.category || ''}`.toLowerCase();
+    const matchesSearch = !searchQuery || searchTarget.includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || a.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
   return (
     <div className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#121212] border border-neutral-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+      <div className="bg-[#121212] border border-neutral-800 rounded-xl shadow-2xl w-full max-w-5xl max-h-[88vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="p-4 border-b border-neutral-800 bg-[#181818] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-indigo-950/80 border border-indigo-500/40 text-indigo-400">
-              <ImageIcon size={18} />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-indigo-950/80 border border-indigo-500/40 text-indigo-400">
+              <ImageIcon size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Select Equipment Asset — {target === 'primary' ? 'Primary Cover' : `Gallery Slot ${target + 1}`}
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span>Media Storage Asset Picker</span>
+                <span className="px-2 py-0.5 rounded bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-[10px] normal-case font-semibold">
+                  Target: {target === 'primary' ? 'Primary Cover Image' : `Gallery Slot #${target + 1}`}
+                </span>
               </h3>
               <p className="text-xs text-neutral-400 mt-0.5">
-                Choose an optimized high-resolution asset or upload directly to WordPress Media
+                Pick from WordPress Media Storage or catalog assets to assign directly to this product.
               </p>
             </div>
           </div>
@@ -61,18 +177,18 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
             onClick={onClose}
             className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Toolbar */}
         <div className="p-3 border-b border-neutral-800 bg-neutral-900/60 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+          <div className="flex items-center gap-2 flex-1 min-w-[260px]">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
               <input
                 type="text"
-                placeholder="Search assets by name or keyword..."
+                placeholder="Search storage assets by filename or keyword..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-9 pr-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500"
@@ -81,79 +197,79 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
             <select
               value={filterCategory}
               onChange={(e) => onFilterChange(e.target.value)}
-              className="px-2.5 py-1.5 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-neutral-300 focus:outline-none focus:border-indigo-500"
+              className="px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-neutral-300 focus:outline-none focus:border-indigo-500 font-mono"
             >
-              <option value="all">All Categories ({assets.length})</option>
+              <option value="all">All Assets ({assets.length})</option>
               {categories.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {c.toUpperCase()} ({assets.filter((a) => a.category === c).length})
                 </option>
               ))}
             </select>
           </div>
 
-          <label className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors shadow-sm">
-            <Plus size={14} />
-            <span>Upload New Asset</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onUploadFile(file);
-              }}
-            />
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors shadow-sm">
+              <Plus size={14} />
+              <span>Upload to Storage</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onUploadFile(file);
+                }}
+              />
+            </label>
+            {onOpenMediaStorageTab && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenMediaStorageTab();
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold transition-colors"
+                title="Open full Media Storage tab"
+              >
+                <HardDrive size={13} />
+                <span>Media Tab</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Asset Grid */}
-        <div className="p-4 overflow-y-auto flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-black/40">
+        {/* Asset Grid Container with explicit styling */}
+        <div className="p-4 overflow-y-auto flex-1 min-h-[360px] max-h-[62vh] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 bg-black/40">
           {filtered.map((item, idx) => (
-            <div
-              key={idx}
-              onClick={() => onSelectImage(item.path)}
-              className="group relative bg-[#181818] border border-neutral-800 hover:border-indigo-500 rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:shadow-lg flex flex-col"
-            >
-              <div className="aspect-[4/3] bg-neutral-950 relative overflow-hidden flex items-center justify-center">
-                <img
-                  src={item.path}
-                  alt={item.label}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                  onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
-                />
-                <div className="absolute inset-0 bg-indigo-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase rounded shadow">
-                    Select Image
-                  </span>
-                </div>
-              </div>
-              <div className="p-2 flex-1 flex flex-col justify-between">
-                <p className="text-[11px] font-semibold text-neutral-200 line-clamp-1 group-hover:text-indigo-400">
-                  {item.label}
-                </p>
-                <div className="flex items-center justify-between mt-1 text-[10px] text-neutral-500">
-                  <span className="uppercase font-mono">{item.category}</span>
-                  {item.isCustom && <span className="text-emerald-400 font-bold">Custom</span>}
-                </div>
-              </div>
-            </div>
+            <AssetCardItem
+              key={item.id ? `asset-${item.id}-${idx}` : `asset-${item.path || item.url || idx}`}
+              item={item}
+              onSelect={onSelectImage}
+            />
           ))}
           {filtered.length === 0 && (
-            <div className="col-span-full py-12 text-center text-neutral-500 text-xs">
-              No matching images found for &ldquo;{searchQuery}&rdquo;.
+            <div className="col-span-full py-16 flex flex-col items-center justify-center text-center text-neutral-500 text-xs">
+              <ImageIcon size={32} className="text-neutral-600 mb-2" />
+              <p className="font-semibold text-neutral-400">No matching assets found</p>
+              <p className="text-neutral-500 text-[11px] mt-1 max-w-sm">
+                No items matched &ldquo;{searchQuery}&rdquo;. Try clearing your search or uploading a new image.
+              </p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-neutral-800 bg-[#181818] flex justify-end">
+        <div className="p-3 border-t border-neutral-800 bg-[#181818] flex items-center justify-between">
+          <span className="text-xs text-neutral-400">
+            Showing <strong className="text-white">{filtered.length}</strong> of {assets.length} storage images
+          </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 bg-neutral-850 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
+            className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
           >
-            Cancel
+            Close
           </button>
         </div>
       </div>

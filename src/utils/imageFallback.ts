@@ -45,8 +45,24 @@ export function getNextImageFallbackUrl(currentSrc: string, currentStep: number,
     return { nextUrl: fallbackSrc, nextStep: 99 };
   }
 
+  // If it's already the fallback image, prevent looping
+  if (currentSrc === fallbackSrc || currentSrc.includes('1619642751034-765dfdf7c58e') || currentSrc.includes('1504307651254-35680f356dfd')) {
+    return { nextUrl: fallbackSrc, nextStep: 99 };
+  }
+
   // If it's a data URI, blob URI, or /uploads/ path, fallback directly to the default image without asset cycling
   if (currentSrc.startsWith('data:') || currentSrc.startsWith('blob:') || currentSrc.includes('/uploads/')) {
+    return { nextUrl: fallbackSrc, nextStep: 99 };
+  }
+
+  const filename = getFilenameFromPath(currentSrc);
+
+  // If it is a remote CDN / Unsplash URL or external host that failed
+  if (currentSrc.startsWith('http://') || currentSrc.startsWith('https://')) {
+    // Check if filename happens to match a local mapped asset
+    if (filename && IMAGE_MAP[filename]) {
+      return { nextUrl: IMAGE_MAP[filename], nextStep: 99 };
+    }
     return { nextUrl: fallbackSrc, nextStep: 99 };
   }
 
@@ -54,8 +70,6 @@ export function getNextImageFallbackUrl(currentSrc: string, currentStep: number,
     currentSrc.startsWith('/assets/images/') || 
     currentSrc.startsWith('/src/assets/images/') ||
     currentSrc.startsWith('images/');
-
-  const filename = getFilenameFromPath(currentSrc);
   
   if (!isLocalAsset || !filename || !filename.match(/\.(jpe?g|png|webp|gif|svg)$/i)) {
     return { nextUrl: fallbackSrc, nextStep: 99 };
@@ -83,7 +97,7 @@ export function getNextImageFallbackUrl(currentSrc: string, currentStep: number,
 }
 
 /**
- * Standard DOM onError event handler with automatic fallback chain
+ * Standard DOM onError event handler with automatic fallback chain and crossOrigin error recovery
  */
 export function handleImageElementError(
   e: React.SyntheticEvent<HTMLImageElement, Event>,
@@ -94,6 +108,9 @@ export function handleImageElementError(
   const step = parseInt(target.dataset.fallbackStep || '0', 10);
 
   if (step >= 99) {
+    if (target.src !== fallbackSrc) {
+      target.src = fallbackSrc;
+    }
     return;
   }
 

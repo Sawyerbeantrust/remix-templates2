@@ -210,6 +210,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     <img
                       src={p.image}
                       alt={p.name}
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                       onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
                     />
@@ -540,7 +541,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                           <span>Primary Cover Image Node</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-2">
-                          <label className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors shadow-sm">
+                          <label className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors shadow-sm" title="Upload local file to WordPress Media storage">
                             <CloudUpload size={12} />
                             <span>Upload to Storage</span>
                             <input
@@ -559,8 +560,9 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                             type="button"
                             onClick={() => onOpenAssetPicker('primary')}
                             className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors shadow-sm"
+                            title="Browse and pick from WordPress Media Storage Library"
                           >
-                            <ImageIcon size={12} /> Select Asset
+                            <ImageIcon size={12} /> Media Storage Picker
                           </button>
                           <button
                             type="button"
@@ -585,6 +587,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                           <img
                             src={editedProduct.image}
                             alt={editedProduct.name}
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
                             onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
                           />
@@ -661,6 +664,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                               <img
                                 src={img}
                                 alt=""
+                                referrerPolicy="no-referrer"
                                 className="w-full h-full object-cover"
                                 onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
                               />
@@ -734,6 +738,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                         <img
                           src={editedProduct.image}
                           alt={editedProduct.name}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
                         />

@@ -86,7 +86,7 @@ export default function ResponsiveImage({
   alt,
   className = '',
   containerClassName = '',
-  fallbackSrc = 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=600&auto=format&fit=crop',
+  fallbackSrc = DEFAULT_FALLBACK_IMAGE,
   aspectRatioClassName = 'aspect-[4/3]',
   showFitToggle = false,
   size = 'full',
@@ -94,7 +94,7 @@ export default function ResponsiveImage({
   height,
 }: ResponsiveImageProps) {
   const resolvedSrc = useResolvedImage(src, fallbackSrc);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageLoading, setImageLoading] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(() => getWooCommerceResizedUrl(resolvedSrc, size));
   const [fallbackStep, setFallbackStep] = useState(0);
   const [fitMode, setFitMode] = useState<'cover' | 'contain'>('cover');
@@ -102,8 +102,8 @@ export default function ResponsiveImage({
 
   // Sync state if src or resolvedSrc prop changes externally
   React.useEffect(() => {
-    setCurrentSrc(getWooCommerceResizedUrl(resolvedSrc, size));
-    setImageLoading(true);
+    const nextUrl = getWooCommerceResizedUrl(resolvedSrc, size);
+    setCurrentSrc(nextUrl);
     setFallbackStep(0);
     setHasError(false);
   }, [resolvedSrc, size]);
@@ -193,13 +193,14 @@ export default function ResponsiveImage({
           width={imgWidth}
           height={imgHeight}
           alt={alt}
-          loading="lazy"
+          loading="eager"
+          decoding="async"
           referrerPolicy="no-referrer"
           onLoad={handleLoad}
           onError={handleError}
-          className={`w-full h-full transition-all duration-500 ease-out ${
+          className={`w-full h-full transition-all duration-300 ease-out ${
             fitMode === 'cover' ? 'object-cover' : 'object-contain p-2 bg-neutral-950'
-          } ${imageLoading ? 'scale-95 opacity-0 blur-md' : 'scale-100 opacity-100 blur-0'} ${className}`}
+          } opacity-100 ${className}`}
         />
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#0c0c0c] text-neutral-600">

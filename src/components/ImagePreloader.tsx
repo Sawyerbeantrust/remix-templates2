@@ -149,6 +149,8 @@ export function ImagePreloader({
     'scale-down': 'object-scale-down',
   }[objectFit] || 'object-cover';
 
+  const displayUrl = activeUrl || resolvedPropSrc || fallbackSrc;
+
   return (
     <div
       className={`${containerClassName} ${aspectRatioClassName}`}
@@ -174,24 +176,30 @@ export function ImagePreloader({
         </div>
       )}
 
-      {/* Rendered Image once background preload & decode completes */}
-      {activeUrl && (
+      {/* Rendered Image */}
+      {displayUrl && (
         <img
           {...restProps}
-          src={activeUrl}
+          src={displayUrl}
           alt={alt}
           width={width}
           height={height}
-          loading={loading}
+          loading="eager"
+          decoding="async"
           referrerPolicy="no-referrer"
-          onLoad={() => setIsRendered(true)}
-          className={`${className} ${fitClass} transition-opacity ${
-            isRendered && !isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          style={{
-            transitionDuration: `${fadeDurationMs}ms`,
-            ...style,
+          onLoad={() => {
+            setIsRendered(true);
+            setIsLoading(false);
           }}
+          onError={() => {
+            if (displayUrl !== fallbackSrc) {
+              setActiveUrl(fallbackSrc);
+            }
+            setIsLoading(false);
+            setIsRendered(true);
+          }}
+          className={`${className} ${fitClass} transition-opacity duration-200 opacity-100`}
+          style={style}
         />
       )}
     </div>

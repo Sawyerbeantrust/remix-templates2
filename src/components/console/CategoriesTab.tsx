@@ -210,6 +210,7 @@ export const CategoriesTab: React.FC<CategoriesTabProps> = ({
                     <img
                       src={cat.img}
                       alt={cat.name}
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                       onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
                     />
@@ -274,6 +275,7 @@ export const CategoriesTab: React.FC<CategoriesTabProps> = ({
                 <img
                   src={selectedCategory.img}
                   alt={selectedCategory.name}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                   onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
                 />

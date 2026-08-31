@@ -272,6 +272,7 @@ export default function WordPressConsole({
     editedProduct,
     setEditedProduct,
     addLog,
+    products,
   });
 
   // Hook 6: Backup & Restore
@@ -670,6 +671,7 @@ export default function WordPressConsole({
         onFilterChange={setAssetFilterCategory}
         onSelectImage={handleSelectAssetImage}
         onUploadFile={handleUploadToLibrary}
+        onOpenMediaStorageTab={() => setActiveTab('media')}
       />
 
       {/* Migration Summary Modal */}

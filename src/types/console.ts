@@ -35,6 +35,10 @@ export interface WordPressConsoleProps {
 
 export interface ProjectAssetImage {
   path: string;
+  url?: string;
+  thumbnail?: string;
+  originalUrl?: string;
+  id?: string | number;
   label: string;
   category: string;
   isCustom?: boolean;
