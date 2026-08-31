@@ -34,13 +34,17 @@ export function requireTritonKey(req: Request, res: Response, next: NextFunction
     });
   }
 
-  // If supplied key does not match
-  if (
-    incomingKey !== tritonEnvKey &&
-    incomingKey !== process.env.TRITON_KEY &&
-    incomingKey !== process.env.CF_BYPASS_SECRET &&
-    incomingKey !== process.env.VERCEL_SECRET
-  ) {
+  // Build array of allowed valid secrets
+  const validKeys = [
+    tritonEnvKey,
+    process.env.TRITON_KEY,
+    process.env.WP_MIGRATE_KEY,
+    process.env.CF_BYPASS_SECRET,
+    process.env.VERCEL_SECRET,
+  ].filter(Boolean) as string[];
+
+  // If incoming key is not in the set of valid authorized keys
+  if (validKeys.length > 0 && !validKeys.includes(incomingKey)) {
     return res.status(403).json({
       success: false,
       error: "Forbidden: Invalid authorization key",

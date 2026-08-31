@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import cors from "cors";
@@ -10,6 +11,7 @@ import { apiRouter, apiRateLimiter, DEFAULT_FEATURED_CATEGORIES, DEFAULT_CATEGOR
 import { requireTritonKey } from "./server/middleware/requireTritonKey.js";
 import { logger } from "./server/utils/logger.js";
 import { sendError } from "./server/utils/asyncHandler.js";
+import { CONFIG } from "./server/config.js";
 import { PRODUCTS } from "./src/data/products.js";
 
 dotenv.config();
@@ -19,6 +21,16 @@ const PORT = 3000;
 
 // Trust proxy for reverse proxy environment (Cloud Run / Nginx / Vercel)
 app.set("trust proxy", 1);
+
+// Request ID tracking middleware for distributed correlation
+app.use((req, res, next) => {
+  const incomingId = req.headers["x-request-id"] as string | undefined;
+  const requestId = incomingId && incomingId.trim() ? incomingId.trim() : crypto.randomUUID();
+  (req as any).id = requestId;
+  res.locals.requestId = requestId;
+  res.setHeader("X-Request-ID", requestId);
+  next();
+});
 
 // Security Headers with Helmet
 app.use(
@@ -107,16 +119,28 @@ app.get("/ready", (req, res) => {
   });
 });
 
-// Static route aliases for assets - ensure /assets/images/* and /images/* are served seamlessly
+// Static route options
 const staticOptions = {
   maxAge: process.env.NODE_ENV === "production" ? "7d" : "0",
   etag: true,
 };
 
-app.use("/assets/images", express.static(path.join(process.cwd(), "public", "assets", "images"), staticOptions));
-app.use("/assets/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
-app.use("/images", express.static(path.join(process.cwd(), "public", "images"), staticOptions));
-app.use("/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
+/**
+ * Registers unified static asset handlers across public, src, and build outputs
+ */
+function setupStaticAssetRoutes(expressApp: express.Express) {
+  const distPath = path.join(process.cwd(), "dist");
+  expressApp.use("/images", express.static(path.join(process.cwd(), "public", "images"), staticOptions));
+  expressApp.use("/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
+  expressApp.use("/images", express.static(path.join(distPath, "images"), staticOptions));
+
+  expressApp.use("/assets/images", express.static(path.join(process.cwd(), "public", "assets", "images"), staticOptions));
+  expressApp.use("/assets/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
+  expressApp.use("/assets/images", express.static(path.join(distPath, "assets", "images"), staticOptions));
+}
+
+// Register static assets
+setupStaticAssetRoutes(app);
 
 // Mount rate-limited API routes
 app.use("/api", apiRateLimiter, apiRouter);
@@ -150,7 +174,7 @@ app.get("/sitemap.xml", (req, res) => {
     return res.send(customSitemapXmlOverride);
   }
 
-  const baseUrl = "https://car-lifts.co.za";
+  const baseUrl = CONFIG.BASE_URL;
   const currentDate = new Date().toISOString().split("T")[0];
 
   const staticRoutes = [
@@ -222,6 +246,19 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 let serverInstance: any = null;
 
+function serveProductionSpa(expressApp: express.Express) {
+  const distPath = path.join(process.cwd(), "dist");
+  expressApp.use(express.static(distPath, staticOptions));
+  expressApp.get("*", (req, res) => {
+    const indexPath = path.join(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send("Not found");
+    }
+  });
+}
+
 // Serve static assets in production, otherwise mount Vite development server middleware
 async function startServer() {
   if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
@@ -232,22 +269,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use("/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
-    app.use("/images", express.static(path.join(process.cwd(), "public", "images"), staticOptions));
-    app.use("/images", express.static(path.join(distPath, "images"), staticOptions));
-    app.use("/assets/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
-    app.use("/assets/images", express.static(path.join(process.cwd(), "public", "assets", "images"), staticOptions));
-    app.use("/assets/images", express.static(path.join(distPath, "assets", "images"), staticOptions));
-    app.use(express.static(distPath, staticOptions));
-    app.get("*", (req, res) => {
-      const indexPath = path.join(distPath, "index.html");
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.status(404).send("Not found");
-      }
-    });
+    serveProductionSpa(app);
   }
 
   if (!process.env.VERCEL) {
@@ -259,22 +281,7 @@ async function startServer() {
 
 // In Vercel serverless environment, setup static routes synchronously and export app
 if (process.env.VERCEL) {
-  const distPath = path.join(process.cwd(), "dist");
-  app.use("/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
-  app.use("/images", express.static(path.join(process.cwd(), "public", "images"), staticOptions));
-  app.use("/images", express.static(path.join(distPath, "images"), staticOptions));
-  app.use("/assets/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
-  app.use("/assets/images", express.static(path.join(process.cwd(), "public", "assets", "images"), staticOptions));
-  app.use("/assets/images", express.static(path.join(distPath, "assets", "images"), staticOptions));
-  app.use(express.static(distPath, staticOptions));
-  app.get("*", (req, res) => {
-    const indexPath = path.join(distPath, "index.html");
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send("Not found");
-    }
-  });
+  serveProductionSpa(app);
 } else {
   startServer();
 }

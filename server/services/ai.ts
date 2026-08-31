@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { logger } from "../utils/logger.js";
+import { CONFIG } from "../config.js";
 import {
   buildSimulateImagePrompt,
   buildSeoPrompt,
@@ -199,9 +200,9 @@ export async function generateContentWithResilience(
     primaryModel?: string;
   }
 ) {
-  const primaryModel = options.primaryModel || "gemini-3.7-flash";
-  const fallbackModels = [primaryModel, "gemini-flash-latest", "gemini-3.1-pro-preview"].filter(
-    (m, idx, arr) => arr.indexOf(m) === idx
+  const primaryModel = options.primaryModel || CONFIG.GEMINI_MODELS.primary;
+  const fallbackModels = Array.from(
+    new Set([primaryModel, ...CONFIG.GEMINI_MODELS.fallbacks, "gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro"])
   );
   aiTelemetry.totalRequests++;
 

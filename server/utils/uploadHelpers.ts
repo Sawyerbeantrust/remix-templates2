@@ -1,7 +1,8 @@
 import path from "path";
 import { detectContentType } from "./http.js";
+import { CONFIG } from "../config.js";
 
-export const DEFAULT_MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5MB
+export const DEFAULT_MAX_UPLOAD_BYTES = CONFIG.UPLOAD_MAX_SIZE; // 5MB
 
 export interface UploadValidationSuccess {
   valid: true;

@@ -13,7 +13,11 @@ export type AsyncRequestHandler = (
  */
 export const asyncHandler = (fn: AsyncRequestHandler): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req, res, next)).catch((err) => {
+      const reqId = res.locals.requestId || req.headers["x-request-id"];
+      logger.error({ requestId: reqId, error: err?.message || err, path: req.path }, "Unhandled error in async route");
+      next(err);
+    });
   };
 };
 
@@ -27,6 +31,7 @@ export const sendSuccess = <T>(res: Response, data: T, status = 200) => {
   return res.status(status).json({
     success: true,
     data,
+    requestId: res.locals.requestId,
   });
 };
 
@@ -40,5 +45,6 @@ export const sendError = (
     success: false,
     error,
     ...(details !== undefined ? { details } : {}),
+    requestId: res.locals.requestId,
   });
 };

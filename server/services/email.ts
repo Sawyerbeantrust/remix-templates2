@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { getGeminiClient, cleanJsonText } from "./ai.js";
 import { logger } from "../utils/logger.js";
+import { CONFIG } from "../config.js";
 
 export async function sendSmtpEmail({
   replyTo,
@@ -14,8 +15,8 @@ export async function sendSmtpEmail({
   fromName?: string;
 }): Promise<{ sent: boolean; reason?: string }> {
   let host = (process.env.SMTP_HOST || "").trim();
-  const port = Number(process.env.SMTP_PORT || 465);
-  const user = (process.env.SMTP_USER || "info@car-lifts.co.za").trim();
+  const port = Number(process.env.SMTP_PORT || CONFIG.SMTP_PORT);
+  const user = (process.env.SMTP_USER || CONFIG.SMTP_USER).trim();
   const pass = (process.env.SMTP_PASS || "").trim();
 
   if (host.includes("@")) {
@@ -27,7 +28,7 @@ export async function sendSmtpEmail({
 
   if (!host || !pass) {
     logger.info("SMTP_HOST or SMTP_PASS not configured. Email payload logged successfully.");
-    return { sent: false, reason: "email not configured" };
+    return { sent: false, reason: "SMTP credentials not configured on server" };
   }
 
   try {
@@ -53,12 +54,12 @@ export async function sendSmtpEmail({
     return { sent: true };
   } catch (err: any) {
     const isDnsError = err?.code === "ENOTFOUND" || err?.message?.includes("ENOTFOUND");
-    if (isDnsError) {
-      logger.warn({ host }, "Mail server host unreachable (ENOTFOUND).");
-    } else {
-      logger.warn({ error: err?.message }, "Could not transmit email via SMTP");
-    }
-    return { sent: false, reason: "email not configured" };
+    const failureReason = isDnsError
+      ? `Mail host '${host}' unreachable (DNS lookup failed)`
+      : err?.message || "SMTP transmission error";
+
+    logger.warn({ host, error: err?.message }, "Could not transmit email via SMTP");
+    return { sent: false, reason: failureReason };
   }
 }
 
@@ -124,14 +125,21 @@ Inquiry Data:
 - Equipment Requested: ${equipmentRequested}
 - Message/Notes: ${customerNotes}`;
 
-      const response = await Promise.race([
-        ai.models.generateContent({
-          model: "gemini-3.7-flash",
+      const aiPromise = ai.models
+        .generateContent({
+          model: CONFIG.GEMINI_MODELS.primary,
           contents: prompt,
           config: {
             responseMimeType: "application/json",
           },
-        }),
+        })
+        .catch((err: any) => {
+          logger.warn({ err: err?.message }, "Gemini request failed during email generation");
+          return null;
+        });
+
+      const response = await Promise.race([
+        aiPromise,
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
       ]);
 

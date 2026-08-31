@@ -27,6 +27,13 @@ import {
   buildCategoryAuditPrompt,
 } from "../prompts/templates.js";
 import { generateEmailPayloadWithGemini, sendSmtpEmail } from "../services/email.js";
+import { CONFIG } from "../config.js";
+import {
+  UploadImageSchema,
+  DeleteImageSchema,
+  SendInquirySchema,
+  GenerateEmailSchema,
+} from "../types/validation.js";
 import type { CatalogData, FeaturedCategory } from "../types/index.js";
 
 export const apiRouter = Router();
@@ -95,7 +102,12 @@ export const memoryCatalog: CatalogData = {
 apiRouter.post(
   "/upload-image",
   asyncHandler(async (req, res) => {
-    const { name, data, image } = req.body || {};
+    const parseResult = UploadImageSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid upload payload", 400);
+    }
+
+    const { name, data, image } = parseResult.data;
     const imgData = data || image;
     const imgName = name || `upload_${Date.now()}.jpg`;
 
@@ -128,7 +140,12 @@ apiRouter.post(
 apiRouter.post(
   "/save-category-image",
   asyncHandler(async (req, res) => {
-    const { name, data, image } = req.body || {};
+    const parseResult = UploadImageSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid upload payload", 400);
+    }
+
+    const { name, data, image } = parseResult.data;
     const imgData = data || image;
     const imgName = name || `category_${Date.now()}.jpg`;
 
@@ -169,9 +186,15 @@ apiRouter.post(
   "/delete-image",
   requireTritonKey,
   asyncHandler(async (req, res) => {
-    const { id, url, path: assetPath } = req.body || {};
+    const parseResult = DeleteImageSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid delete payload", 400);
+    }
+
+    const { id, url, path: assetPath } = parseResult.data;
     const targetUrl = url || assetPath || "";
-    const result = await deleteWpImage(id, targetUrl);
+    const parsedId = typeof id === "number" ? id : id ? Number(id) : undefined;
+    const result = await deleteWpImage(parsedId, targetUrl);
     return res.status(200).json(result);
   })
 );
@@ -429,7 +452,12 @@ apiRouter.post(
 apiRouter.post(
   "/generate-email",
   asyncHandler(async (req, res) => {
-    const { name, customerName, email, customerEmail, phone, equipment, message, location } = req.body || {};
+    const parseResult = GenerateEmailSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Invalid email payload", 400);
+    }
+
+    const { name, customerName, email, customerEmail, phone, equipment, message, location } = parseResult.data;
     const finalName = name || customerName;
     const finalEmail = email || customerEmail;
 
@@ -442,8 +470,9 @@ apiRouter.post(
       location,
     });
 
+    let smtpResult: { sent: boolean; reason?: string } = { sent: false, reason: "SMTP not configured" };
     if (process.env.SMTP_HOST && process.env.SMTP_PASS) {
-      await sendSmtpEmail({
+      smtpResult = await sendSmtpEmail({
         replyTo: finalEmail,
         subject: payload.subject,
         body: payload.body,
@@ -451,7 +480,11 @@ apiRouter.post(
       });
     }
 
-    return res.status(200).json(payload);
+    return res.status(200).json({
+      ...payload,
+      smtpStatus: smtpResult.sent ? "sent" : "logged",
+      smtpNotice: smtpResult.reason,
+    });
   })
 );
 
@@ -459,12 +492,13 @@ apiRouter.post(
 apiRouter.post(
   "/send-inquiry",
   asyncHandler(async (req, res) => {
-    const { fullName, name, email, phone, address, suburb, province, deliveryPreference, cartItems, message, equipment } = req.body || {};
-    const custName = fullName || name;
-
-    if (!custName || !email || !phone) {
-      return sendError(res, "Required inquiry fields (name, email, phone) are missing.", 400);
+    const parseResult = SendInquirySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return sendError(res, parseResult.error.issues[0]?.message || "Required inquiry fields are invalid", 400);
     }
+
+    const { fullName, name, email, phone, address, suburb, province, deliveryPreference, cartItems, message, equipment } = parseResult.data;
+    const custName = (fullName || name) as string;
 
     const itemsList =
       cartItems && Array.isArray(cartItems) && cartItems.length > 0
@@ -482,7 +516,7 @@ apiRouter.post(
       location: loc,
     });
 
-    let smtpResult: { sent: boolean; reason?: string } = { sent: false, reason: "email not configured" };
+    let smtpResult: { sent: boolean; reason?: string } = { sent: false, reason: "SMTP not configured" };
     if (process.env.SMTP_HOST && process.env.SMTP_PASS) {
       try {
         smtpResult = await sendSmtpEmail({
@@ -493,6 +527,7 @@ apiRouter.post(
         });
       } catch (smtpErr: any) {
         logger.warn({ err: smtpErr?.message }, "SMTP Send warning");
+        smtpResult = { sent: false, reason: smtpErr?.message || "SMTP error" };
       }
     }
 
@@ -503,6 +538,7 @@ apiRouter.post(
       message: "Success! Inquiry processed and notification sent to sales team.",
       referenceId: refId,
       smtpStatus: smtpResult.sent ? "sent" : "logged",
+      smtpNotice: smtpResult.reason,
       emailPayload,
     });
   })

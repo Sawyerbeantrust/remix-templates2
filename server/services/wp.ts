@@ -1,7 +1,23 @@
 import path from "path";
 import { getWpHeaders, fetchWpSafe, WP_BASE_URL, MEDIA_UPLOAD_TIMEOUT_MS, extractCleanError } from "../utils/http.js";
 import { logger } from "../utils/logger.js";
+import { CONFIG } from "../config.js";
 import type { WpMediaItem, CatalogData } from "../types/index.js";
+
+const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg", "avif"]);
+
+/**
+ * Sanitizes original filename and enforces extension whitelist to prevent path traversal / executable uploads
+ */
+function sanitizeFileName(originalName: string): string {
+  const rawExt = path.extname(originalName).toLowerCase().replace(/^\./, "") || "jpg";
+  const ext = ALLOWED_EXTENSIONS.has(rawExt) ? rawExt : "jpg";
+  const baseName = path
+    .basename(originalName, `.${rawExt}`)
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 80) || `upload_${Date.now()}`;
+  return `${baseName}.${ext}`;
+}
 
 /**
  * Uploads an image buffer directly to the WordPress Media Library
@@ -20,12 +36,27 @@ export async function uploadBufferToWordPress(
   status?: number;
   details?: string;
 }> {
-  // Sanitize filename: remove dangerous characters and limit length to 100
-  const ext = path.extname(originalName) || ".jpg";
-  const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
-  const safeFileName = `${baseName}${ext}`;
+  // File size validation (default 5MB)
+  if (!buffer || buffer.length === 0) {
+    return {
+      success: false,
+      error: "Upload buffer is empty",
+      status: 400,
+    };
+  }
 
-  const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
+  if (buffer.length > CONFIG.UPLOAD_MAX_SIZE) {
+    const sizeMb = (buffer.length / (1024 * 1024)).toFixed(2);
+    const maxMb = (CONFIG.UPLOAD_MAX_SIZE / (1024 * 1024)).toFixed(1);
+    return {
+      success: false,
+      error: `File payload (${sizeMb}MB) exceeds maximum allowed size of ${maxMb}MB`,
+      status: 413,
+    };
+  }
+
+  const safeFileName = sanitizeFileName(originalName);
+  const wpBase = CONFIG.WP_BASE_URL;
   const endpoint = `${wpBase}/wp-json/wp/v2/media`;
 
   logger.info({ safeFileName, contentType, sizeBytes: buffer.length }, "Initiating WordPress media upload");
