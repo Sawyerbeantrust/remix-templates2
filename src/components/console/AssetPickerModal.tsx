@@ -41,6 +41,7 @@ export interface MergedAssetItem {
   url: string;
   source_url?: string;
   relativePath?: string;
+  link?: string;
   size?: number; // Size in bytes
   date?: string;
   source: 'wordpress' | 'catalog';
@@ -49,19 +50,23 @@ export interface MergedAssetItem {
 }
 
 /**
+ * Normalizes any URL/path to an absolute HTTPS URL
+ */
+export const toAbsolute = (u: any): string => {
+  if (!u) return "";
+  let s = String(u).trim();
+  if (s.startsWith("http://")) s = s.replace("http://", "https://");
+  if (s.startsWith("//")) s = "https:" + s;
+  if (s.startsWith("/")) s = "https://store.car-lifts.co.za" + s;
+  if (!s.startsWith("https://")) s = "https://store.car-lifts.co.za/wp-content/uploads/" + s;
+  return s;
+};
+
+/**
  * Normalizes HTTP URLs to HTTPS to prevent mixed-content blocks on HTTPS pages
  */
 export function normalizeToHttpsUrl(rawUrl?: string): string {
-  if (!rawUrl || typeof rawUrl !== 'string') return '';
-  let url = rawUrl.trim();
-  if (url.startsWith('http://store.car-lifts.co.za')) {
-    url = url.replace(/^http:\/\/store\.car-lifts\.co\.za/i, 'https://store.car-lifts.co.za');
-  } else if (url.startsWith('http://car-lifts.co.za')) {
-    url = url.replace(/^http:\/\/car-lifts\.co\.za/i, 'https://car-lifts.co.za');
-  } else if (url.startsWith('http://')) {
-    url = url.replace(/^http:\/\//i, 'https://');
-  }
-  return url;
+  return toAbsolute(rawUrl);
 }
 
 interface ToastNotice {
@@ -127,6 +132,20 @@ function formatBytes(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+/**
+ * Returns the proxy thumbnail URL for WordPress assets or the original URL for catalog assets
+ */
+export function getThumbSrc(item: MergedAssetItem): string {
+  const isWp = item.source === 'wordpress' || (item.url && item.url.includes('wp-content/uploads'));
+  if (isWp) {
+    const rawUrl = toAbsolute(item.url || item.source_url || item.relativePath || item.link || '');
+    if (rawUrl) {
+      return `/api/media-thumb?url=${encodeURIComponent(rawUrl)}`;
+    }
+  }
+  return normalizeImageKey(item.url || item.relativePath || '');
+}
+
 interface AssetCardProps {
   item: MergedAssetItem;
   onSelect: (url: string) => void;
@@ -136,30 +155,30 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  let s = item.url || item.source_url || item.relativePath || "";
-  if (s.startsWith("http://")) {
-    s = s.replace("http://", "https://");
-  } else if (s.startsWith("/")) {
-    s = "https://store.car-lifts.co.za" + s;
-  } else if (!s.startsWith("http")) {
-    s = "https://store.car-lifts.co.za/wp-content/uploads/" + s;
-  }
+  const isWp = item.source === 'wordpress' || (item.url && item.url.includes('wp-content/uploads'));
+  const thumbSrc = getThumbSrc(item);
 
   useEffect(() => {
     setHasError(false);
     setIsLoaded(false);
-  }, [s]);
+  }, [thumbSrc]);
+
+  const handleSelect = () => {
+    // Return original absolute WordPress URL, never the proxy URL
+    const originalAbsoluteUrl = toAbsolute(item.url || item.source_url || item.relativePath || item.link || '');
+    onSelect(originalAbsoluteUrl);
+  };
 
   return (
     <div
-      onClick={() => onSelect(s)}
+      onClick={handleSelect}
       className="group relative bg-[#181818] hover:bg-[#202020] border border-neutral-800 hover:border-indigo-500/80 hover:ring-1 hover:ring-indigo-500/50 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 flex flex-col min-h-[220px] h-full shadow-md hover:shadow-indigo-950/30"
     >
       {/* Thumbnail Container */}
       <div className="h-32 w-full bg-neutral-950 relative overflow-hidden flex items-center justify-center shrink-0 border-b border-neutral-800/80">
-        {!hasError && s ? (
+        {!hasError && thumbSrc ? (
           <img
-            src={s}
+            src={thumbSrc}
             alt={item.filename || item.label || 'Media Asset'}
             loading="lazy"
             decoding="async"
@@ -167,7 +186,9 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
             referrerPolicy="no-referrer"
             onLoad={() => setIsLoaded(true)}
             onError={() => {
-              console.warn("[Picker] thumb failed:", s);
+              if (isWp) {
+                console.warn("[Picker] failed:", item.filename, thumbSrc);
+              }
               setHasError(true);
             }}
             className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
@@ -176,10 +197,24 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-neutral-900 to-neutral-950 text-neutral-400">
-            <ImageIcon size={26} className="text-neutral-600 mb-1.5 group-hover:text-indigo-400 transition-colors" />
-            <span className="text-[10px] font-mono text-neutral-400 line-clamp-1 max-w-[90%] font-medium">
-              {item.filename || item.label}
-            </span>
+            {isWp ? (
+              <>
+                <ImageIcon size={26} className="text-neutral-600 mb-1.5 group-hover:text-indigo-400 transition-colors" />
+                <span className="text-[10px] font-mono text-neutral-400 line-clamp-1 max-w-[90%] font-medium">
+                  {item.filename || item.label}
+                </span>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-1.5 p-2">
+                <AlertTriangle size={18} className="text-amber-500/80" />
+                <span className="px-2 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 font-semibold text-[9px] uppercase tracking-wider text-center leading-tight">
+                  FILE MISSING - assign a WP media image instead
+                </span>
+                <span className="text-[9px] font-mono text-neutral-500 line-clamp-1 max-w-[90%]">
+                  {item.filename || item.label}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -228,7 +263,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(s);
+              handleSelect();
             }}
             className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
           >
@@ -283,9 +318,11 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.images)) {
-          const mapped: MergedAssetItem[] = data.images.map((img: any) => {
-            const rawUrl = img.url || img.source_url || img.relativePath || '';
-            const url = normalizeToHttpsUrl(rawUrl);
+          const wpItems = data.images;
+          console.log("[Picker] raw sample:", JSON.stringify(wpItems.slice(0, 2)));
+          const mapped: MergedAssetItem[] = wpItems.map((img: any) => {
+            const rawUrl = img.url || img.source_url || img.relativePath || img.link || '';
+            const url = toAbsolute(rawUrl);
             const filename = img.filename || url.split('/').pop() || 'wp_media_asset.jpg';
             const label = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
             return {
@@ -294,6 +331,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
               url: url,
               source_url: img.source_url,
               relativePath: img.relativePath || url,
+              link: img.link,
               size: typeof img.size === 'number' ? img.size : 0,
               date: img.date,
               source: 'wordpress' as const,
@@ -476,14 +514,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   };
 
   const handleCardAssign = (url: string) => {
-    let s = url || "";
-    if (s.startsWith("http://")) {
-      s = s.replace("http://", "https://");
-    } else if (s.startsWith("/")) {
-      s = "https://store.car-lifts.co.za" + s;
-    } else if (!s.startsWith("http")) {
-      s = "https://store.car-lifts.co.za/wp-content/uploads/" + s;
-    }
+    const s = toAbsolute(url);
     onSelectImage(s);
     onClose();
   };

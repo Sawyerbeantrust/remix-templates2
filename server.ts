@@ -1,6 +1,8 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import http from "http";
+import https from "https";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import helmet from "helmet";
@@ -139,6 +141,91 @@ function setupStaticAssetRoutes(expressApp: express.Express) {
   expressApp.use("/assets/images", express.static(path.join(process.cwd(), "src", "assets", "images"), staticOptions));
   expressApp.use("/assets/images", express.static(path.join(distPath, "assets", "images"), staticOptions));
 }
+
+// Insecure agents to bypass SSL certificate issues for WordPress media origin
+const httpsInsecureAgent = new https.Agent({ rejectUnauthorized: false });
+const httpInsecureAgent = new http.Agent();
+
+// GET /api/media-thumb - Server-side WordPress thumbnail proxy with SSL verification bypass
+app.get("/api/media-thumb", (req, res) => {
+  try {
+    const rawUrl = req.query.url;
+    if (typeof rawUrl !== "string" || !rawUrl.trim()) {
+      return res.status(404).end();
+    }
+    const targetUrl = rawUrl.trim();
+
+    // Validate that the URL starts with "http" and contains "wp-content/uploads" (SSRF protection)
+    if (
+      (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) ||
+      !targetUrl.includes("wp-content/uploads")
+    ) {
+      return res.status(404).end();
+    }
+
+    const parsedUrl = new URL(targetUrl);
+    const isHttps = parsedUrl.protocol === "https:";
+    const client = isHttps ? https : http;
+    const agent = isHttps ? httpsInsecureAgent : httpInsecureAgent;
+
+    const requestOptions = {
+      protocol: parsedUrl.protocol,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (isHttps ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: "GET",
+      agent,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TritonProxy/1.0",
+        Accept: "image/*,*/*;q=0.8",
+      },
+      timeout: 10000,
+    };
+
+    const proxyReq = client.request(requestOptions, (originRes) => {
+      if (
+        originRes.statusCode &&
+        originRes.statusCode >= 300 &&
+        originRes.statusCode < 400 &&
+        originRes.headers.location
+      ) {
+        const redirectUrl = originRes.headers.location.startsWith("http")
+          ? originRes.headers.location
+          : new URL(originRes.headers.location, targetUrl).toString();
+        return res.redirect(302, `/api/media-thumb?url=${encodeURIComponent(redirectUrl)}`);
+      }
+
+      if (!originRes.statusCode || originRes.statusCode >= 400) {
+        return res.status(404).end();
+      }
+
+      const contentType = originRes.headers["content-type"] || "image/jpeg";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+
+      originRes.pipe(res);
+    });
+
+    proxyReq.on("error", () => {
+      if (!res.headersSent) {
+        res.status(404).end();
+      }
+    });
+
+    proxyReq.on("timeout", () => {
+      proxyReq.destroy();
+      if (!res.headersSent) {
+        res.status(404).end();
+      }
+    });
+
+    proxyReq.end();
+  } catch (err) {
+    if (!res.headersSent) {
+      res.status(404).end();
+    }
+  }
+});
 
 // Register static assets
 setupStaticAssetRoutes(app);
