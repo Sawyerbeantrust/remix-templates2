@@ -35,3 +35,24 @@ export const THUMBNAIL_SIZES = {
 
 export type ThumbnailSizeKey = keyof typeof THUMBNAIL_SIZES;
 
+export const THUMBNAIL_CONFIG = {
+  // Cache settings
+  CACHE_MAX_ITEMS: 500,
+  CACHE_MAX_BYTES: 500 * 1024 * 1024, // 500MB
+  CACHE_TTL_MS: 1000 * 60 * 60 * 24, // 24 hours
+
+  // Blacklist settings (prevent hammering failed URLs)
+  BLACKLIST_TTL_MS: 1000 * 60 * 5, // 5 minutes
+  BLACKLIST_MAX_ATTEMPTS: 3, // Block URL after 3 consecutive failures
+
+  // Fetch settings
+  FETCH_TIMEOUT_MS: 10000,
+  FETCH_MAX_RETRIES: 1,
+
+  // Sharp image processing
+  JPEG_QUALITY: 85,
+  PNG_COMPRESSION_LEVEL: 8,
+  WEBP_QUALITY: 85,
+  ENABLE_MOZJPEG: true,
+} as const;
+

@@ -9,6 +9,7 @@ import { requireTritonKey } from "../middleware/requireTritonKey.js";
 import { validateBase64Image, validateAndInspectUpload } from "../utils/uploadHelpers.js";
 import { logger } from "../utils/logger.js";
 import { uploadBufferToWordPress, listWpImages, deleteWpImage } from "../services/wp.js";
+import { getCacheStats, invalidateCache, failedUrlBlacklist } from "../services/thumbnails.js";
 import {
   getGeminiClient,
   generateContentWithResilience,
@@ -137,7 +138,13 @@ apiRouter.post(
       );
     }
 
-    return res.status(200).json(uploadResult);
+    return res.status(200).json({
+      ...uploadResult,
+      width: validation.width,
+      height: validation.height,
+      format: validation.format,
+      byteLength: validation.byteLength,
+    });
   })
 );
 
@@ -174,15 +181,22 @@ apiRouter.post(
       );
     }
 
-    return res.status(200).json(uploadResult);
+    return res.status(200).json({
+      ...uploadResult,
+      width: validation.width,
+      height: validation.height,
+      format: validation.format,
+      byteLength: validation.byteLength,
+    });
   })
 );
 
 /**
  * Common handler for retrieving media images with optional thumbnail variants
+ * @param req Express request supporting ?include-thumbnails=true and ?per_page=N
+ * @param res Express response returning list of image objects
  */
 async function handleGetImages(req: Request, res: Response) {
-
   const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
   const includeThumbnails =
     req.query["include-thumbnails"] === "true" ||
@@ -214,9 +228,54 @@ async function handleGetImages(req: Request, res: Response) {
   });
 }
 
-// 3) GET /api/images & GET /api/list-images (Consolidated image endpoint)
+// 3) GET /api/images & GET /api/list-images (Consolidated image endpoint with optional thumbnails)
 apiRouter.get("/images", asyncHandler(handleGetImages));
 apiRouter.get("/list-images", asyncHandler(handleGetImages));
+
+// Thumbnail Cache Management Endpoints
+apiRouter.get(
+  "/thumbnails/cache-stats",
+  asyncHandler(async (_req, res) => {
+    const stats = getCacheStats();
+    return res.status(200).json({
+      success: true,
+      stats,
+    });
+  })
+);
+
+apiRouter.post(
+  "/thumbnails/invalidate-cache",
+  requireTritonKey,
+  asyncHandler(async (req, res) => {
+    const { urlPattern } = req.body || {};
+    const cleared = invalidateCache(typeof urlPattern === "string" ? urlPattern : undefined);
+    return res.status(200).json({
+      success: true,
+      cleared,
+      message: urlPattern ? `Invalidated cache entries matching: ${urlPattern}` : "All thumbnail cache entries cleared",
+    });
+  })
+);
+
+apiRouter.get(
+  "/thumbnails/blacklist",
+  requireTritonKey,
+  asyncHandler(async (_req, res) => {
+    const items = Array.from(failedUrlBlacklist.entries()).map(([url, data]) => ({
+      url,
+      reason: data.reason,
+      attempts: data.attempts,
+      timestamp: data.timestamp,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      blacklistCount: items.length,
+      urls: items,
+    });
+  })
+);
 
 
 // 4) POST /api/delete-image (protected with TRITON_KEY)

@@ -216,6 +216,13 @@ async function handleThumbnailRequest(req: express.Request, res: express.Respons
     res.setHeader("Last-Modified", result.lastModified);
   }
   res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("X-Cache-Hit", result.fromCache ? "true" : "false");
+  if (result.width !== undefined) {
+    res.setHeader("X-Image-Width", String(result.width));
+  }
+  if (result.height !== undefined) {
+    res.setHeader("X-Image-Height", String(result.height));
+  }
 
   logger.info(
     {
@@ -239,6 +246,14 @@ app.get("/api/media-thumb", handleThumbnailRequest);
 app.get("/api/media-thumb-sized", handleThumbnailRequest);
 
 // Cache statistics and management
+app.get("/api/media-thumb-cache-stats", (req, res) => {
+  res.status(200).json({
+    success: true,
+    ...getCacheStats(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/api/images/cache-stats", (req, res) => {
   res.status(200).json({
     success: true,

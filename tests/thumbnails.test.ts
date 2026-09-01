@@ -8,9 +8,18 @@ import {
   isUrlBlacklisted,
   recordFailedUrl,
   clearBlacklist,
+  fetchAndProcessThumbnail,
+  getCacheStats,
+  invalidateCache,
 } from "../server/services/thumbnails.js";
 import { normalizeImageUrl, validateRemoteImageUrl } from "../server/utils/http.js";
 import { validateImageMagicBytes, validateImageDimensions } from "../server/utils/uploadHelpers.js";
+import {
+  isWordPressImage,
+  getThumbnailUrl,
+  getThumbnailVariants,
+  normalizeImageUrl as normalizeFrontendImageUrl,
+} from "../src/utils/imageHelpers.js";
 
 describe("Thumbnail Service & Image Utilities", () => {
   let sampleImageBuffer: Buffer;
@@ -197,6 +206,73 @@ describe("Thumbnail Service & Image Utilities", () => {
       const result = await validateImageDimensions(tinyBuffer, "image/jpeg");
       expect(result.valid).toBe(false);
       expect(result.error).toContain("too small");
+    });
+  });
+
+  describe("fetchAndProcessThumbnail Security & Resilience", () => {
+    it("safely blocks SSRF loopback URLs with status 403 or 400", async () => {
+      const res = await fetchAndProcessThumbnail("http://127.0.0.1/sensitive.jpg", "medium");
+      expect(res.success).toBe(false);
+      expect(res.statusCode).toBe(403);
+    });
+
+    it("safely blocks untrusted external domains with status 403", async () => {
+      const res = await fetchAndProcessThumbnail("https://untrusted-host.example.com/exploit.png", "small");
+      expect(res.success).toBe(false);
+      expect(res.statusCode).toBe(403);
+    });
+
+    it("rejects invalid non-HTTP/HTTPS URLs", async () => {
+      const res = await fetchAndProcessThumbnail("file:///etc/passwd", "small");
+      expect(res.success).toBe(false);
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe("Cache Management Utilities", () => {
+    it("reports correct cache statistics structure", () => {
+      const stats = getCacheStats();
+      expect(stats).toHaveProperty("itemCount");
+      expect(stats).toHaveProperty("currentSizeBytes");
+      expect(stats).toHaveProperty("maxSizeBytes");
+      expect(stats).toHaveProperty("hitRatePercent");
+      expect(stats).toHaveProperty("blacklistCount");
+    });
+
+    it("invalidates cache entries selectively or completely", () => {
+      const clearedAll = invalidateCache();
+      expect(typeof clearedAll).toBe("number");
+
+      const clearedPattern = invalidateCache("nonexistent-pattern-xyz");
+      expect(clearedPattern).toBe(0);
+    });
+  });
+
+  describe("Frontend imageHelpers", () => {
+    it("detects WordPress and local image URLs correctly", () => {
+      expect(isWordPressImage("https://store.car-lifts.co.za/wp-content/uploads/lift.jpg")).toBe(true);
+      expect(isWordPressImage("wp-content/uploads/2026/01/scissortest.jpg")).toBe(true);
+      expect(isWordPressImage("/assets/hero.jpg")).toBe(false);
+      expect(isWordPressImage("https://external-cdn.com/other.png")).toBe(false);
+    });
+
+    it("generates correct thumbnail URLs for frontend components", () => {
+      const thumbUrl = getThumbnailUrl("https://store.car-lifts.co.za/wp-content/uploads/lift.jpg", "small");
+      expect(thumbUrl).toContain("/api/media-thumb?url=");
+      expect(thumbUrl).toContain("size=small");
+    });
+
+    it("generates all thumbnail variants", () => {
+      const variants = getThumbnailVariants("https://store.car-lifts.co.za/wp-content/uploads/lift.jpg");
+      expect(variants.small).toContain("size=small");
+      expect(variants.medium).toContain("size=medium");
+      expect(variants.large).toContain("size=large");
+      expect(variants.original).toContain("size=original");
+    });
+
+    it("normalizes frontend relative image paths", () => {
+      const normalized = normalizeFrontendImageUrl("2026/01/lift.jpg");
+      expect(normalized).toBe("https://store.car-lifts.co.za/wp-content/uploads/2026/01/lift.jpg");
     });
   });
 });

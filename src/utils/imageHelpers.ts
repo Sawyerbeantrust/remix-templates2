@@ -4,6 +4,26 @@
 
 export type ThumbnailSize = 'small' | 'medium' | 'large' | 'original';
 
+export interface ThumbnailVariants {
+  small: string;
+  medium: string;
+  large: string;
+  original: string;
+}
+
+/**
+ * Checks if a given image URL points to the WordPress media library
+ */
+export function isWordPressImage(url?: string | null): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const s = url.toLowerCase();
+  return (
+    s.includes('store.car-lifts.co.za') ||
+    s.includes('/wp-content/uploads/') ||
+    (!s.startsWith('http://') && !s.startsWith('https://') && !s.startsWith('/assets/'))
+  );
+}
+
 /**
  * Normalizes any image URL to an absolute HTTPS URL on the WordPress domain or local path
  */
@@ -34,4 +54,16 @@ export function getThumbnailUrl(rawUrl?: string | null, size: ThumbnailSize = 'm
   }
 
   return `/api/media-thumb?url=${encodeURIComponent(normalized)}&size=${size}`;
+}
+
+/**
+ * Generates all thumbnail size variants for a given image URL
+ */
+export function getThumbnailVariants(rawUrl?: string | null): ThumbnailVariants {
+  return {
+    small: getThumbnailUrl(rawUrl, 'small'),
+    medium: getThumbnailUrl(rawUrl, 'medium'),
+    large: getThumbnailUrl(rawUrl, 'large'),
+    original: getThumbnailUrl(rawUrl, 'original'),
+  };
 }

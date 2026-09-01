@@ -3,7 +3,7 @@ import https from "https";
 import crypto from "crypto";
 import sharp from "sharp";
 import { LRUCache } from "lru-cache";
-import { CONFIG, THUMBNAIL_SIZES, type ThumbnailSizeKey } from "../config.js";
+import { CONFIG, THUMBNAIL_SIZES, THUMBNAIL_CONFIG, type ThumbnailSizeKey } from "../config.js";
 import { normalizeImageUrl, validateRemoteImageUrl } from "../utils/http.js";
 import { logger } from "../utils/logger.js";
 
@@ -41,18 +41,12 @@ export interface ProcessThumbnailResult {
   statusCode?: number;
 }
 
-// 500 items max or 500MB total memory footprint
-const MAX_CACHE_ITEMS = 500;
-const MAX_CACHE_BYTES = 500 * 1024 * 1024; // 500MB
-const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
-const BLACKLIST_TTL_MS = 1000 * 60 * 5; // 5 minutes cooldown for failed URLs
-
-// In-memory LRU cache
+// In-memory LRU cache configured via centralized THUMBNAIL_CONFIG
 const thumbnailCache = new LRUCache<string, ThumbnailCacheEntry>({
-  max: MAX_CACHE_ITEMS,
-  maxSize: MAX_CACHE_BYTES,
+  max: THUMBNAIL_CONFIG.CACHE_MAX_ITEMS,
+  maxSize: THUMBNAIL_CONFIG.CACHE_MAX_BYTES,
   sizeCalculation: (entry) => entry.buffer.length,
-  ttl: CACHE_TTL_MS,
+  ttl: THUMBNAIL_CONFIG.CACHE_TTL_MS,
 });
 
 // Blacklist for failed URLs to prevent repeated server hammering
@@ -61,7 +55,7 @@ export const failedUrlBlacklist = new Map<string, { timestamp: number; reason: s
 /**
  * Checks if a URL is currently blacklisted due to recent repeated failures
  */
-export function isUrlBlacklisted(url: string, ttlMs = BLACKLIST_TTL_MS): boolean {
+export function isUrlBlacklisted(url: string, ttlMs = THUMBNAIL_CONFIG.BLACKLIST_TTL_MS): boolean {
   const item = failedUrlBlacklist.get(url);
   if (!item) return false;
   if (Date.now() - item.timestamp > ttlMs) {
@@ -74,7 +68,7 @@ export function isUrlBlacklisted(url: string, ttlMs = BLACKLIST_TTL_MS): boolean
 /**
  * Records a URL into the failure blacklist
  */
-export function recordFailedUrl(url: string, reason: string | number, ttlMs = BLACKLIST_TTL_MS): void {
+export function recordFailedUrl(url: string, reason: string | number, ttlMs = THUMBNAIL_CONFIG.BLACKLIST_TTL_MS): void {
   const current = failedUrlBlacklist.get(url);
   const attempts = (current?.attempts || 0) + 1;
   failedUrlBlacklist.set(url, {
@@ -148,13 +142,17 @@ export async function generateThumbnails(
     let contentType = "image/jpeg";
 
     if (metadata.format === "png") {
-      outputBuffer = await resizer.png({ quality: 85, compressionLevel: 8 }).toBuffer();
+      outputBuffer = await resizer
+        .png({ quality: THUMBNAIL_CONFIG.PNG_COMPRESSION_LEVEL ? 85 : 85, compressionLevel: THUMBNAIL_CONFIG.PNG_COMPRESSION_LEVEL })
+        .toBuffer();
       contentType = "image/png";
     } else if (metadata.format === "webp") {
-      outputBuffer = await resizer.webp({ quality: 85 }).toBuffer();
+      outputBuffer = await resizer.webp({ quality: THUMBNAIL_CONFIG.WEBP_QUALITY }).toBuffer();
       contentType = "image/webp";
     } else {
-      outputBuffer = await resizer.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+      outputBuffer = await resizer
+        .jpeg({ quality: THUMBNAIL_CONFIG.JPEG_QUALITY, mozjpeg: THUMBNAIL_CONFIG.ENABLE_MOZJPEG })
+        .toBuffer();
       contentType = "image/jpeg";
     }
 
@@ -207,8 +205,8 @@ export function setCachedThumbnail(
  */
 async function fetchRemoteBuffer(
   targetUrl: string,
-  timeoutMs = 10000,
-  maxRetries = 1
+  timeoutMs: number = THUMBNAIL_CONFIG.FETCH_TIMEOUT_MS,
+  maxRetries: number = THUMBNAIL_CONFIG.FETCH_MAX_RETRIES
 ): Promise<{ buffer: Buffer; contentType: string; lastModified: string }> {
   let attempt = 0;
   let lastError: Error = new Error("Fetch failed");
@@ -303,7 +301,7 @@ export async function fetchAndProcessThumbnail(
   if (!options.bypassBlacklist) {
     const blacklisted = failedUrlBlacklist.get(targetUrl);
     if (blacklisted) {
-      if (Date.now() - blacklisted.timestamp < BLACKLIST_TTL_MS) {
+      if (Date.now() - blacklisted.timestamp < THUMBNAIL_CONFIG.BLACKLIST_TTL_MS) {
         return {
           success: false,
           error: `URL temporarily blocked due to repeated failures: ${blacklisted.reason}`,
@@ -333,7 +331,11 @@ export async function fetchAndProcessThumbnail(
 
   // 4. Fetch Remote Buffer
   try {
-    const { buffer: rawBuffer, contentType: rawContentType, lastModified } = await fetchRemoteBuffer(targetUrl, 10000, 1);
+    const { buffer: rawBuffer, contentType: rawContentType, lastModified } = await fetchRemoteBuffer(
+      targetUrl,
+      THUMBNAIL_CONFIG.FETCH_TIMEOUT_MS,
+      THUMBNAIL_CONFIG.FETCH_MAX_RETRIES
+    );
 
     if (!rawBuffer || rawBuffer.length === 0) {
       throw new Error("Received empty response body from origin");
@@ -351,7 +353,6 @@ export async function fetchAndProcessThumbnail(
         const image = sharp(rawBuffer).rotate();
         const metadata = await image.metadata();
 
-
         const resizedPipeline = image.resize({
           width: sizeConfig.width,
           height: sizeConfig.height,
@@ -360,13 +361,17 @@ export async function fetchAndProcessThumbnail(
         });
 
         if (metadata.format === "png") {
-          finalBuffer = await resizedPipeline.png({ quality: 85, compressionLevel: 8 }).toBuffer();
+          finalBuffer = await resizedPipeline
+            .png({ quality: 85, compressionLevel: THUMBNAIL_CONFIG.PNG_COMPRESSION_LEVEL })
+            .toBuffer();
           finalContentType = "image/png";
         } else if (metadata.format === "webp") {
-          finalBuffer = await resizedPipeline.webp({ quality: 85 }).toBuffer();
+          finalBuffer = await resizedPipeline.webp({ quality: THUMBNAIL_CONFIG.WEBP_QUALITY }).toBuffer();
           finalContentType = "image/webp";
         } else {
-          finalBuffer = await resizedPipeline.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+          finalBuffer = await resizedPipeline
+            .jpeg({ quality: THUMBNAIL_CONFIG.JPEG_QUALITY, mozjpeg: THUMBNAIL_CONFIG.ENABLE_MOZJPEG })
+            .toBuffer();
           finalContentType = "image/jpeg";
         }
 
@@ -458,9 +463,9 @@ export function getCacheStats() {
     itemCount: totalEntries,
     currentSizeBytes,
     currentSizeMb: Number((currentSizeBytes / (1024 * 1024)).toFixed(2)),
-    maxSizeBytes: MAX_CACHE_BYTES,
-    maxSizeMb: MAX_CACHE_BYTES / (1024 * 1024),
-    maxItems: MAX_CACHE_ITEMS,
+    maxSizeBytes: THUMBNAIL_CONFIG.CACHE_MAX_BYTES,
+    maxSizeMb: THUMBNAIL_CONFIG.CACHE_MAX_BYTES / (1024 * 1024),
+    maxItems: THUMBNAIL_CONFIG.CACHE_MAX_ITEMS,
     hits: cacheHits,
     misses: cacheMisses,
     hitRatePercent: Number(hitRate.toFixed(1)),
@@ -500,7 +505,7 @@ export function invalidateCache(urlPattern?: string): number {
 const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [url, item] of failedUrlBlacklist.entries()) {
-    if (now - item.timestamp > BLACKLIST_TTL_MS) {
+    if (now - item.timestamp > THUMBNAIL_CONFIG.BLACKLIST_TTL_MS) {
       failedUrlBlacklist.delete(url);
     }
   }
@@ -509,3 +514,4 @@ const cleanupTimer = setInterval(() => {
 if (cleanupTimer.unref) {
   cleanupTimer.unref();
 }
+

@@ -2,6 +2,7 @@ import path from "path";
 import type { SafeWpResult } from "../types/index.js";
 import { fetchWithRetry, FetchRetryOptions, FetchRetryResult } from "./fetchWithRetry.js";
 import { CONFIG } from "../config.js";
+import { logger } from "./logger.js";
 
 export const DEFAULT_TIMEOUT_MS = 5000;
 export const MEDIA_UPLOAD_TIMEOUT_MS = 15000;
@@ -37,6 +38,11 @@ export function normalizeImageUrl(rawUrl?: string | null, wpBaseUrl = CONFIG.WP_
 
   // Data or blob URIs
   if (s.startsWith("data:") || s.startsWith("blob:")) {
+    return s;
+  }
+
+  // Other explicit URI schemes (e.g. ftp:, file:, gopher:) - preserve so validator can reject invalid protocols
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(s)) {
     return s;
   }
 
@@ -102,6 +108,10 @@ export function validateRemoteImageUrl(rawUrl: string): RemoteImageValidationRes
     hostname.endsWith(".local") ||
     hostname.endsWith(".internal")
   ) {
+    logger.warn(
+      { url: hostname, reason: "loopback_address", ip: hostname },
+      "SSRF attack prevented: attempted access to local address"
+    );
     return { safe: false, valid: false, error: "Access to loopback/local addresses is blocked", statusCode: 403 };
   }
 
@@ -118,10 +128,13 @@ export function validateRemoteImageUrl(rawUrl: string): RemoteImageValidationRes
       octets[0] === 127 || // 127.0.0.0/8
       octets[0] === 0 // 0.0.0.0/8
     ) {
+      logger.warn(
+        { url: hostname, reason: "private_ip", octets },
+        "SSRF attack prevented: attempted access to private IP"
+      );
       return { safe: false, valid: false, error: "Access to private IP addresses is blocked", statusCode: 403 };
     }
   }
-
 
   // Check against trusted domain whitelist
   const allowedDomains: string[] = [...CONFIG.TRUSTED_IMAGE_DOMAINS];
@@ -138,6 +151,10 @@ export function validateRemoteImageUrl(rawUrl: string): RemoteImageValidationRes
 
   const isAllowedHost = allowedDomains.some((d) => hostname === d || hostname.endsWith(`.${d}`));
   if (!isAllowedHost) {
+    logger.warn(
+      { url: hostname, allowedDomains, reason: "not_whitelisted" },
+      "Image URL blocked: domain not in trusted whitelist"
+    );
     return {
       safe: false,
       valid: false,
