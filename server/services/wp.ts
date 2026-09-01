@@ -1,7 +1,8 @@
 import path from "path";
-import { getWpHeaders, fetchWpSafe, WP_BASE_URL, MEDIA_UPLOAD_TIMEOUT_MS, extractCleanError } from "../utils/http.js";
+import { getWpHeaders, fetchWpSafe, WP_BASE_URL, MEDIA_UPLOAD_TIMEOUT_MS, extractCleanError, normalizeImageUrl } from "../utils/http.js";
 import { logger } from "../utils/logger.js";
 import { CONFIG } from "../config.js";
+import { generateThumbnails, setCachedThumbnail, computeEtag } from "./thumbnails.js";
 import type { WpMediaItem, CatalogData } from "../types/index.js";
 
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg", "avif"]);
@@ -20,7 +21,7 @@ function sanitizeFileName(originalName: string): string {
 }
 
 /**
- * Uploads an image buffer directly to the WordPress Media Library
+ * Uploads an image buffer directly to the WordPress Media Library and caches thumbnail variants
  */
 export async function uploadBufferToWordPress(
   buffer: Buffer,
@@ -77,9 +78,31 @@ export async function uploadBufferToWordPress(
 
   if (wpRes.ok && (wpRes.status === 200 || wpRes.status === 201) && wpRes.data) {
     const wpJson = wpRes.data;
-    const sourceUrl = wpJson.source_url || wpJson.guid?.rendered || "";
+    const rawSourceUrl = wpJson.source_url || wpJson.guid?.rendered || "";
+    const sourceUrl = normalizeImageUrl(rawSourceUrl);
     if (sourceUrl) {
       logger.info({ id: wpJson.id, sourceUrl }, "Successfully uploaded image to WordPress Media Library");
+
+      // Asynchronously pre-generate and cache 3 thumbnail variants (small, medium, large)
+      try {
+        const variants = await generateThumbnails(buffer, safeFileName);
+        const lastMod = new Date().toUTCString();
+        for (const [sizeKey, variant] of Object.entries(variants)) {
+          const etag = computeEtag(variant.buffer, sizeKey);
+          setCachedThumbnail(sourceUrl, sizeKey as "small" | "medium" | "large", {
+            buffer: variant.buffer,
+            contentType: variant.contentType,
+            etag,
+            lastModified: lastMod,
+            width: variant.width,
+            height: variant.height,
+            sizeBytes: variant.sizeBytes,
+          });
+        }
+      } catch (err: any) {
+        logger.warn({ err: err.message, sourceUrl }, "Failed to pre-generate upload thumbnails");
+      }
+
       return {
         success: true,
         id: wpJson.id,
@@ -114,7 +137,7 @@ export async function listWpImages(perPage = 100): Promise<Array<{
   size: number;
   date?: string;
 }>> {
-  const wpBase = (process.env.WP_BASE_URL || WP_BASE_URL).replace(/\/+$/, "");
+  const wpBase = CONFIG.WP_BASE_URL;
   const endpoint = `${wpBase}/wp-json/wp/v2/media?per_page=${perPage}`;
 
   const wpRes = await fetchWpSafe(
@@ -131,19 +154,20 @@ export async function listWpImages(perPage = 100): Promise<Array<{
   }
 
   return wpRes.data.map((it: WpMediaItem) => {
-    const rawSourceUrl = it.source_url || "";
-    const httpsUrl = String(rawSourceUrl).replace("http://", "https://");
+    const rawSourceUrl = it.source_url || it.guid?.rendered || "";
+    const canonicalUrl = normalizeImageUrl(rawSourceUrl);
     return {
       id: it.id,
       filename: it.title?.rendered || it.slug || "image",
-      url: httpsUrl,
+      url: canonicalUrl,
       source_url: rawSourceUrl,
-      relativePath: httpsUrl,
+      relativePath: canonicalUrl,
       size: it.media_details?.filesize || 0,
       date: it.date,
     };
   });
 }
+
 
 /**
  * Deletes an image from WordPress Media Library by ID or URL

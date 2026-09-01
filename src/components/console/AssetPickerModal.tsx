@@ -135,16 +135,17 @@ function formatBytes(bytes?: number): string {
 /**
  * Returns the proxy thumbnail URL for WordPress assets or the original URL for catalog assets
  */
-export function getThumbSrc(item: MergedAssetItem): string {
+export function getThumbSrc(item: MergedAssetItem, size: 'small' | 'medium' | 'large' = 'small'): string {
   const isWp = item.source === 'wordpress' || (item.url && item.url.includes('wp-content/uploads'));
   if (isWp) {
     const rawUrl = toAbsolute(item.url || item.source_url || item.relativePath || item.link || '');
     if (rawUrl) {
-      return `/api/media-thumb?url=${encodeURIComponent(rawUrl)}`;
+      return `/api/media-thumb?url=${encodeURIComponent(rawUrl)}&size=${size}`;
     }
   }
   return normalizeImageKey(item.url || item.relativePath || '');
 }
+
 
 interface AssetCardProps {
   item: MergedAssetItem;
@@ -314,12 +315,14 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   const fetchWpMedia = useCallback(async () => {
     setIsLoadingWp(true);
     try {
-      const res = await fetch('/api/list-images');
+      let res = await fetch('/api/images?include-thumbnails=true');
+      if (!res.ok) {
+        res = await fetch('/api/list-images');
+      }
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.images)) {
           const wpItems = data.images;
-          console.log("[Picker] raw sample:", JSON.stringify(wpItems.slice(0, 2)));
           const mapped: MergedAssetItem[] = wpItems.map((img: any) => {
             const rawUrl = img.url || img.source_url || img.relativePath || img.link || '';
             const url = toAbsolute(rawUrl);
@@ -348,6 +351,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
       setIsLoadingWp(false);
     }
   }, []);
+
 
   // Live sync on modal open and subscription to media mutations
   useEffect(() => {

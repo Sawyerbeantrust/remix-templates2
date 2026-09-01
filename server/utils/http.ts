@@ -1,12 +1,155 @@
 import path from "path";
 import type { SafeWpResult } from "../types/index.js";
 import { fetchWithRetry, FetchRetryOptions, FetchRetryResult } from "./fetchWithRetry.js";
+import { CONFIG } from "../config.js";
 
 export const DEFAULT_TIMEOUT_MS = 5000;
 export const MEDIA_UPLOAD_TIMEOUT_MS = 15000;
 export const AI_REQUEST_TIMEOUT_MS = 20000;
 
-export const WP_BASE_URL = (process.env.WP_BASE_URL || "https://store.car-lifts.co.za").replace(/\/+$/, "");
+export const WP_BASE_URL = CONFIG.WP_BASE_URL;
+export const BASE_URL = CONFIG.BASE_URL;
+
+/**
+ * Normalizes any image URL or relative path to a canonical, secure absolute HTTPS URL
+ * @param rawUrl Raw URL or path string
+ * @param wpBaseUrl Optional base domain for WordPress (defaults to CONFIG.WP_BASE_URL)
+ */
+export function normalizeImageUrl(rawUrl?: string | null, wpBaseUrl = CONFIG.WP_BASE_URL): string {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  let s = rawUrl.trim();
+  if (!s) return "";
+
+  // Protocol-relative URLs (e.g. //domain.com/path)
+  if (s.startsWith("//")) {
+    return `https:${s}`;
+  }
+
+  // Force HTTPS on insecure HTTP URLs
+  if (s.startsWith("http://")) {
+    s = s.replace(/^http:\/\//i, "https://");
+  }
+
+  // If it's already an absolute URL
+  if (s.startsWith("https://")) {
+    return s;
+  }
+
+  // Data or blob URIs
+  if (s.startsWith("data:") || s.startsWith("blob:")) {
+    return s;
+  }
+
+  // Handle absolute paths starting with /
+  if (s.startsWith("/")) {
+    if (s.startsWith("/wp-content/")) {
+      return `${wpBaseUrl}${s}`;
+    }
+    if (s.startsWith("/images/") || s.startsWith("/assets/images/") || s.startsWith("/assets/")) {
+      return `${CONFIG.BASE_URL}${s}`;
+    }
+    return `${wpBaseUrl}${s}`;
+  }
+
+  // Handle relative WordPress upload paths
+  if (s.startsWith("wp-content/")) {
+    return `${wpBaseUrl}/${s}`;
+  }
+
+  // Default to WordPress uploads folder for bare filenames
+  return `${wpBaseUrl}/wp-content/uploads/${s}`;
+}
+
+export interface RemoteImageValidationResult {
+  safe: boolean;
+  valid: boolean;
+  normalizedUrl?: string;
+  error?: string;
+  statusCode?: number;
+}
+
+/**
+ * Validates whether a remote URL is safe to fetch (strict SSRF protection)
+ */
+export function validateRemoteImageUrl(rawUrl: string): RemoteImageValidationResult {
+  if (!rawUrl || typeof rawUrl !== "string") {
+    return { safe: false, valid: false, error: "Missing or invalid URL parameter", statusCode: 400 };
+  }
+
+  const normalized = normalizeImageUrl(rawUrl);
+  let parsed: URL;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    return { safe: false, valid: false, error: "Malformed URL", statusCode: 400 };
+  }
+
+  // Require HTTP or HTTPS protocol
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return { safe: false, valid: false, error: "Only HTTP and HTTPS protocols are permitted", statusCode: 400 };
+  }
+
+
+  const hostname = parsed.hostname.toLowerCase().trim();
+
+  // Block loopback and local hostnames
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname === "::1" ||
+    hostname === "0" ||
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".internal")
+  ) {
+    return { safe: false, valid: false, error: "Access to loopback/local addresses is blocked", statusCode: 403 };
+  }
+
+  // Block private IPv4 ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 link-local / cloud metadata)
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const match = hostname.match(ipv4Regex);
+  if (match) {
+    const octets = match.slice(1, 5).map(Number);
+    if (
+      octets[0] === 10 || // 10.0.0.0/8
+      (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) || // 172.16.0.0/12
+      (octets[0] === 192 && octets[1] === 168) || // 192.168.0.0/16
+      (octets[0] === 169 && octets[1] === 254) || // 169.254.0.0/16 (AWS/GCP metadata)
+      octets[0] === 127 || // 127.0.0.0/8
+      octets[0] === 0 // 0.0.0.0/8
+    ) {
+      return { safe: false, valid: false, error: "Access to private IP addresses is blocked", statusCode: 403 };
+    }
+  }
+
+
+  // Check against trusted domain whitelist
+  const allowedDomains: string[] = [...CONFIG.TRUSTED_IMAGE_DOMAINS];
+  try {
+    if (CONFIG.WP_BASE_URL) {
+      allowedDomains.push(new URL(CONFIG.WP_BASE_URL).hostname);
+    }
+  } catch {}
+  try {
+    if (CONFIG.BASE_URL) {
+      allowedDomains.push(new URL(CONFIG.BASE_URL).hostname);
+    }
+  } catch {}
+
+  const isAllowedHost = allowedDomains.some((d) => hostname === d || hostname.endsWith(`.${d}`));
+  if (!isAllowedHost) {
+    return {
+      safe: false,
+      valid: false,
+      error: `Domain '${hostname}' is not in the trusted image whitelist`,
+      statusCode: 403,
+    };
+  }
+
+  return { safe: true, valid: true, normalizedUrl: normalized };
+}
+
+
 
 /**
  * Extracts a concise, human-readable error from raw response text

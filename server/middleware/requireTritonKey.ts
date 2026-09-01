@@ -5,7 +5,7 @@ import type { Request, Response, NextFunction } from "express";
  * Checks header `X-Triton-Key` or `X-Vercel-Secret` against `process.env.TRITON_KEY`.
  */
 export function requireTritonKey(req: Request, res: Response, next: NextFunction) {
-  const tritonEnvKey = (process.env.TRITON_KEY || process.env.WP_MIGRATE_KEY || process.env.CF_BYPASS_SECRET || process.env.VERCEL_SECRET || "").trim();
+  const tritonEnvKey = (process.env.TRITON_KEY || "").trim();
   const incomingKey = String(
     req.headers["x-triton-key"] ||
     req.headers["x-vercel-secret"] ||
@@ -21,9 +21,12 @@ export function requireTritonKey(req: Request, res: Response, next: NextFunction
     return next();
   }
 
-  // If TRITON_KEY / secrets are not configured on the server, allow internal app console operations
+  // If TRITON_KEY / secrets are not configured on the server, reject with server misconfiguration
   if (!tritonEnvKey) {
-    return next();
+    return res.status(403).json({
+      success: false,
+      error: "Server misconfiguration: TRITON_KEY is not configured",
+    });
   }
 
   // If a key was configured on server, verify the request key matches
@@ -34,17 +37,8 @@ export function requireTritonKey(req: Request, res: Response, next: NextFunction
     });
   }
 
-  // Build array of allowed valid secrets
-  const validKeys = [
-    tritonEnvKey,
-    process.env.TRITON_KEY,
-    process.env.WP_MIGRATE_KEY,
-    process.env.CF_BYPASS_SECRET,
-    process.env.VERCEL_SECRET,
-  ].filter(Boolean) as string[];
-
-  // If incoming key is not in the set of valid authorized keys
-  if (validKeys.length > 0 && !validKeys.includes(incomingKey)) {
+  // If incoming key does not match configured key
+  if (incomingKey !== tritonEnvKey) {
     return res.status(403).json({
       success: false,
       error: "Forbidden: Invalid authorization key",
@@ -53,3 +47,4 @@ export function requireTritonKey(req: Request, res: Response, next: NextFunction
 
   return next();
 }
+

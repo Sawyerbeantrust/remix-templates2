@@ -1,11 +1,12 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
+
 import path from "path";
 import rateLimit from "express-rate-limit";
 import { PRODUCTS } from "../../src/data/products.js";
 import { asyncHandler, sendSuccess, sendError } from "../utils/asyncHandler.js";
 import { detectContentType, fetchWpSafe, getWpHeaders, extractCleanError } from "../utils/http.js";
 import { requireTritonKey } from "../middleware/requireTritonKey.js";
-import { validateBase64Image } from "../utils/uploadHelpers.js";
+import { validateBase64Image, validateAndInspectUpload } from "../utils/uploadHelpers.js";
 import { logger } from "../utils/logger.js";
 import { uploadBufferToWordPress, listWpImages, deleteWpImage } from "../services/wp.js";
 import {
@@ -103,7 +104,7 @@ export const memoryCatalog: CatalogData = {
   maintenanceMode: false,
 };
 
-// 1) POST /api/upload-image
+// 1) POST /api/upload-image (Validates payload + magic bytes + dimensions + uploads + generates variants)
 apiRouter.post(
   "/upload-image",
   asyncHandler(async (req, res) => {
@@ -116,7 +117,7 @@ apiRouter.post(
     const imgData = (data || image) as string;
     const imgName = name || `upload_${Date.now()}.jpg`;
 
-    const validation = validateBase64Image(imgData, imgName);
+    const validation = await validateAndInspectUpload(imgData, imgName);
     if (!validation.valid) {
       return sendError(res, validation.error, validation.status);
     }
@@ -153,7 +154,7 @@ apiRouter.post(
     const imgData = (data || image) as string;
     const imgName = name || `category_${Date.now()}.jpg`;
 
-    const validation = validateBase64Image(imgData, imgName);
+    const validation = await validateAndInspectUpload(imgData, imgName);
     if (!validation.valid) {
       return sendError(res, validation.error, validation.status);
     }
@@ -177,33 +178,46 @@ apiRouter.post(
   })
 );
 
-// 3) GET /api/list-images and GET /api/images
-apiRouter.get(
-  "/list-images",
-  asyncHandler(async (req, res) => {
-    const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
-    const images = await listWpImages(perPage);
-    console.log("[ListImages] sample urls:", images.slice(0, 3).map((i) => i.url));
-    const jsonStr = JSON.stringify({ success: true, images })
-      .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
-      .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
-    res.setHeader("Content-Type", "application/json");
-    return res.status(200).send(jsonStr);
-  })
-);
+/**
+ * Common handler for retrieving media images with optional thumbnail variants
+ */
+async function handleGetImages(req: Request, res: Response) {
 
-apiRouter.get(
-  "/images",
-  asyncHandler(async (req, res) => {
-    const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
-    const result = await listWpImages(perPage);
-    const jsonStr = JSON.stringify({ success: true, images: result })
-      .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
-      .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
-    res.setHeader("Content-Type", "application/json");
-    return res.status(200).send(jsonStr);
-  })
-);
+  const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
+  const includeThumbnails =
+    req.query["include-thumbnails"] === "true" ||
+    req.query.include_thumbnails === "true" ||
+    req.query.includeThumbnails === "true";
+
+  const rawImages = await listWpImages(perPage);
+
+  const images = rawImages.map((img) => {
+    if (!includeThumbnails) {
+      return img;
+    }
+    const encodedUrl = encodeURIComponent(img.url);
+    return {
+      ...img,
+      thumbnails: {
+        small: `/api/media-thumb?url=${encodedUrl}&size=small`,
+        medium: `/api/media-thumb?url=${encodedUrl}&size=medium`,
+        large: `/api/media-thumb?url=${encodedUrl}&size=large`,
+        original: `/api/media-thumb?url=${encodedUrl}&size=original`,
+      },
+    };
+  });
+
+  return res.status(200).json({
+    success: true,
+    count: images.length,
+    images,
+  });
+}
+
+// 3) GET /api/images & GET /api/list-images (Consolidated image endpoint)
+apiRouter.get("/images", asyncHandler(handleGetImages));
+apiRouter.get("/list-images", asyncHandler(handleGetImages));
+
 
 // 4) POST /api/delete-image (protected with TRITON_KEY)
 apiRouter.post(

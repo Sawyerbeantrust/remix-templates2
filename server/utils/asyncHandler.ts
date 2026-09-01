@@ -44,7 +44,10 @@ export const sendError = (
   return res.status(status).json({
     success: false,
     error,
+    statusCode: status,
+    timestamp: new Date().toISOString(),
     ...(details !== undefined ? { details } : {}),
     requestId: res.locals.requestId,
   });
 };
+
