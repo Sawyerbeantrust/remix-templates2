@@ -129,14 +129,19 @@ export async function listWpImages(perPage = 100): Promise<Array<{
     return [];
   }
 
-  return wpRes.data.map((it: WpMediaItem) => ({
-    id: it.id,
-    filename: it.title?.rendered || it.slug || "image",
-    url: it.source_url || "",
-    relativePath: it.source_url || "",
-    size: it.media_details?.filesize || 0,
-    date: it.date,
-  }));
+  return wpRes.data.map((it: WpMediaItem) => {
+    const rawUrl = (it.source_url || "")
+      .replace(/^http:\/\/store\.car-lifts\.co\.za/i, "https://store.car-lifts.co.za")
+      .replace(/^http:\/\/car-lifts\.co\.za/i, "https://car-lifts.co.za");
+    return {
+      id: it.id,
+      filename: it.title?.rendered || it.slug || "image",
+      url: rawUrl,
+      relativePath: rawUrl,
+      size: it.media_details?.filesize || 0,
+      date: it.date,
+    };
+  });
 }
 
 /**

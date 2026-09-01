@@ -10,6 +10,14 @@ export function normalizeImageKey(urlOrKey: string): string {
     return urlOrKey;
   }
 
+  // Normalize car-lifts http URLs to https
+  if (urlOrKey.startsWith('http://store.car-lifts.co.za')) {
+    return urlOrKey.replace(/^http:\/\/store\.car-lifts\.co\.za/i, 'https://store.car-lifts.co.za');
+  }
+  if (urlOrKey.startsWith('http://car-lifts.co.za')) {
+    return urlOrKey.replace(/^http:\/\/car-lifts\.co\.za/i, 'https://car-lifts.co.za');
+  }
+
   // Absolute URLs that already contain http:// or https://
   if (urlOrKey.startsWith('http://') || urlOrKey.startsWith('https://')) {
     return urlOrKey;

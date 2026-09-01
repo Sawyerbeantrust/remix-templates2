@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { logSystemError } from '../utils/errorLogger.js';
-import { safeLocalStorage } from '../utils/safeStorage.js';
 
 interface Props {
   children: React.ReactNode;
@@ -25,60 +24,71 @@ export default class ErrorBoundary extends React.Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Uncaught error in Triton app:', error, errorInfo);
     try {
+      console.error('Uncaught error in Triton app:', error, errorInfo);
       logSystemError(
         error,
-        `React Component Stack: ${errorInfo.componentStack?.slice(0, 300) || 'N/A'}`,
+        `React Component Stack: ${errorInfo?.componentStack ? errorInfo.componentStack.slice(0, 300) : 'N/A'}`,
         'React ErrorBoundary',
-        error.stack
+        error?.stack
       );
     } catch {}
   }
 
-  private handleReset = () => {
+  private handleReload = () => {
     try {
-      safeLocalStorage.removeItem('triton_products_db_v3');
-      safeLocalStorage.removeItem('triton_featured_categories_db_v3');
-      safeLocalStorage.removeItem('triton_wishlist_storage');
-      safeLocalStorage.removeItem('triton_cart');
+      if (typeof window !== 'undefined' && window.location) {
+        window.location.reload();
+      }
+    } catch {}
+  };
+
+  private handleResetAndReload = () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('triton_products_db_v3');
+        window.localStorage.removeItem('triton_featured_categories_db_v3');
+        window.localStorage.removeItem('triton_wishlist_storage');
+        window.localStorage.removeItem('triton_cart');
+      }
     } catch {}
     this.setState({ hasError: false, error: null });
-    window.location.reload();
+    this.handleReload();
   };
 
   public render() {
     if (this.state.hasError) {
+      const errorMsg = this.state.error?.message || 'An unexpected rendering error occurred.';
       return (
-        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center font-sans">
-          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+        <div className="min-h-screen bg-neutral-950 text-white flex flex-col items-center justify-center p-6 text-center font-sans">
+          <div className="max-w-md w-full bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-2xl space-y-6">
             <div className="w-14 h-14 bg-red-600/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold border border-red-500/30">
               !
             </div>
             <div className="space-y-2">
-              <h1 className="text-xl font-black uppercase tracking-wider text-slate-100">
+              <h1 className="text-xl font-black uppercase tracking-wider text-neutral-100">
                 Application Reload Required
               </h1>
-              <p className="text-xs text-slate-400">
-                A rendering issue occurred. Click below to restore standard catalog settings and reload the preview.
+              <p className="text-xs text-neutral-400">
+                A rendering issue occurred. Click Reload to refresh the interface.
               </p>
             </div>
-            {this.state.error?.message && (
-              <div className="p-3 bg-black/50 rounded-xl text-left border border-slate-800 text-[11px] font-mono text-red-400 max-h-32 overflow-y-auto">
-                {this.state.error.message}
+            {errorMsg && (
+              <div className="p-3 bg-black/60 rounded-xl text-left border border-neutral-800 text-[11px] font-mono text-red-400 max-h-32 overflow-y-auto break-words">
+                {errorMsg}
               </div>
             )}
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => window.location.reload()}
-                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer"
+                onClick={this.handleReload}
+                className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer"
               >
-                Refresh Page
+                Reload
               </button>
               <button
                 type="button"
-                onClick={this.handleReset}
+                onClick={this.handleResetAndReload}
                 className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer shadow-lg shadow-red-600/20"
               >
                 Reset & Reload
@@ -92,3 +102,4 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     return this.props.children;
   }
 }
+

@@ -28,7 +28,16 @@ export const DEFAULT_FEATURED_CATEGORIES: FeaturedCategory[] = [
 
 export const normalizeCategoryImagePath = (img?: string): string => {
   if (!img || typeof img !== 'string') return img || '';
-  if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:') || img.startsWith('blob:')) return img;
+  if (img.startsWith('http://store.car-lifts.co.za')) {
+    return img.replace(/^http:\/\/store\.car-lifts\.co\.za/i, 'https://store.car-lifts.co.za');
+  }
+  if (img.startsWith('http://car-lifts.co.za')) {
+    return img.replace(/^http:\/\/car-lifts\.co\.za/i, 'https://car-lifts.co.za');
+  }
+  if (img.startsWith('http://')) {
+    return img.replace(/^http:\/\//i, 'https://');
+  }
+  if (img.startsWith('https://') || img.startsWith('data:') || img.startsWith('blob:')) return img;
   if (
     img.startsWith('/images/') ||
     img.startsWith('/src/assets/images/') ||

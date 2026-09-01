@@ -183,7 +183,11 @@ apiRouter.get(
   asyncHandler(async (req, res) => {
     const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
     const result = await listWpImages(perPage);
-    return res.status(200).json({ success: true, images: result });
+    const jsonStr = JSON.stringify({ success: true, images: result })
+      .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
+      .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).send(jsonStr);
   })
 );
 
@@ -192,7 +196,11 @@ apiRouter.get(
   asyncHandler(async (req, res) => {
     const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
     const result = await listWpImages(perPage);
-    return res.status(200).json({ success: true, images: result });
+    const jsonStr = JSON.stringify({ success: true, images: result })
+      .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
+      .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).send(jsonStr);
   })
 );
 
@@ -237,7 +245,11 @@ apiRouter.get(
         if (!wpRes.data.featuredCategories || !Array.isArray(wpRes.data.featuredCategories) || wpRes.data.featuredCategories.length === 0) {
           wpRes.data.featuredCategories = DEFAULT_FEATURED_CATEGORIES;
         }
-        return res.status(200).json({ success: true, source: "wordpress", ...wpRes.data });
+        const jsonStr = JSON.stringify({ success: true, source: "wordpress", ...wpRes.data })
+          .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
+          .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
+        res.setHeader("Content-Type", "application/json");
+        return res.status(200).send(jsonStr);
       }
     } catch {
       // Return local catalog fallback seamlessly

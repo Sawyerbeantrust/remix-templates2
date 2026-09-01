@@ -39,11 +39,28 @@ export interface MergedAssetItem {
   id: string | number;
   filename: string;
   url: string;
+  relativePath?: string;
   size?: number; // Size in bytes
   date?: string;
   source: 'wordpress' | 'catalog';
   category?: string;
   label?: string;
+}
+
+/**
+ * Normalizes HTTP URLs to HTTPS to prevent mixed-content blocks on HTTPS pages
+ */
+export function normalizeToHttpsUrl(rawUrl?: string): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  let url = rawUrl.trim();
+  if (url.startsWith('http://store.car-lifts.co.za')) {
+    url = url.replace(/^http:\/\/store\.car-lifts\.co\.za/i, 'https://store.car-lifts.co.za');
+  } else if (url.startsWith('http://car-lifts.co.za')) {
+    url = url.replace(/^http:\/\/car-lifts\.co\.za/i, 'https://car-lifts.co.za');
+  } else if (url.startsWith('http://')) {
+    url = url.replace(/^http:\/\//i, 'https://');
+  }
+  return url;
 }
 
 interface ToastNotice {
@@ -118,16 +135,18 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const displayUrl = item.source === 'wordpress' ? item.url : normalizeImageKey(item.url);
+  const rawUrl = item.url || item.relativePath || '';
+  const normalizedUrl = normalizeToHttpsUrl(rawUrl);
+  const displayUrl = item.source === 'wordpress' ? normalizedUrl : normalizeImageKey(normalizedUrl);
 
   useEffect(() => {
     setHasError(false);
     setIsLoaded(false);
-  }, [item.url]);
+  }, [displayUrl]);
 
   return (
     <div
-      onClick={() => onSelect(item.url)}
+      onClick={() => onSelect(normalizedUrl)}
       className="group relative bg-[#181818] hover:bg-[#202020] border border-neutral-800 hover:border-indigo-500/80 hover:ring-1 hover:ring-indigo-500/50 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 flex flex-col min-h-[220px] h-full shadow-md hover:shadow-indigo-950/30"
     >
       {/* Thumbnail Container */}
@@ -200,7 +219,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(item.url);
+              onSelect(normalizedUrl);
             }}
             className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
           >
@@ -256,13 +275,15 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
         const data = await res.json();
         if (data.success && Array.isArray(data.images)) {
           const mapped: MergedAssetItem[] = data.images.map((img: any) => {
-            const url = img.url || '';
+            const rawUrl = img.url || img.relativePath || '';
+            const url = normalizeToHttpsUrl(rawUrl);
             const filename = img.filename || url.split('/').pop() || 'wp_media_asset.jpg';
             const label = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
             return {
               id: img.id || url,
               filename: filename,
               url: url,
+              relativePath: url,
               size: typeof img.size === 'number' ? img.size : 0,
               date: img.date,
               source: 'wordpress' as const,
@@ -301,7 +322,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
     const seen = new Set<string>();
 
     for (const a of assets) {
-      const rawUrl = (a.url || a.thumbnail || a.originalUrl || a.path || '').trim();
+      const rawUrl = normalizeToHttpsUrl((a.url || a.thumbnail || a.originalUrl || a.path || '').trim());
       if (!rawUrl) continue;
       const key = rawUrl.toLowerCase();
       if (seen.has(key)) continue;
@@ -318,6 +339,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
         id: a.id || rawUrl,
         filename: filename,
         url: rawUrl,
+        relativePath: rawUrl,
         size: 0,
         source: isWpUrl ? 'wordpress' : 'catalog',
         category: a.category || 'catalog',
@@ -444,7 +466,8 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   };
 
   const handleCardAssign = (url: string) => {
-    onSelectImage(url);
+    const cleanHttpsUrl = normalizeToHttpsUrl(url);
+    onSelectImage(cleanHttpsUrl);
     onClose();
   };
 

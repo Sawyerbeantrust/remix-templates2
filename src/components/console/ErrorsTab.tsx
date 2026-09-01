@@ -25,7 +25,12 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
   addLog,
 }) => {
   const [systemErrors, setSystemErrors] = useState<ErrorLogItem[]>(() => {
-    return externalErrors.length > 0 ? externalErrors : getSystemErrors();
+    try {
+      if (Array.isArray(externalErrors) && externalErrors.length > 0) return externalErrors;
+      return getSystemErrors();
+    } catch {
+      return [];
+    }
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
@@ -36,40 +41,47 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
 
   // Subscribe to real-time error logger events
   useEffect(() => {
-    const unsubscribe = subscribeToErrors((latestErrors) => {
-      setSystemErrors(latestErrors);
-    });
-    return unsubscribe;
+    try {
+      const unsubscribe = subscribeToErrors((latestErrors) => {
+        setSystemErrors(Array.isArray(latestErrors) ? latestErrors : []);
+      });
+      return unsubscribe;
+    } catch {
+      return undefined;
+    }
   }, []);
 
   const categories = ['All', 'API/Network', 'Media', 'Runtime', 'CSV/Import', 'Database', 'React'];
 
-  const filtered = systemErrors.filter((e) => {
-    const matchesSearch =
-      e.error.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.context && e.context.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (e.category && e.category.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filtered = (Array.isArray(systemErrors) ? systemErrors : []).filter((e) => {
+    if (!e || typeof e !== 'object') return false;
+    const errorText = (e.error || '').toLowerCase();
+    const contextText = (e.context || '').toLowerCase();
+    const catText = (e.category || '').toLowerCase();
+    const q = searchQuery.toLowerCase();
 
-    const matchesCategory =
-      categoryFilter === 'All' ||
-      (e.category && e.category.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const matchesSearch = !q || errorText.includes(q) || contextText.includes(q) || catText.includes(q);
+    const matchesCategory = categoryFilter === 'All' || catText.includes(categoryFilter.toLowerCase());
 
     return matchesSearch && matchesCategory;
   });
 
   const handleClearAll = () => {
-    if (systemErrors.length === 0) return;
-    if (window.confirm('Clear all recorded system error and telemetry logs?')) {
+    try {
       clearSystemErrors();
       setSystemErrors([]);
-      addLog('Cleared system error telemetry buffer', 'info');
-    }
+      if (typeof addLog === 'function') {
+        addLog('Cleared system error telemetry buffer', 'info');
+      }
+    } catch {}
   };
 
   const handleRunDiagnostic = async () => {
     setIsRunningDiagnostic(true);
     setDiagnosticResult(null);
-    addLog('Running full system diagnostic health check...', 'info');
+    if (typeof addLog === 'function') {
+      addLog('Running full system diagnostic health check...', 'info');
+    }
 
     const issuesFound: string[] = [];
 
@@ -92,9 +104,11 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
 
       // 2. Storage Quota Check
       try {
-        const testKey = '__diag_test__';
-        localStorage.setItem(testKey, '1');
-        localStorage.removeItem(testKey);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const testKey = '__diag_test__';
+          window.localStorage.setItem(testKey, '1');
+          window.localStorage.removeItem(testKey);
+        }
       } catch (err: any) {
         issuesFound.push('localStorage quota exceeded or access denied');
         logSystemError(err, 'localStorage diagnostic write test', 'Storage');
@@ -102,10 +116,14 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
 
       if (issuesFound.length === 0) {
         setDiagnosticResult('All system subsystems are healthy and operational (API 200 OK, Storage Functional, Zero Unresolved Exceptions).');
-        addLog('Diagnostic completed: 100% healthy, 0 issues detected.', 'success');
+        if (typeof addLog === 'function') {
+          addLog('Diagnostic completed: 100% healthy, 0 issues detected.', 'success');
+        }
       } else {
         setDiagnosticResult(`Diagnostic identified ${issuesFound.length} issue(s): ${issuesFound.join('; ')}`);
-        addLog(`Diagnostic warning: ${issuesFound.length} issues logged.`, 'warning');
+        if (typeof addLog === 'function') {
+          addLog(`Diagnostic warning: ${issuesFound.length} issues logged.`, 'warning');
+        }
       }
     } catch (e: any) {
       logSystemError(e, 'Diagnostic self-test', 'Runtime');
@@ -121,15 +139,21 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
       'Diagnostic check invoked by console admin for telemetry verification',
       'Diagnostic'
     );
-    addLog('Logged diagnostic sample notice to telemetry table', 'info');
+    if (typeof addLog === 'function') {
+      addLog('Logged diagnostic sample notice to telemetry table', 'info');
+    }
   };
 
   const handleCopyDetails = () => {
     if (!selectedError) return;
-    const text = JSON.stringify(selectedError, null, 2);
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      const text = JSON.stringify(selectedError, null, 2);
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {}
   };
 
   return (
@@ -189,16 +213,15 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
             <Download size={13} />
             <span>CSV</span>
           </button>
-          {systemErrors.length > 0 && (
-            <button
-              type="button"
-              onClick={handleClearAll}
-              className="px-3 py-2 bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-300 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Trash2 size={13} />
-              <span>Clear</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleClearAll}
+            disabled={systemErrors.length === 0}
+            className="px-3 py-2 bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-300 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+          >
+            <Trash2 size={13} />
+            <span>Clear Log</span>
+          </button>
         </div>
       </div>
 
@@ -269,12 +292,12 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
             </div>
             <div>
               <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                {searchQuery || categoryFilter !== 'All' ? 'No Matching Telemetry Records' : 'All Systems Healthy & Operational'}
+                {searchQuery || categoryFilter !== 'All' ? 'No Matching Telemetry Records' : 'No runtime errors captured'}
               </h4>
               <p className="text-xs text-neutral-400 max-w-sm mx-auto mt-1">
                 {searchQuery || categoryFilter !== 'All'
                   ? 'Try adjusting your search query or category filters.'
-                  : 'Zero unhandled exceptions, API failure codes, or broken network paths captured.'}
+                  : 'All system subsystems are healthy and operational with zero unresolved exceptions.'}
               </p>
             </div>
           </div>
