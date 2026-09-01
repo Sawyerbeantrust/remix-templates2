@@ -109,6 +109,7 @@ export async function listWpImages(perPage = 100): Promise<Array<{
   id: number;
   filename: string;
   url: string;
+  source_url?: string;
   relativePath: string;
   size: number;
   date?: string;
@@ -130,14 +131,14 @@ export async function listWpImages(perPage = 100): Promise<Array<{
   }
 
   return wpRes.data.map((it: WpMediaItem) => {
-    const rawUrl = (it.source_url || "")
-      .replace(/^http:\/\/store\.car-lifts\.co\.za/i, "https://store.car-lifts.co.za")
-      .replace(/^http:\/\/car-lifts\.co\.za/i, "https://car-lifts.co.za");
+    const rawSourceUrl = it.source_url || "";
+    const httpsUrl = String(rawSourceUrl).replace("http://", "https://");
     return {
       id: it.id,
       filename: it.title?.rendered || it.slug || "image",
-      url: rawUrl,
-      relativePath: rawUrl,
+      url: httpsUrl,
+      source_url: rawSourceUrl,
+      relativePath: httpsUrl,
       size: it.media_details?.filesize || 0,
       date: it.date,
     };

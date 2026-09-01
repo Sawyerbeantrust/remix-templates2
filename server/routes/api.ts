@@ -182,8 +182,9 @@ apiRouter.get(
   "/list-images",
   asyncHandler(async (req, res) => {
     const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
-    const result = await listWpImages(perPage);
-    const jsonStr = JSON.stringify({ success: true, images: result })
+    const images = await listWpImages(perPage);
+    console.log("[ListImages] sample urls:", images.slice(0, 3).map((i) => i.url));
+    const jsonStr = JSON.stringify({ success: true, images })
       .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
       .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
     res.setHeader("Content-Type", "application/json");

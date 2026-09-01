@@ -39,6 +39,7 @@ export interface MergedAssetItem {
   id: string | number;
   filename: string;
   url: string;
+  source_url?: string;
   relativePath?: string;
   size?: number; // Size in bytes
   date?: string;
@@ -135,32 +136,40 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const rawUrl = item.url || item.relativePath || '';
-  const normalizedUrl = normalizeToHttpsUrl(rawUrl);
-  const displayUrl = item.source === 'wordpress' ? normalizedUrl : normalizeImageKey(normalizedUrl);
+  let s = item.url || item.source_url || item.relativePath || "";
+  if (s.startsWith("http://")) {
+    s = s.replace("http://", "https://");
+  } else if (s.startsWith("/")) {
+    s = "https://store.car-lifts.co.za" + s;
+  } else if (!s.startsWith("http")) {
+    s = "https://store.car-lifts.co.za/wp-content/uploads/" + s;
+  }
 
   useEffect(() => {
     setHasError(false);
     setIsLoaded(false);
-  }, [displayUrl]);
+  }, [s]);
 
   return (
     <div
-      onClick={() => onSelect(normalizedUrl)}
+      onClick={() => onSelect(s)}
       className="group relative bg-[#181818] hover:bg-[#202020] border border-neutral-800 hover:border-indigo-500/80 hover:ring-1 hover:ring-indigo-500/50 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 flex flex-col min-h-[220px] h-full shadow-md hover:shadow-indigo-950/30"
     >
       {/* Thumbnail Container */}
       <div className="h-32 w-full bg-neutral-950 relative overflow-hidden flex items-center justify-center shrink-0 border-b border-neutral-800/80">
-        {!hasError && displayUrl ? (
+        {!hasError && s ? (
           <img
-            src={displayUrl}
+            src={s}
             alt={item.filename || item.label || 'Media Asset'}
             loading="lazy"
             decoding="async"
             crossOrigin="anonymous"
             referrerPolicy="no-referrer"
             onLoad={() => setIsLoaded(true)}
-            onError={() => setHasError(true)}
+            onError={() => {
+              console.warn("[Picker] thumb failed:", s);
+              setHasError(true);
+            }}
             className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
               isLoaded ? 'opacity-100' : 'opacity-90'
             }`}
@@ -219,7 +228,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(normalizedUrl);
+              onSelect(s);
             }}
             className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
           >
@@ -275,7 +284,7 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
         const data = await res.json();
         if (data.success && Array.isArray(data.images)) {
           const mapped: MergedAssetItem[] = data.images.map((img: any) => {
-            const rawUrl = img.url || img.relativePath || '';
+            const rawUrl = img.url || img.source_url || img.relativePath || '';
             const url = normalizeToHttpsUrl(rawUrl);
             const filename = img.filename || url.split('/').pop() || 'wp_media_asset.jpg';
             const label = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
@@ -283,7 +292,8 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
               id: img.id || url,
               filename: filename,
               url: url,
-              relativePath: url,
+              source_url: img.source_url,
+              relativePath: img.relativePath || url,
               size: typeof img.size === 'number' ? img.size : 0,
               date: img.date,
               source: 'wordpress' as const,
@@ -466,8 +476,15 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
   };
 
   const handleCardAssign = (url: string) => {
-    const cleanHttpsUrl = normalizeToHttpsUrl(url);
-    onSelectImage(cleanHttpsUrl);
+    let s = url || "";
+    if (s.startsWith("http://")) {
+      s = s.replace("http://", "https://");
+    } else if (s.startsWith("/")) {
+      s = "https://store.car-lifts.co.za" + s;
+    } else if (!s.startsWith("http")) {
+      s = "https://store.car-lifts.co.za/wp-content/uploads/" + s;
+    }
+    onSelectImage(s);
     onClose();
   };
 
