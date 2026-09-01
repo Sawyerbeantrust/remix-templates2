@@ -177,13 +177,22 @@ apiRouter.post(
   })
 );
 
-// 3) GET /api/images
+// 3) GET /api/list-images and GET /api/images
+apiRouter.get(
+  "/list-images",
+  asyncHandler(async (req, res) => {
+    const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
+    const result = await listWpImages(perPage);
+    return res.status(200).json({ success: true, images: result });
+  })
+);
+
 apiRouter.get(
   "/images",
   asyncHandler(async (req, res) => {
-    const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 50)));
+    const perPage = Math.min(100, Math.max(1, Number(req.query.per_page || 100)));
     const result = await listWpImages(perPage);
-    return res.status(200).json(result);
+    return res.status(200).json({ success: true, images: result });
   })
 );
 
