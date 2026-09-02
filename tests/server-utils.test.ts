@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { extractCleanError, detectContentType, getWpHeaders } from "../server/utils/http.js";
+import { extractCleanError, detectContentType, getWpHeaders, DEFAULT_TIMEOUT_MS, MEDIA_UPLOAD_TIMEOUT_MS } from "../server/utils/http.js";
 import { cleanJsonText, matchLocalActionImage, SimulateImageSchema, SeoSchema } from "../server/services/ai.js";
+import { uploadBufferToWordPress } from "../server/services/wp.js";
+import * as httpUtils from "../server/utils/http.js";
 
 describe("Server HTTP & Helper Utilities", () => {
   const originalEnv = process.env;
@@ -11,6 +13,14 @@ describe("Server HTTP & Helper Utilities", () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    vi.restoreAllMocks();
+  });
+
+  describe("Timeouts", () => {
+    it("exports configurable default timeouts with correct default values", () => {
+      expect(DEFAULT_TIMEOUT_MS).toBeGreaterThanOrEqual(5000);
+      expect(MEDIA_UPLOAD_TIMEOUT_MS).toBe(30000);
+    });
   });
 
   describe("detectContentType", () => {
@@ -37,9 +47,15 @@ describe("Server HTTP & Helper Utilities", () => {
       expect(extractCleanError(401, jsonErr)).toBe("WordPress (401): Sorry, you are not allowed to create posts as this user.");
     });
 
-    it("identifies Cloudflare challenge screens", () => {
-      const cfHtml = "<html><head><title>Just a moment...</title></head><body>challenges.cloudflare.com</body></html>";
-      expect(extractCleanError(403, cfHtml)).toContain("Cloudflare security challenge");
+    it("identifies Cloudflare challenge screens across multiple signatures", () => {
+      const cfHtml1 = "<html><head><title>Just a moment...</title></head><body>challenges.cloudflare.com</body></html>";
+      expect(extractCleanError(403, cfHtml1)).toContain("Cloudflare security challenge");
+
+      const cfHtml2 = "<!DOCTYPE html><html><head><title>Attention Required! | Cloudflare</title></head><body>cf-browser-verification</body></html>";
+      expect(extractCleanError(403, cfHtml2)).toContain("Cloudflare security challenge");
+
+      const cfHtml3 = "<html><body>cf-chl cf-mitigated cloudflare ray id: 89324792384</body></html>";
+      expect(extractCleanError(403, cfHtml3)).toContain("Cloudflare security challenge");
     });
 
     it("extracts clean title from generic HTML error pages", () => {
@@ -89,6 +105,56 @@ describe("Server HTTP & Helper Utilities", () => {
       process.env.TRITON_KEY = "CustomSecretKey2026";
       const headers = getWpHeaders();
       expect(headers["X-Triton-Key"]).toBe("CustomSecretKey2026");
+    });
+
+    it("conditionally sets CF_BYPASS_SECRET when provided", () => {
+      process.env.CF_BYPASS_SECRET = "TestCfSecret123";
+      const headers = getWpHeaders();
+      expect(headers["X-CF-Bypass-Secret"]).toBe("TestCfSecret123");
+      expect(headers["X-Vercel-Secret"]).toBe("TestCfSecret123");
+    });
+  });
+
+  describe("uploadBufferToWordPress Diagnostic Behavior", () => {
+    it("includes truncated body snippet in details when TRITON_DEBUG_UPLOADS is enabled in non-production", async () => {
+      process.env.NODE_ENV = "development";
+      process.env.TRITON_DEBUG_UPLOADS = "true";
+
+      const mockHtmlResponse = "<html><head><title>Cloudflare WAF Block</title></head><body>" + "x".repeat(3000) + "</body></html>";
+      
+      vi.spyOn(httpUtils, "fetchWpSafe").mockResolvedValue({
+        ok: false,
+        status: 403,
+        data: null,
+        text: mockHtmlResponse,
+      });
+
+      const tinyBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0]);
+      const result = await uploadBufferToWordPress(tinyBuffer, "diagnostic-test.jpg", "image/jpeg");
+
+      expect(result.success).toBe(false);
+      expect(result.status).toBe(403);
+      expect(result.debugSnippet).toBeDefined();
+      expect(result.debugSnippet?.length).toBeLessThanOrEqual(2048);
+      expect(result.details).toContain("Response Snippet");
+    });
+
+    it("does NOT include debugSnippet when TRITON_DEBUG_UPLOADS is not set", async () => {
+      process.env.NODE_ENV = "development";
+      delete process.env.TRITON_DEBUG_UPLOADS;
+
+      vi.spyOn(httpUtils, "fetchWpSafe").mockResolvedValue({
+        ok: false,
+        status: 500,
+        data: null,
+        text: "<title>Error 500</title>",
+      });
+
+      const tinyBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0]);
+      const result = await uploadBufferToWordPress(tinyBuffer, "diagnostic-test.jpg", "image/jpeg");
+
+      expect(result.success).toBe(false);
+      expect(result.debugSnippet).toBeUndefined();
     });
   });
 

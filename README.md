@@ -27,32 +27,49 @@ Create a `.env` file in the root directory based on `.env.example`:
 | `WP_AUTH_TOKEN` | Bearer/Basic Auth Token for WordPress | Optional | `Bearer eyJ...` |
 | `TRITON_KEY` / `WP_MIGRATE_KEY` | Migration and Sync Key for custom endpoints | Optional | `SecretSyncKey2026` |
 | `CF_BYPASS_SECRET` | Secret to bypass Cloudflare WAF challenges | Optional | `cf_secret_...` |
+| `TRITON_DEBUG_UPLOADS` | Include WP response snippet in non-production errors | Optional | `true` or `false` |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | Optional | `http://localhost:3000,http://localhost:5173,https://car-lifts.co.za,https://store.car-lifts.co.za,https://remix-templates2.vercel.app` |
 | `SMTP_HOST` | SMTP Mail Server Host | Optional | `mail.car-lifts.co.za` |
 | `SMTP_PORT` | SMTP Mail Server Port | Optional | `465` |
 | `SMTP_USER` | SMTP Username / Sender Email | Optional | `info@car-lifts.co.za` |
 | `SMTP_PASS` | SMTP Password | Optional | `SecretPass123` |
-| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | Optional | `http://localhost:3000,https://car-lifts.co.za` |
+
+> **Diagnostic Note**: Use `TRITON_DEBUG_UPLOADS=true` and non-production `NODE_ENV` only for diagnostics; disable in production.
 
 ---
 
-## 📡 API Endpoints & Example Requests
+## 📡 API Endpoints & Verification Commands
 
-### 1. Health Probe
+### 1. Server Health & WordPress Connectivity Probe
 ```bash
-curl -X GET http://localhost:3000/health
+# Check Node/Express server health
+curl -s -X GET http://localhost:3000/health
+
+# Check WordPress REST connectivity and Cloudflare WAF status
+curl -s -X GET http://localhost:3000/api/wp/health
 ```
 
-### 2. Upload Image to WordPress Media
+### 2. WordPress Media Upload Diagnostic Probe
 ```bash
 curl -X POST http://localhost:3000/api/upload-image \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "2_post_lift.jpg",
-    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+    "name": "test-lift.jpg",
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
   }'
 ```
 
-### 3. Generate SEO Metadata with Gemini AI
+### 3. Retrieve WordPress Media Catalog with Thumbnails
+```bash
+curl -s -X GET "http://localhost:3000/api/list-images?include-thumbnails=true"
+```
+
+### 4. Admin Portal Access
+- **UI Access**: Click "Admin Portal" in the top header or mobile menu, or click the floating "Admin Access" badge at the bottom-left.
+- **Passcode Authentication**: Enter administrative PIN (default `5252`). Session is stored securely in `sessionStorage`.
+- **Direct Route**: Navigate to `#admin` in the browser URL.
+
+### 5. Generate SEO Metadata with Gemini AI
 ```bash
 curl -X POST http://localhost:3000/api/generate-seo \
   -H "Content-Type: application/json" \

@@ -25,6 +25,7 @@ interface HeaderProps {
   onOpenAssistant?: () => void;
   wishlist?: Product[];
   onOpenWishlist?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export default function Header({
@@ -48,6 +49,7 @@ export default function Header({
   onOpenAssistant,
   wishlist = [],
   onOpenWishlist,
+  onOpenAdmin,
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -96,12 +98,20 @@ export default function Header({
             <span className="flex items-center gap-2 hover:text-white cursor-pointer transition-colors">
               <Mail size={10} className="text-white" /> info@car-lifts.co.za
             </span>
-            <span 
-              onClick={() => window.location.hash = '#admin'} 
-              className="flex items-center gap-2 hover:text-red-500 cursor-pointer transition-colors font-bold text-neutral-400 pl-4 border-l border-[#333333]"
+            <button 
+              type="button"
+              onClick={() => {
+                if (onOpenAdmin) {
+                  onOpenAdmin();
+                } else {
+                  window.location.hash = '#admin';
+                }
+              }} 
+              className="flex items-center gap-2 hover:text-red-500 cursor-pointer transition-colors font-bold text-neutral-400 pl-4 border-l border-[#333333] bg-transparent border-0"
+              title="Open Administrative Terminal"
             >
               <Shield size={10} className="text-red-500 animate-pulse" /> {language === 'en' ? 'Admin Portal' : 'Admin Portaal'}
-            </span>
+            </button>
           </div>
           <div className="flex items-center gap-4 text-[#999999]">
             <span className="flex items-center gap-2 hover:text-white cursor-pointer transition-colors">
@@ -675,6 +685,22 @@ export default function Header({
                 >
                   Contact
                 </a>
+
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    if (onOpenAdmin) {
+                      onOpenAdmin();
+                    } else {
+                      window.location.hash = '#admin';
+                    }
+                  }}
+                  className="w-full text-left px-5 py-4 text-sm font-bold text-red-600 border-b border-[#f0f0f0] hover:bg-red-50 flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Shield size={16} className="text-red-600" />
+                  <span>{language === 'en' ? 'Admin Portal' : 'Admin Portaal'}</span>
+                </button>
 
                 <div className="p-5 mt-4">
                    <button

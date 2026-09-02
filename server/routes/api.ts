@@ -130,11 +130,15 @@ apiRouter.post(
     );
 
     if (!uploadResult.success) {
+      const detailsPayload = uploadResult.debugSnippet
+        ? { message: uploadResult.details, snippet: uploadResult.debugSnippet }
+        : uploadResult.details;
+
       return sendError(
         res,
         uploadResult.error || "Failed to upload image to WordPress",
         uploadResult.status || 502,
-        uploadResult.details
+        detailsPayload
       );
     }
 
@@ -173,11 +177,15 @@ apiRouter.post(
     );
 
     if (!uploadResult.success) {
+      const detailsPayload = uploadResult.debugSnippet
+        ? { message: uploadResult.details, snippet: uploadResult.debugSnippet }
+        : uploadResult.details;
+
       return sendError(
         res,
         uploadResult.error || "Failed to upload category image to WordPress",
         uploadResult.status || 502,
-        uploadResult.details
+        detailsPayload
       );
     }
 
@@ -187,6 +195,49 @@ apiRouter.post(
       height: validation.height,
       format: validation.format,
       byteLength: validation.byteLength,
+    });
+  })
+);
+
+// 2b) GET /api/wp/health (WordPress Connectivity and Cloudflare Diagnostic Probe)
+apiRouter.get(
+  "/wp/health",
+  asyncHandler(async (_req, res) => {
+    const wpBase = CONFIG.WP_BASE_URL;
+    const isDebug = process.env.TRITON_DEBUG_UPLOADS === "true" && process.env.NODE_ENV !== "production";
+    const startTime = Date.now();
+
+    const wpRes = await fetchWpSafe(
+      `${wpBase}/wp-json`,
+      {
+        headers: getWpHeaders({ Accept: "application/json" }),
+      },
+      8000
+    );
+
+    const durationMs = Date.now() - startTime;
+    const lowerText = (wpRes.text || "").toLowerCase();
+    const isCloudflare =
+      (wpRes.text || "").includes("challenges.cloudflare.com") ||
+      (wpRes.text || "").includes("<title>Just a moment...</title>") ||
+      (wpRes.text || "").includes("cf-chl") ||
+      (wpRes.text || "").includes("cf-mitigated") ||
+      lowerText.includes("attention required! | cloudflare") ||
+      lowerText.includes("cf-browser-verification") ||
+      lowerText.includes("cloudflare ray id");
+
+    return res.status(200).json({
+      success: wpRes.ok,
+      wpBase,
+      wpStatus: wpRes.status,
+      durationMs,
+      isCloudflare,
+      authConfigured: !!(process.env.WP_APP_USER && process.env.WP_APP_PASSWORD) || !!process.env.WP_AUTH_TOKEN,
+      tritonKeyConfigured: !!(process.env.TRITON_KEY || process.env.WP_MIGRATE_KEY),
+      cfBypassConfigured: !!(process.env.CF_BYPASS_SECRET || process.env.VERCEL_SECRET),
+      debugUploadsEnabled: process.env.TRITON_DEBUG_UPLOADS === "true",
+      timestamp: new Date().toISOString(),
+      ...(isDebug && wpRes.text ? { debugSnippet: wpRes.text.slice(0, 1024) } : {}),
     });
   })
 );

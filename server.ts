@@ -59,6 +59,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
     ];
 
 const isProduction = process.env.NODE_ENV === "production";
+let lastBlockedCorsLogTime = 0;
+const BLOCKED_CORS_LOG_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 app.use(
   cors({
@@ -87,7 +89,11 @@ app.use(
 
       // In production, block origins not in ALLOWED_ORIGINS
       if (isProduction) {
-        logger.warn({ origin, allowedOrigins }, "CORS blocked request from untrusted origin in production");
+        const now = Date.now();
+        if (now - lastBlockedCorsLogTime > BLOCKED_CORS_LOG_INTERVAL_MS) {
+          lastBlockedCorsLogTime = now;
+          logger.info({ origin, allowedOrigins }, "CORS blocked request from origin not in allowedOrigins (logged once per 5m)");
+        }
         return callback(null, false);
       }
 
