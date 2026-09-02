@@ -29,7 +29,7 @@ import {
   buildCategoryAuditPrompt,
 } from "../prompts/templates.js";
 import { generateEmailPayloadWithGemini, sendSmtpEmail } from "../services/email.js";
-import { CONFIG } from "../config.js";
+import { CONFIG, THUMBNAIL_SIZES, type ThumbnailSizeKey } from "../config.js";
 import {
   UploadImageSchema,
   SaveCategoryImageSchema,
@@ -221,10 +221,17 @@ async function handleGetImages(req: Request, res: Response) {
     };
   });
 
+  // Add cache stats to response header
+  res.setHeader("X-Thumbnail-Cache-Status", includeThumbnails ? "enabled" : "disabled");
+
   return res.status(200).json({
     success: true,
     count: images.length,
+    source: "wordpress",
+    includedThumbnails: includeThumbnails,
+    thumbnailSizes: includeThumbnails ? (Object.keys(THUMBNAIL_SIZES) as ThumbnailSizeKey[]).concat(["original" as any]) : undefined,
     images,
+    timestamp: new Date().toISOString(),
   });
 }
 
@@ -239,7 +246,9 @@ apiRouter.get(
     const stats = getCacheStats();
     return res.status(200).json({
       success: true,
+      ...stats,
       stats,
+      timestamp: new Date().toISOString(),
     });
   })
 );
@@ -248,12 +257,14 @@ apiRouter.post(
   "/thumbnails/invalidate-cache",
   requireTritonKey,
   asyncHandler(async (req, res) => {
-    const { urlPattern } = req.body || {};
+    const urlPattern = ((req.query.url as string) || req.body?.urlPattern) as string | undefined;
     const cleared = invalidateCache(typeof urlPattern === "string" ? urlPattern : undefined);
     return res.status(200).json({
       success: true,
       cleared,
-      message: urlPattern ? `Invalidated cache entries matching: ${urlPattern}` : "All thumbnail cache entries cleared",
+      clearedCount: cleared,
+      message: urlPattern ? `Cleared cache matching '${urlPattern}'` : "Cleared entire thumbnail cache",
+      timestamp: new Date().toISOString(),
     });
   })
 );

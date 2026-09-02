@@ -50,7 +50,13 @@ app.use(compression());
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
-  : ["http://localhost:3000", "https://car-lifts.co.za", "https://store.car-lifts.co.za"];
+  : [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://car-lifts.co.za",
+      "https://store.car-lifts.co.za",
+      "https://remix-templates2.vercel.app",
+    ];
 
 const isProduction = process.env.NODE_ENV === "production";
 
