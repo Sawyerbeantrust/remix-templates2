@@ -16,6 +16,7 @@ import FaqModal from './components/FaqModal';
 import CompareModal from './components/CompareModal';
 import AssistantChatModal from './components/AssistantChatModal';
 import WishlistModal from './components/WishlistModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import ResponsiveImage from './components/ResponsiveImage';
 import CategoryPreviewImage from './components/CategoryPreviewImage';
 import { handleImageElementError } from './utils/imageFallback';
@@ -27,7 +28,7 @@ import { Product, CartItem, InquiryFormData, FeaturedCategory } from './types';
 import { getCategoryFromQuery } from './utils/seoKeywords';
 import { normalizeCategorySlug, formatCategoryLabel } from './utils/categoryUtils';
 import { stripHtml } from './utils/stripHtml';
-import { ShieldCheck, Calendar, PhoneCall, HelpCircle, ArrowRight, Download, Send, Coins, FileText, CheckCircle2, Award, Hammer, Sparkles, Building2, Eye, X, Settings, ChevronDown, ChevronUp, ZoomIn, Map, MapPin, ZoomOut, RotateCcw, Plus, Minus, Move, ArrowUp, MessageCircle, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, Bot, Heart } from 'lucide-react';
+import { Shield, ShieldCheck, Calendar, PhoneCall, HelpCircle, ArrowRight, Download, Send, Coins, FileText, CheckCircle2, Award, Hammer, Sparkles, Building2, Eye, X, Settings, ChevronDown, ChevronUp, ZoomIn, Map, MapPin, ZoomOut, RotateCcw, Plus, Minus, Move, ArrowUp, MessageCircle, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, Bot, Heart, Lock, KeyRound } from 'lucide-react';
 
 const WHATSAPP_NUMBER = "27768252078";
 
@@ -131,6 +132,17 @@ export default function App() {
     return (window.location.hash === '#admin' || window.location.search.includes('admin')) ? 'admin' : 'store';
   });
   const [adminClicks, setAdminClicks] = useState(0);
+  const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
+
+  const handleOpenAdminAccess = () => {
+    const isUnlocked = sessionStorage.getItem('triton_admin_unlocked') === 'true';
+    if (isUnlocked) {
+      window.location.hash = '#admin';
+      setCurrentView('admin');
+    } else {
+      setIsAdminLoginModalOpen(true);
+    }
+  };
 
   // Global Maintenance Mode State (persisted via WordPress MySQL & mirrored in localStorage)
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(() => {
@@ -2043,10 +2055,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => {
-                window.location.hash = '#admin';
-                setCurrentView('admin');
-              }}
+              onClick={handleOpenAdminAccess}
               className="px-2.5 py-1 bg-black text-white text-xs font-black uppercase rounded hover:bg-neutral-900 transition-colors cursor-pointer"
             >
               Admin Console
@@ -2095,6 +2104,7 @@ export default function App() {
         onOpenAssistant={() => setIsAssistantOpen(true)}
         wishlist={wishlist}
         onOpenWishlist={() => setIsWishlistOpen(true)}
+        onOpenAdmin={handleOpenAdminAccess}
       />
 
       {/* CORE HERO SECTION */}
@@ -3464,6 +3474,32 @@ export default function App() {
           </span>
         </a>
       )}
+
+      {/* Floating Admin Access Button */}
+      {currentView === 'store' && (
+        <button
+          id="admin-access-floating-btn"
+          onClick={handleOpenAdminAccess}
+          className="fixed bottom-6 left-6 z-[100] flex items-center gap-2 px-3.5 py-3 bg-[#111111]/90 hover:bg-red-600 text-neutral-300 hover:text-white rounded-full shadow-2xl transition-all duration-300 group cursor-pointer border border-neutral-800 hover:border-red-500 backdrop-blur-md"
+          title="Administrative Terminal Access"
+        >
+          <Shield size={16} className="text-red-500 group-hover:text-white transition-colors animate-pulse" />
+          <span className="text-xs font-bold uppercase tracking-wider font-sans hidden sm:inline">
+            Admin Access
+          </span>
+        </button>
+      )}
+
+      {/* Admin Login / Passcode Modal */}
+      <AdminLoginModal
+        isOpen={isAdminLoginModalOpen}
+        onClose={() => setIsAdminLoginModalOpen(false)}
+        onAuthenticated={() => {
+          setIsAdminLoginModalOpen(false);
+          window.location.hash = '#admin';
+          setCurrentView('admin');
+        }}
+      />
 
       {/* FULLSCREEN QUICK ZOOM LIGHTBOX MODAL */}
       {zoomImageUrl && (

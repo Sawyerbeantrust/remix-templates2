@@ -4,9 +4,9 @@ import { fetchWithRetry, FetchRetryOptions, FetchRetryResult } from "./fetchWith
 import { CONFIG } from "../config.js";
 import { logger } from "./logger.js";
 
-export const DEFAULT_TIMEOUT_MS = 5000;
-export const MEDIA_UPLOAD_TIMEOUT_MS = 15000;
-export const AI_REQUEST_TIMEOUT_MS = 20000;
+export const DEFAULT_TIMEOUT_MS = Number(process.env.WP_DEFAULT_TIMEOUT_MS) || 5000;
+export const MEDIA_UPLOAD_TIMEOUT_MS = Number(process.env.WP_UPLOAD_TIMEOUT_MS) || 30000;
+export const AI_REQUEST_TIMEOUT_MS = Number(process.env.WP_AI_TIMEOUT_MS) || 20000;
 
 export const WP_BASE_URL = CONFIG.WP_BASE_URL;
 export const BASE_URL = CONFIG.BASE_URL;
@@ -179,14 +179,20 @@ export function extractCleanError(status: number, rawText: string): string {
       return `WordPress (${status}): ${parsed.message}`;
     }
   } catch {}
+
+  const lower = rawText.toLowerCase();
   if (
     rawText.includes("<title>Just a moment...</title>") ||
     rawText.includes("challenges.cloudflare.com") ||
-    rawText.includes("cf-chl")
+    rawText.includes("cf-chl") ||
+    rawText.includes("cf-mitigated") ||
+    lower.includes("attention required! | cloudflare") ||
+    lower.includes("cf-browser-verification") ||
+    lower.includes("cloudflare ray id")
   ) {
     return `Cloudflare security challenge (HTTP ${status}). Ensure CF_BYPASS_SECRET is set in environment and configured in Cloudflare WAF.`;
   }
-  if (rawText.startsWith("<!DOCTYPE") || rawText.startsWith("<html")) {
+  if (rawText.startsWith("<!DOCTYPE") || rawText.startsWith("<html") || lower.includes("<html")) {
     const titleMatch = rawText.match(/<title>([^<]*)<\/title>/i);
     if (titleMatch && titleMatch[1]) {
       return `WordPress returned HTML error (HTTP ${status}): ${titleMatch[1].trim()}`;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Package, Layers, Globe, Image, HardDrive, FileSpreadsheet,
-  Sliders, Radio, FileCode, Terminal, ShieldAlert, Lock,
+  Sliders, Radio, FileCode, Terminal, ShieldAlert, Lock, Unlock,
   ArrowLeft, GripVertical
 } from 'lucide-react';
 import { Product, FeaturedCategory } from '../types/index.js';
@@ -380,6 +380,25 @@ export default function WordPressConsole({
 
         {/* Global Quick Actions */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('admin');
+              if (!isUnlocked) {
+                handleVerifyPasscode();
+              }
+            }}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border ${
+              isUnlocked
+                ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/60'
+                : 'bg-red-950/60 border-red-500/40 text-red-400 hover:bg-red-900/60 animate-pulse'
+            }`}
+            title="Open Admin Terminal / Verify PIN"
+          >
+            {isUnlocked ? <Unlock size={13} /> : <Lock size={13} />}
+            <span>{isUnlocked ? 'Admin Unlocked' : 'Admin Access'}</span>
+          </button>
+
           {maintenanceModeState && (
             <span className="px-2 py-0.5 bg-amber-950/80 border border-amber-600/40 text-amber-400 text-[10px] font-bold uppercase rounded flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
