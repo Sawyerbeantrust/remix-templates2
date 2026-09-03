@@ -111,7 +111,22 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 const morganFormat = process.env.NODE_ENV === "production" ? "combined" : "dev";
 app.use(
   morgan(morganFormat, {
-        skip: (req) => ["/health", "/ready", "/api/health", "/api/ready"].includes(req.url),
+    skip: (req) => {
+      const url = req.url || "";
+      if (["/health", "/ready", "/api/health", "/api/ready"].includes(url)) return true;
+      if (process.env.NODE_ENV !== "production") {
+        if (
+          url.startsWith("/src/") ||
+          url.startsWith("/@") ||
+          url.startsWith("/node_modules/") ||
+          url.includes("?import") ||
+          /\.(tsx?|jsx?|css|scss|less|svg|png|jpe?g|webp|gif|ico|woff2?|map)$/i.test(url.split("?")[0])
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
     stream: {
       write: (message) => logger.info(message.trim()),
     },
