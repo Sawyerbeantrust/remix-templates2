@@ -111,7 +111,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 const morganFormat = process.env.NODE_ENV === "production" ? "combined" : "dev";
 app.use(
   morgan(morganFormat, {
-    skip: (req) => req.url === "/health" || req.url === "/ready",
+        skip: (req) => ["/health", "/ready", "/api/health", "/api/ready"].includes(req.url),
     stream: {
       write: (message) => logger.info(message.trim()),
     },
@@ -119,21 +119,25 @@ app.use(
 );
 
 // Probes for Kubernetes / Cloud Run / container orchestration
-app.get("/health", (req, res) => {
+const healthHandler = (req: express.Request, res: express.Response) => {
   res.status(200).json({
     status: "ok",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
-});
+};
 
-app.get("/ready", (req, res) => {
+const readyHandler = (req: express.Request, res: express.Response) => {
   res.status(200).json({
     status: "ready",
     timestamp: new Date().toISOString(),
   });
-});
+};
 
+app.get("/health", healthHandler);
+app.get("/ready", readyHandler);
+app.get("/api/health", healthHandler);
+app.get("/api/ready", readyHandler);
 // Static route options
 const staticOptions = {
   maxAge: process.env.NODE_ENV === "production" ? "7d" : "0",
