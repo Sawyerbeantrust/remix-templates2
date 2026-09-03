@@ -208,6 +208,7 @@ async function fetchRemoteBuffer(
   timeoutMs: number = THUMBNAIL_CONFIG.FETCH_TIMEOUT_MS,
   maxRetries: number = THUMBNAIL_CONFIG.FETCH_MAX_RETRIES
 ): Promise<{ buffer: Buffer; contentType: string; lastModified: string }> {
+  const cfBypassSecret = (process.env.CF_BYPASS_SECRET || process.env.VERCEL_SECRET || "").trim();
   let attempt = 0;
   let lastError: Error = new Error("Fetch failed");
 
@@ -226,9 +227,10 @@ async function fetchRemoteBuffer(
           path: parsedUrl.pathname + parsedUrl.search,
           method: "GET",
           agent,
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TritonProxy/2.0",
-            Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TritonProxy/2.0",
+           Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+           ...(cfBypassSecret ? { "X-CF-Bypass-Secret": cfBypassSecret, "X-Vercel-Secret": cfBypassSecret } : {}),
           },
           timeout: timeoutMs,
         };
