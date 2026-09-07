@@ -206,7 +206,7 @@ export default function AssistantChatModal({
 
     try {
       const history = messages.map(m => ({
-        role: m.sender === 'user' ? 'user' : 'model',
+        role: m.sender === 'user' ? 'user' : 'assistant',
         text: m.text
       }));
 
