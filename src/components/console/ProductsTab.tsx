@@ -6,9 +6,10 @@ import {
 } from 'lucide-react';
 import { Product } from '../../types/index.js';
 import { formatZarPrice } from '../../utils/console/formatters.js';
-import { calculateSeoScore } from '../../utils/console/seoGenerators.js';
+import { calculateSeoScore, generateDeterministicProductSeo } from '../../utils/console/seoGenerators.js';
 import { ConfirmationDialog } from './ConfirmationDialog.js';
 import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
+import { buildClientFallbackLongDescription } from '../../utils/console/productDescriptionGenerator.js';
 
 interface ProductsTabProps {
   products: Product[];
@@ -50,6 +51,10 @@ interface ProductsTabProps {
   handleBulkAutoFill: () => void;
   handleBulkDeleteDrafts: () => void;
   handleExportCSV: () => void;
+  selectedCategoryFilter?: string;
+  setSelectedCategoryFilter?: (cat: string) => void;
+  handleShiftProductOrder?: (productId: string, direction: 'up' | 'down', categoryFilter?: string) => void;
+  handleSetProductSortOrder?: (productId: string, desiredRank: number, categoryFilter?: string) => void;
 }
 
 export const ProductsTab: React.FC<ProductsTabProps> = ({
@@ -62,6 +67,8 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
   setSearchProductQuery,
   selectedStatusFilter,
   setSelectedStatusFilter,
+  selectedCategoryFilter = 'all',
+  setSelectedCategoryFilter,
   saveMessage,
   productToDeleteId,
   autoSyncOnSave,
@@ -92,8 +99,119 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
   handleBulkAutoFill,
   handleBulkDeleteDrafts,
   handleExportCSV,
+  handleShiftProductOrder,
+  handleSetProductSortOrder,
 }) => {
   const [activeEditorTab, setActiveEditorTab] = useState<'basic' | 'specs' | 'features' | 'images' | 'seo'>('basic');
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [descriptionGenSuccess, setDescriptionGenSuccess] = useState(false);
+  const [previewLongDescription, setPreviewLongDescription] = useState(false);
+
+  const handleAutoGenerateLongDescription = async () => {
+    if (!editedProduct || isGeneratingDescription) return;
+    setIsGeneratingDescription(true);
+    setDescriptionGenSuccess(false);
+
+    try {
+      const response = await fetch('/api/generate-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-triton-client': 'console-admin',
+        },
+        body: JSON.stringify({
+          name: editedProduct.name,
+          category: editedProduct.category,
+          modelCode: editedProduct.modelCode,
+          price: editedProduct.price,
+          description: editedProduct.description,
+          features: editedProduct.features || [],
+          specifications: editedProduct.specifications || {},
+        }),
+      });
+
+      const json = await response.json();
+      if (json.success && json.data?.longDescription) {
+        setEditedProduct({
+          ...editedProduct,
+          longDescription: json.data.longDescription,
+        });
+        setDescriptionGenSuccess(true);
+        setTimeout(() => setDescriptionGenSuccess(false), 3000);
+      } else {
+        throw new Error(json.error || 'Server error generating description');
+      }
+    } catch (err) {
+      console.warn('Network or server error generating long description, using client fallback engine:', err);
+      const fallback = buildClientFallbackLongDescription(editedProduct);
+      setEditedProduct({
+        ...editedProduct,
+        longDescription: fallback,
+      });
+      setDescriptionGenSuccess(true);
+      setTimeout(() => setDescriptionGenSuccess(false), 3000);
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
+  const [isGeneratingSeo, setIsGeneratingSeo] = useState(false);
+  const [seoGenSuccess, setSeoGenSuccess] = useState(false);
+
+  const handleAutoGenerateSeo = async () => {
+    if (!editedProduct || isGeneratingSeo) return;
+    setIsGeneratingSeo(true);
+    setSeoGenSuccess(false);
+
+    try {
+      const response = await fetch('/api/generate-seo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-triton-client': 'console-admin',
+        },
+        body: JSON.stringify({
+          name: editedProduct.name,
+          category: editedProduct.category,
+          currentDescription: editedProduct.description,
+          currentSeo: {
+            metaTitle: editedProduct.seoTitle,
+            metaDescription: editedProduct.seoDescription,
+            focusKeywords: editedProduct.seoFocusKeyword ? [editedProduct.seoFocusKeyword] : [],
+          },
+          specifications: editedProduct.specifications,
+        }),
+      });
+
+      const json = await response.json();
+      if (json.success && json.data) {
+        const { metaTitle, metaDescription, focusKeywords } = json.data;
+        setEditedProduct({
+          ...editedProduct,
+          seoTitle: metaTitle || editedProduct.seoTitle,
+          seoDescription: metaDescription || editedProduct.seoDescription,
+          seoFocusKeyword: (focusKeywords && focusKeywords[0]) || editedProduct.seoFocusKeyword,
+        });
+        setSeoGenSuccess(true);
+        setTimeout(() => setSeoGenSuccess(false), 3000);
+      } else {
+        throw new Error(json.error || 'Server error generating SEO');
+      }
+    } catch (err) {
+      console.warn('Network or server error generating SEO, using client fallback engine:', err);
+      const fallback = generateDeterministicProductSeo(editedProduct);
+      setEditedProduct({
+        ...editedProduct,
+        seoTitle: fallback.metaTitle,
+        seoDescription: fallback.metaDescription,
+        seoFocusKeyword: fallback.focusKeyword,
+      });
+      setSeoGenSuccess(true);
+      setTimeout(() => setSeoGenSuccess(false), 3000);
+    } finally {
+      setIsGeneratingSeo(false);
+    }
+  };
 
   const totalValue = products.reduce((acc, p) => acc + (p.price || 0), 0);
   const inStockCount = products.filter((p) => p.inStock).length;
@@ -134,61 +252,104 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
         {/* Products List (Left side or Full width) */}
         <div className={editedProduct ? 'w-full md:w-72 lg:w-80 xl:w-96 shrink-0 space-y-4' : 'w-full space-y-4'}>
           {/* Action Toolbar */}
-          <div className="p-4 bg-neutral-900/80 border border-neutral-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
-                <input
-                  type="text"
-                  placeholder="Search catalog by name, model code, ID..."
-                  value={searchProductQuery}
-                  onChange={(e) => setSearchProductQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500"
-                />
+          <div className="p-4 bg-neutral-900/80 border border-neutral-800 rounded-xl space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
+                  <input
+                    type="text"
+                    placeholder="Search catalog by name, model code, ID..."
+                    value={searchProductQuery}
+                    onChange={(e) => setSearchProductQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div className="flex bg-neutral-950 border border-neutral-800 rounded-lg p-0.5">
+                  {(['all', 'publish', 'draft'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSelectedStatusFilter(s)}
+                      className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded ${
+                        selectedStatusFilter === s
+                          ? 'bg-neutral-800 text-white'
+                          : 'text-neutral-400 hover:text-neutral-200'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex bg-neutral-950 border border-neutral-800 rounded-lg p-0.5">
-                {(['all', 'publish', 'draft'] as const).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSelectedStatusFilter(s)}
-                    className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded ${
-                      selectedStatusFilter === s
-                        ? 'bg-neutral-800 text-white'
-                        : 'text-neutral-400 hover:text-neutral-200'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCreateNewProduct}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Plus size={14} />
+                  <span>New Product</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkAutoFill}
+                  title="Auto-fill missing SEO titles and descriptions"
+                  className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                >
+                  <Sparkles size={13} className="text-amber-400" />
+                  <span className="hidden sm:inline">Bulk SEO</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
+                >
+                  CSV
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Category Filter Pills & Sequence Reorder Guide */}
+            <div className="flex items-center gap-1.5 pt-2 border-t border-neutral-800/80 overflow-x-auto pb-1 text-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 shrink-0 flex items-center gap-1">
+                <Filter size={11} /> Category:
+              </span>
               <button
                 type="button"
-                onClick={handleCreateNewProduct}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-sm"
+                onClick={() => setSelectedCategoryFilter?.('all')}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg shrink-0 transition-colors ${
+                  (selectedCategoryFilter === 'all' || !selectedCategoryFilter)
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200 border border-neutral-850'
+                }`}
               >
-                <Plus size={14} />
-                <span>New Product</span>
+                All Categories ({products.length})
               </button>
-              <button
-                type="button"
-                onClick={handleBulkAutoFill}
-                title="Auto-fill missing SEO titles and descriptions"
-                className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
-              >
-                <Sparkles size={13} className="text-amber-400" />
-                <span className="hidden sm:inline">Bulk SEO</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
-              >
-                CSV
-              </button>
+              {categories.map((cat) => {
+                const count = products.filter(
+                  (p) => p.category.toLowerCase() === cat.toLowerCase()
+                ).length;
+                const isSelected = selectedCategoryFilter?.toLowerCase() === cat.toLowerCase();
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategoryFilter?.(cat)}
+                    className={`px-2.5 py-1 text-[11px] font-bold rounded-lg shrink-0 transition-colors flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200 border border-neutral-850'
+                    }`}
+                  >
+                    <span>{cat}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-indigo-700 text-indigo-100' : 'bg-neutral-900 text-neutral-500'}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -196,16 +357,59 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
           <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1">
             {filteredProducts.map((p) => {
               const isSelected = editedProduct?.id === p.id;
+
+              // Calculate category-specific sequence and bounds
+              const categoryProducts = products
+                .filter((prod) => prod.category.toLowerCase() === p.category.toLowerCase())
+                .sort((a, b) => {
+                  const sortA = a.sortOrder ?? 99999;
+                  const sortB = b.sortOrder ?? 99999;
+                  if (sortA !== sortB) return sortA - sortB;
+                  return (a.name || '').localeCompare(b.name || '');
+                });
+              const catIndex = categoryProducts.findIndex((prod) => prod.id === p.id);
+              const isFirst = catIndex <= 0;
+              const isLast = catIndex === categoryProducts.length - 1;
+              const currentRank = p.sortOrder ?? (catIndex >= 0 ? catIndex + 1 : 1);
+
               return (
                 <div
                   key={p.id}
                   onClick={() => setEditedProduct(p)}
-                  className={`p-3 rounded-xl border transition-all duration-150 cursor-pointer flex items-center gap-3.5 ${
+                  className={`p-3 rounded-xl border transition-all duration-150 cursor-pointer flex items-center gap-3 ${
                     isSelected
                       ? 'bg-indigo-950/40 border-indigo-500 shadow-md'
                       : 'bg-neutral-900/60 border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900/90'
                   }`}
                 >
+                  {/* Shift Up/Down & Rank Badge */}
+                  <div className="flex flex-col items-center justify-center shrink-0 pr-1 border-r border-neutral-800/80" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => handleShiftProductOrder?.(p.id, 'up', selectedCategoryFilter)}
+                      disabled={isFirst}
+                      className="p-1 rounded text-neutral-400 hover:text-indigo-400 hover:bg-neutral-800 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-neutral-400 transition-colors"
+                      title="Shift Up in category preference order"
+                    >
+                      <ChevronUp size={13} />
+                    </button>
+                    <span
+                      className="px-1 py-0.5 rounded text-[9px] font-mono font-bold bg-neutral-950 border border-neutral-800 text-amber-400 min-w-[22px] text-center"
+                      title={`Order position #${currentRank} in category ${p.category}`}
+                    >
+                      #{currentRank}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleShiftProductOrder?.(p.id, 'down', selectedCategoryFilter)}
+                      disabled={isLast}
+                      className="p-1 rounded text-neutral-400 hover:text-indigo-400 hover:bg-neutral-800 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-neutral-400 transition-colors"
+                      title="Shift Down in category preference order"
+                    >
+                      <ChevronDown size={13} />
+                    </button>
+                  </div>
+
                   <div className="w-12 h-12 rounded-lg bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
                     <img
                       src={p.image}
@@ -310,27 +514,52 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
             </div>
 
             {/* Editor Navigation Sub-tabs */}
-            <div className="flex border-b border-neutral-800 bg-neutral-900/60 px-4 gap-2 pt-2">
+            <div className="flex border-b border-neutral-800 bg-neutral-900/60 px-4 gap-2 pt-2 overflow-x-auto">
               {[
                 { id: 'basic', label: 'Basic Info' },
                 { id: 'specs', label: 'Specifications' },
                 { id: 'features', label: 'Features' },
                 { id: 'images', label: 'Images & Media' },
                 { id: 'seo', label: 'SEO & Meta' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveEditorTab(tab.id as any)}
-                  className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
-                    activeEditorTab === tab.id
-                      ? 'border-indigo-500 text-white'
-                      : 'border-transparent text-neutral-400 hover:text-neutral-200'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              ].map((tab) => {
+                const isSeo = tab.id === 'seo';
+                const isActive = activeEditorTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveEditorTab(tab.id as any)}
+                    className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? isSeo
+                          ? 'border-purple-500 text-white bg-purple-500/10'
+                          : 'border-indigo-500 text-white bg-indigo-500/10'
+                        : isSeo
+                        ? 'border-transparent text-purple-300/80 hover:text-purple-200 hover:bg-purple-950/20'
+                        : 'border-transparent text-neutral-400 hover:text-neutral-200 hover:bg-neutral-850/40'
+                    }`}
+                  >
+                    {isSeo && (
+                      <Sparkles size={12} className={isActive ? 'text-purple-400' : 'text-purple-400/80'} />
+                    )}
+                    <span>{tab.label}</span>
+                    {isSeo && editedProduct && (
+                      <span
+                        className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-tight transition-colors ${
+                          currentSeoScore >= 75
+                            ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
+                            : currentSeoScore >= 50
+                            ? 'bg-amber-950 text-amber-400 border border-amber-500/30'
+                            : 'bg-red-950/80 text-red-400 border border-red-500/30'
+                        }`}
+                        title={`SEO Health Score: ${currentSeoScore}/100`}
+                      >
+                        {currentSeoScore}%
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Editor Body */}
@@ -362,7 +591,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
                         Category
@@ -405,6 +634,25 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                         <option value="draft">Draft (Hidden)</option>
                       </select>
                     </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                        Display Order (# in Cat)
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={editedProduct.sortOrder ?? 1}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setEditedProduct({
+                            ...editedProduct,
+                            sortOrder: isNaN(val) ? 1 : Math.max(1, val),
+                          });
+                        }}
+                        className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                        placeholder="1"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -420,16 +668,70 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                      Full Long Description / Technical Specs HTML
+                    <label className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wider text-neutral-300 mb-1.5 cursor-default select-none">
+                      <span className="flex items-center gap-1.5 text-neutral-200">
+                        <FileText size={13} className="text-indigo-400 shrink-0" />
+                        <span>Full Long Description / Technical Specs HTML</span>
+                      </span>
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        {editedProduct.longDescription && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setPreviewLongDescription(!previewLongDescription);
+                            }}
+                            className="px-2 py-0.5 rounded text-[10px] font-semibold text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors cursor-pointer"
+                          >
+                            {previewLongDescription ? 'Edit Code' : 'Preview HTML'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleAutoGenerateLongDescription();
+                          }}
+                          disabled={isGeneratingDescription}
+                          className="px-2.5 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50 cursor-pointer shadow-purple-900/20"
+                          title="Auto-generate commercial & technical long description using Gemini AI"
+                        >
+                          {isGeneratingDescription ? (
+                            <Loader2 size={11} className="animate-spin text-purple-200" />
+                          ) : descriptionGenSuccess ? (
+                            <Check size={11} className="text-emerald-300" />
+                          ) : (
+                            <Sparkles size={11} className="text-purple-200" />
+                          )}
+                          <span>
+                            {isGeneratingDescription
+                              ? 'Generating...'
+                              : descriptionGenSuccess
+                              ? 'Generated!'
+                              : 'Auto Generate Long Description'}
+                          </span>
+                        </button>
+                      </div>
                     </label>
-                    <textarea
-                      rows={5}
-                      value={editedProduct.longDescription || ''}
-                      onChange={(e) => setEditedProduct({ ...editedProduct, longDescription: e.target.value })}
-                      placeholder="Enter detailed technical narrative, warranty terms, and maintenance instructions..."
-                      className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
-                    />
+                    {previewLongDescription ? (
+                      <div className="p-4 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-neutral-300 space-y-2 max-h-72 overflow-y-auto leading-relaxed [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-indigo-300 [&_h3]:mt-3 [&_h3]:mb-1.5 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_li]:text-neutral-300 [&_strong]:text-white">
+                        {editedProduct.longDescription ? (
+                          <div dangerouslySetInnerHTML={{ __html: editedProduct.longDescription }} />
+                        ) : (
+                          <p className="text-neutral-500 italic">No description generated yet.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <textarea
+                        rows={7}
+                        value={editedProduct.longDescription || ''}
+                        onChange={(e) => setEditedProduct({ ...editedProduct, longDescription: e.target.value })}
+                        placeholder="Enter detailed technical narrative, warranty terms, and maintenance instructions, or click Auto Generate Long Description above..."
+                        className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-indigo-500 leading-relaxed"
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -775,29 +1077,74 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
 
               {activeEditorTab === 'seo' && (
                 <div className="space-y-4">
-                  <div className="p-3 bg-neutral-950 border border-neutral-850 rounded-xl flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">SEO Health Score</p>
-                      <p className="text-lg font-bold text-white mt-0.5">{currentSeoScore} / 100</p>
+                  {/* SEO Status & AI Action Card */}
+                  <div className="p-3.5 bg-neutral-950 border border-neutral-850 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">SEO Health Score</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-lg font-bold text-white font-mono">{currentSeoScore} / 100</span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                              currentSeoScore >= 75
+                                ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
+                                : currentSeoScore >= 50
+                                ? 'bg-amber-950 text-amber-400 border border-amber-500/30'
+                                : 'bg-red-950 text-red-400 border border-red-500/30'
+                            }`}
+                          >
+                            {currentSeoScore >= 75 ? 'Optimized' : currentSeoScore >= 50 ? 'Moderate' : 'Needs Optimization'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-24 h-2 bg-neutral-850 rounded-full overflow-hidden hidden sm:block">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            currentSeoScore > 75
+                              ? 'bg-emerald-500'
+                              : currentSeoScore > 50
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                          }`}
+                          style={{ width: `${currentSeoScore}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-24 h-2 bg-neutral-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          currentSeoScore > 75
-                            ? 'bg-emerald-500'
-                            : currentSeoScore > 50
-                            ? 'bg-amber-500'
-                            : 'bg-red-500'
-                        }`}
-                        style={{ width: `${currentSeoScore}%` }}
-                      />
-                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAutoGenerateSeo}
+                      disabled={isGeneratingSeo}
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md shadow-purple-950/40 disabled:opacity-50 cursor-pointer"
+                      title="Auto-generate focus keywords, title tag, and meta description using Gemini AI with fallback engine"
+                    >
+                      {isGeneratingSeo ? (
+                        <Loader2 size={13} className="animate-spin text-purple-200" />
+                      ) : seoGenSuccess ? (
+                        <Check size={13} className="text-emerald-300" />
+                      ) : (
+                        <Sparkles size={13} className="text-purple-200" />
+                      )}
+                      <span>
+                        {isGeneratingSeo
+                          ? 'Generating SEO...'
+                          : seoGenSuccess
+                          ? 'SEO Generated!'
+                          : 'Auto Generate SEO Meta'}
+                      </span>
+                    </button>
                   </div>
 
+                  {/* Focus Keyword */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                      Target Focus Keyword
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                        Target Focus Keyword
+                      </label>
+                      <span className="text-[11px] text-neutral-500">
+                        Include South African intent (e.g., SA, Johannesburg)
+                      </span>
+                    </div>
                     <input
                       type="text"
                       value={editedProduct.seoFocusKeyword || ''}
@@ -807,28 +1154,68 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     />
                   </div>
 
+                  {/* Meta Title */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                      Meta Title (Title Tag)
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                        Meta Title (Title Tag)
+                      </label>
+                      <span className={`text-[11px] font-mono ${
+                        (editedProduct.seoTitle?.length || 0) >= 30 && (editedProduct.seoTitle?.length || 0) <= 60
+                          ? 'text-emerald-400'
+                          : 'text-neutral-500'
+                      }`}>
+                        {editedProduct.seoTitle?.length || 0} / 60 chars (Recommended: 30-60)
+                      </span>
+                    </div>
                     <input
                       type="text"
                       value={editedProduct.seoTitle || ''}
                       onChange={(e) => setEditedProduct({ ...editedProduct, seoTitle: e.target.value })}
+                      placeholder="e.g. 4 Ton 2 Post Car Lift | Triton Automotive SA"
                       className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
+                  {/* Meta Description */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                      Meta Description
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                        Meta Description
+                      </label>
+                      <span className={`text-[11px] font-mono ${
+                        (editedProduct.seoDescription?.length || 0) >= 80 && (editedProduct.seoDescription?.length || 0) <= 160
+                          ? 'text-emerald-400'
+                          : 'text-neutral-500'
+                      }`}>
+                        {editedProduct.seoDescription?.length || 0} / 160 chars (Recommended: 80-160)
+                      </span>
+                    </div>
                     <textarea
                       rows={3}
                       value={editedProduct.seoDescription || ''}
                       onChange={(e) => setEditedProduct({ ...editedProduct, seoDescription: e.target.value })}
+                      placeholder="Commercial-grade automotive machinery with 3-year warranty and nationwide delivery across South Africa."
                       className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
                     />
+                  </div>
+
+                  {/* Google Search Live Snippet Preview */}
+                  <div className="p-3.5 bg-neutral-950 border border-neutral-850 rounded-xl space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1">
+                      <Search size={11} className="text-neutral-400" /> Google SERP Snippet Preview
+                    </span>
+                    <div className="font-sans text-xs space-y-0.5 pt-1">
+                      <div className="text-neutral-400 text-[11px] truncate">
+                        https://car-lifts.co.za &gt; products &gt; {editedProduct.modelCode?.toLowerCase() || editedProduct.id}
+                      </div>
+                      <div className="text-blue-400 hover:underline font-medium text-sm truncate cursor-pointer">
+                        {editedProduct.seoTitle || `${editedProduct.name} | Triton Car Lifts South Africa`}
+                      </div>
+                      <div className="text-neutral-400 text-xs line-clamp-2 leading-relaxed">
+                        {editedProduct.seoDescription || editedProduct.description || 'View commercial specs, pricing, and warranty information for this automotive equipment from Triton SA.'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

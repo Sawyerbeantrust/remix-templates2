@@ -87,3 +87,32 @@ export const generateSchemaOrg = (
     }
   };
 };
+
+export const generateDeterministicProductSeo = (product: Product) => {
+  const name = product.name || 'Automotive Machinery';
+  const category = product.category || 'Workshop Equipment';
+  const model = product.modelCode ? ` (${product.modelCode})` : '';
+  const price = product.price ? ` from R ${product.price.toLocaleString()}` : '';
+
+  let focusKeyword = `${name.toLowerCase()} south africa`;
+  const catLower = category.toLowerCase();
+  if (catLower.includes('lift')) {
+    focusKeyword = `${name.toLowerCase()} price south africa`;
+  } else if (catLower.includes('spray')) {
+    focusKeyword = `automotive spray booth south africa`;
+  } else if (catLower.includes('weld')) {
+    focusKeyword = `industrial welder south africa`;
+  } else if (catLower.includes('wheel') || catLower.includes('tyre')) {
+    focusKeyword = `tyre changer wheel balancer south africa`;
+  }
+
+  const metaTitle = `${name}${model} | Triton Car Lifts SA`.slice(0, 60);
+  const metaDescription = `Buy the heavy-duty ${name}${model}${price}. Commercial-grade automotive workshop equipment with Triton 3-Year Warranty and nationwide delivery across South Africa.`.slice(0, 160);
+
+  return {
+    metaTitle,
+    metaDescription,
+    focusKeywords: [focusKeyword, `${category.toLowerCase()} south africa`, "triton automotive equipment"],
+    focusKeyword,
+  };
+};

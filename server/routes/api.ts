@@ -17,13 +17,16 @@ import {
   matchLocalActionImage,
   SimulateImageSchema as AiSimulateImageSchema,
   SeoSchema as AiSeoSchema,
+  LongDescriptionSchema as AiLongDescriptionSchema,
   GlobalSeoSchema as AiGlobalSeoSchema,
   SeoHealthSchema as AiSeoHealthSchema,
   CategoryAuditSchema as AiCategoryAuditSchema,
+  generateDeterministicLongDescription,
 } from "../services/ai.js";
 import {
   buildSimulateImagePrompt,
   buildSeoPrompt,
+  buildLongDescriptionPrompt,
   buildGlobalSeoPrompt,
   buildSeoHealthPrompt,
   buildCategoryAuditPrompt,
@@ -38,6 +41,7 @@ import {
   GenerateEmailSchema,
   SimulateImageRequestSchema,
   GenerateSeoSchema,
+  GenerateLongDescriptionSchema,
   GenerateGlobalSeoSchema,
   SeoHealthSchema,
   CategoryAuditSchema,
@@ -583,6 +587,65 @@ apiRouter.post(
     return res.status(200).json({ success: true, source: "fallback", data: fallbackSeo });
   })
 );
+
+// 10.5) POST /api/generate-description & /api/generate-long-description
+const handleGenerateLongDescription = asyncHandler(async (req: Request, res: Response) => {
+  const parseResult = GenerateLongDescriptionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return sendError(res, parseResult.error.issues[0]?.message || "Invalid payload for long description generation", 400);
+  }
+
+  const { name, category, modelCode, price, description, features, specifications } = parseResult.data;
+
+  // Build baseline deterministic fallback
+  const fallbackResult = generateDeterministicLongDescription({
+    name,
+    category,
+    modelCode,
+    price,
+    description,
+    features,
+    specifications,
+  });
+
+  const ai = getGeminiClient();
+  if (ai) {
+    try {
+      const prompt = buildLongDescriptionPrompt(name, category, modelCode, description, price, features, specifications);
+      const response = await generateContentWithResilience(ai, {
+        contents: prompt,
+        config: { responseMimeType: "application/json" },
+      });
+
+      if (response && response.text) {
+        const text = cleanJsonText(response.text);
+        const parsed = JSON.parse(text);
+        const validated = AiLongDescriptionSchema.safeParse(parsed);
+        if (validated.success && validated.data.longDescription) {
+          return res.status(200).json({
+            success: true,
+            source: "gemini-ai",
+            data: {
+              longDescription: validated.data.longDescription,
+              summary: validated.data.summary || fallbackResult.summary,
+            },
+          });
+        }
+      }
+    } catch (err: any) {
+      logger.warn({ err: err?.message, product: name }, "Gemini long description generation failed, using tailored deterministic fallback");
+    }
+  }
+
+  return res.status(200).json({
+    success: true,
+    source: "fallback",
+    data: fallbackResult,
+  });
+});
+
+apiRouter.post("/generate-description", handleGenerateLongDescription);
+apiRouter.post("/generate-long-description", handleGenerateLongDescription);
 
 // 11) POST /api/generate-global-seo
 apiRouter.post(

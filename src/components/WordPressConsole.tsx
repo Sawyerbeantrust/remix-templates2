@@ -208,6 +208,10 @@ export default function WordPressConsole({
     handleBulkAutoFill,
     handleBulkDeleteDrafts,
     handleResetCatalog,
+    selectedCategoryFilter,
+    setSelectedCategoryFilter,
+    handleShiftProductOrder,
+    handleSetProductSortOrder,
   } = useProductManagement({
     products: productsProp,
     onProductsChange: onProductsChangeProp,
@@ -492,6 +496,10 @@ export default function WordPressConsole({
             handleBulkAutoFill={handleBulkAutoFill}
             handleBulkDeleteDrafts={handleBulkDeleteDrafts}
             handleExportCSV={handleExportCSV}
+            selectedCategoryFilter={selectedCategoryFilter}
+            setSelectedCategoryFilter={setSelectedCategoryFilter}
+            handleShiftProductOrder={handleShiftProductOrder}
+            handleSetProductSortOrder={handleSetProductSortOrder}
           />
         )}
 
@@ -526,6 +534,8 @@ export default function WordPressConsole({
             setCatAspect={setCatAspect}
             onProductsChange={onProductsChangeProp}
             addLog={addLog}
+            handleShiftProductOrder={handleShiftProductOrder}
+            handleSetProductSortOrder={handleSetProductSortOrder}
           />
         )}
 
