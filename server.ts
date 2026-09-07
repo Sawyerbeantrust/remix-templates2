@@ -195,7 +195,8 @@ async function handleThumbnailRequest(req: express.Request, res: express.Respons
     });
   }
 
-  const result = await fetchAndProcessThumbnail(rawUrl, size);
+  const allowFallback = req.query.nofallback !== "true" && req.query.fallback !== "false";
+  const result = await fetchAndProcessThumbnail(rawUrl, size, { allowFallback });
 
   const duration = Date.now() - startTime;
 

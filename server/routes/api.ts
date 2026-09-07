@@ -261,11 +261,13 @@ async function handleGetImages(req: Request, res: Response) {
       return img;
     }
     const encodedUrl = encodeURIComponent(img.url);
+    const thumbTarget = (img as any).thumbnail_url || (img as any).medium_url || img.url;
+    const encodedThumb = encodeURIComponent(thumbTarget);
     return {
       ...img,
       thumbnails: {
-        small: `/api/media-thumb?url=${encodedUrl}&size=small`,
-        medium: `/api/media-thumb?url=${encodedUrl}&size=medium`,
+        small: `/api/media-thumb?url=${encodedThumb}&size=small`,
+        medium: `/api/media-thumb?url=${encodedThumb}&size=medium`,
         large: `/api/media-thumb?url=${encodedUrl}&size=large`,
         original: `/api/media-thumb?url=${encodedUrl}&size=original`,
       },

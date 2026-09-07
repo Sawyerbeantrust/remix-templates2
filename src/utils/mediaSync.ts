@@ -4,7 +4,7 @@ import { safeLocalStorage } from './safeStorage.js';
 export const TRITON_MEDIA_SYNC_EVENT = 'triton:media-storage-sync';
 
 export interface MediaSyncPayload {
-  action: 'upload' | 'delete' | 'assign' | 'migrate' | 'refresh';
+  action: 'upload' | 'delete' | 'assign' | 'migrate' | 'refresh' | 'sync';
   url?: string;
   id?: string | number;
   timestamp: number;

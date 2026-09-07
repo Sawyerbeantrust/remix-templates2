@@ -40,6 +40,7 @@ export interface ProcessThumbnailResult {
   height?: number;
   fromCache?: boolean;
   isFallback?: boolean;
+  isOriginBlocked?: boolean;
   error?: string;
   statusCode?: number;
 }
@@ -323,21 +324,8 @@ async function generateFallbackThumbnail(
     }
   }
 
-  // 3. Generate high-quality dark theme Triton placeholder badge via sharp SVG rendering
+  // 3. Generate high-quality dark theme Triton placeholder badge via sharp SVG rendering (pure vector, no text to prevent font tofu)
   try {
-    let rawFilename = "Triton Equipment";
-    try {
-      const parsed = new URL(targetUrl.startsWith("http") ? targetUrl : `https://store.car-lifts.co.za/${targetUrl.replace(/^\//, "")}`);
-      rawFilename = path.basename(parsed.pathname) || "Triton Equipment";
-    } catch {}
-
-    const displayName = rawFilename
-      .replace(/\.[a-zA-Z0-9]+$/, "")
-      .replace(/-\d+x\d+$/, "")
-      .replace(/[-_]/g, " ")
-      .slice(0, 32)
-      .trim();
-
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
       <defs>
         <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -347,13 +335,11 @@ async function generateFallbackThumbnail(
       </defs>
       <rect width="100%" height="100%" fill="url(#bg)"/>
       <rect x="2" y="2" width="${width - 4}" height="${height - 4}" rx="8" fill="none" stroke="#27272a" stroke-width="1.5"/>
-      <g transform="translate(${width / 2}, ${height / 2 - 20})">
-        <rect x="-24" y="-20" width="48" height="38" rx="6" fill="#27272a" stroke="#3f3f46" stroke-width="1.5"/>
-        <circle cx="-10" cy="-6" r="4" fill="#ef4444"/>
+      <g transform="translate(${width / 2}, ${height / 2})">
+        <rect x="-24" y="-18" width="48" height="36" rx="6" fill="#27272a" stroke="#3f3f46" stroke-width="1.5"/>
+        <circle cx="-10" cy="-5" r="4" fill="#ef4444"/>
         <path d="M-18 10 L-6 0 L4 8 L12 2 L18 10 Z" fill="#52525b"/>
       </g>
-      <text x="${width / 2}" y="${height / 2 + 25}" text-anchor="middle" fill="#d4d4d8" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600">${displayName || "Triton Equipment"}</text>
-      <text x="${width / 2}" y="${height / 2 + 45}" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="11">Automotive Workshop Equipment</text>
     </svg>`;
 
     const buffer = await sharp(Buffer.from(svg))
@@ -497,9 +483,10 @@ async function fetchRemoteBuffer(
 export async function fetchAndProcessThumbnail(
   rawUrl: string,
   size: ThumbnailSizeKey = "medium",
-  options: { bypassBlacklist?: boolean } = {}
+  options: { bypassBlacklist?: boolean; allowFallback?: boolean } = {}
 ): Promise<ProcessThumbnailResult> {
   const startTime = Date.now();
+  const allowFallback = options.allowFallback !== false;
 
   // 1. SSRF & URL Validation
   const validation = validateRemoteImageUrl(rawUrl);
@@ -725,6 +712,15 @@ export async function fetchAndProcessThumbnail(
     };
   } catch (err: any) {
     const isOriginBlocked = err.isCloudflare || err.statusCode === 403 || (err.message && err.message.includes("403"));
+
+    if (!allowFallback) {
+      return {
+        success: false,
+        error: isOriginBlocked ? "Origin returned HTTP 403 (Cloudflare Challenge)" : (err.message || "Failed to fetch image from origin"),
+        statusCode: isOriginBlocked ? 502 : (err.statusCode || 404),
+        isOriginBlocked,
+      };
+    }
 
     // Attempt graceful fallback thumbnail generation
     try {
