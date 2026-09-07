@@ -926,7 +926,7 @@ ${JSON.stringify(catalogContext, null, 2)}
     const candidateModels = [CONFIG.GEMINI_MODELS.primary, ...CONFIG.GEMINI_MODELS.fallbacks];
     let response: any = null;
 
-    for (const model of candidateModels) {
+        for (const model of candidateModels) {
       try {
         response = await ai.models.generateContent({
           model,
@@ -934,8 +934,11 @@ ${JSON.stringify(catalogContext, null, 2)}
           config: { temperature: 0.1 },
         });
         if (response && response.text) break;
-      } catch {
-        // Continue to fallback model
+      } catch (modelErr: any) {
+        logger.warn(
+          { model, err: modelErr?.message, status: modelErr?.status || modelErr?.statusCode },
+          "Gemini model attempt failed"
+        );
       }
     }
 
