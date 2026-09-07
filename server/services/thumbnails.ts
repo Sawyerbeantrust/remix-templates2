@@ -1,6 +1,8 @@
 import http from "http";
 import https from "https";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import sharp from "sharp";
 import { LRUCache } from "lru-cache";
 import { CONFIG, THUMBNAIL_SIZES, THUMBNAIL_CONFIG, type ThumbnailSizeKey } from "../config.js";
@@ -37,6 +39,7 @@ export interface ProcessThumbnailResult {
   width?: number;
   height?: number;
   fromCache?: boolean;
+  isFallback?: boolean;
   error?: string;
   statusCode?: number;
 }
@@ -201,6 +204,175 @@ export function setCachedThumbnail(
 }
 
 /**
+ * Resolves a target image URL or filename against local asset directories on disk.
+ * Handles exact filename matches as well as stripped thumbnail dimension suffixes (e.g. -300x300.jpg).
+ */
+export function findLocalAssetBuffer(targetUrl: string): { buffer: Buffer; contentType: string; filename: string } | null {
+  try {
+    const rawPath = targetUrl.startsWith("http://") || targetUrl.startsWith("https://")
+      ? new URL(targetUrl).pathname
+      : targetUrl;
+    const baseFilename = path.basename(rawPath);
+    if (!baseFilename || baseFilename === "/" || baseFilename === ".") return null;
+
+    // Also consider candidate without WordPress resized dimensions like -300x300
+    const unscaledFilename = baseFilename.replace(/-\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, "");
+
+    const searchFilenames = Array.from(new Set([baseFilename, unscaledFilename]));
+
+    const candidateDirs = [
+      path.join(process.cwd(), "public", "assets", "images"),
+      path.join(process.cwd(), "src", "assets", "images"),
+      path.join(process.cwd(), "dist", "assets", "images"),
+      path.join(process.cwd(), "public", "images"),
+      path.join(process.cwd(), "public"),
+    ];
+
+    for (const name of searchFilenames) {
+      for (const dir of candidateDirs) {
+        const filePath = path.join(dir, name);
+        if (fs.existsSync(filePath)) {
+          const stats = fs.statSync(filePath);
+          if (stats.isFile() && stats.size > 0) {
+            const ext = path.extname(filePath).toLowerCase();
+            const contentType =
+              ext === ".png"
+                ? "image/png"
+                : ext === ".webp"
+                ? "image/webp"
+                : ext === ".svg"
+                ? "image/svg+xml"
+                : ext === ".gif"
+                ? "image/gif"
+                : ext === ".avif"
+                ? "image/avif"
+                : "image/jpeg";
+            return {
+              buffer: fs.readFileSync(filePath),
+              contentType,
+              filename: name,
+            };
+          }
+        }
+      }
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Generates an elegant fallback image for when upstream origin (e.g. WordPress/Cloudflare)
+ * is unreachable, returns 403 Challenge, or returns 404.
+ */
+async function generateFallbackThumbnail(
+  targetUrl: string,
+  sizeKey: ThumbnailSizeKey
+): Promise<{ buffer: Buffer; contentType: string; etag: string; width: number; height: number } | null> {
+  const sizeConfig = THUMBNAIL_SIZES[sizeKey] || THUMBNAIL_SIZES.medium;
+  const width = sizeConfig.width;
+  const height = sizeConfig.height;
+
+  // 1. Check local assets first
+  const localMatch = findLocalAssetBuffer(targetUrl);
+  if (localMatch && localMatch.buffer.length > 0) {
+    try {
+      const resized = await sharp(localMatch.buffer)
+        .rotate()
+        .resize({ width, height, fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: THUMBNAIL_CONFIG.JPEG_QUALITY })
+        .toBuffer();
+      const meta = await sharp(resized).metadata();
+      const etag = computeEtag(resized, sizeKey);
+      return {
+        buffer: resized,
+        contentType: "image/jpeg",
+        etag,
+        width: meta.width || width,
+        height: meta.height || height,
+      };
+    } catch {}
+  }
+
+  // 2. Check public/assets/images/placeholder.jpg or public/placeholder.jpg if available
+  const placeholderCandidates = [
+    path.join(process.cwd(), "public", "assets", "images", "placeholder.jpg"),
+    path.join(process.cwd(), "src", "assets", "images", "placeholder.jpg"),
+    path.join(process.cwd(), "public", "placeholder.jpg"),
+  ];
+  for (const phPath of placeholderCandidates) {
+    if (fs.existsSync(phPath)) {
+      try {
+        const fileBuf = fs.readFileSync(phPath);
+        if (fileBuf.length > 150) {
+          const resized = await sharp(fileBuf)
+            .rotate()
+            .resize({ width, height, fit: "inside", withoutEnlargement: true })
+            .jpeg({ quality: THUMBNAIL_CONFIG.JPEG_QUALITY })
+            .toBuffer();
+          const meta = await sharp(resized).metadata();
+          const etag = computeEtag(resized, sizeKey);
+          return {
+            buffer: resized,
+            contentType: "image/jpeg",
+            etag,
+            width: meta.width || width,
+            height: meta.height || height,
+          };
+        }
+      } catch {}
+    }
+  }
+
+  // 3. Generate high-quality dark theme Triton placeholder badge via sharp SVG rendering
+  try {
+    let rawFilename = "Triton Equipment";
+    try {
+      const parsed = new URL(targetUrl.startsWith("http") ? targetUrl : `https://store.car-lifts.co.za/${targetUrl.replace(/^\//, "")}`);
+      rawFilename = path.basename(parsed.pathname) || "Triton Equipment";
+    } catch {}
+
+    const displayName = rawFilename
+      .replace(/\.[a-zA-Z0-9]+$/, "")
+      .replace(/-\d+x\d+$/, "")
+      .replace(/[-_]/g, " ")
+      .slice(0, 32)
+      .trim();
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#18181b"/>
+          <stop offset="100%" stop-color="#09090b"/>
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#bg)"/>
+      <rect x="2" y="2" width="${width - 4}" height="${height - 4}" rx="8" fill="none" stroke="#27272a" stroke-width="1.5"/>
+      <g transform="translate(${width / 2}, ${height / 2 - 20})">
+        <rect x="-24" y="-20" width="48" height="38" rx="6" fill="#27272a" stroke="#3f3f46" stroke-width="1.5"/>
+        <circle cx="-10" cy="-6" r="4" fill="#ef4444"/>
+        <path d="M-18 10 L-6 0 L4 8 L12 2 L18 10 Z" fill="#52525b"/>
+      </g>
+      <text x="${width / 2}" y="${height / 2 + 25}" text-anchor="middle" fill="#d4d4d8" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600">${displayName || "Triton Equipment"}</text>
+      <text x="${width / 2}" y="${height / 2 + 45}" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="11">Automotive Workshop Equipment</text>
+    </svg>`;
+
+    const buffer = await sharp(Buffer.from(svg))
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    const etag = computeEtag(buffer, `fallback-${sizeKey}`);
+    return {
+      buffer,
+      contentType: "image/jpeg",
+      etag,
+      width,
+      height,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Helper to fetch remote raw image buffer with timeout, redirect following, and retry logic
  */
 async function fetchRemoteBuffer(
@@ -220,6 +392,32 @@ async function fetchRemoteBuffer(
         const client = isHttps ? https : http;
         const agent = isHttps ? httpsInsecureAgent : httpInsecureAgent;
 
+        const isWpDomain = parsedUrl.hostname.includes("car-lifts.co.za");
+        const headers: Record<string, string> = {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+          Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+          Referer: "https://store.car-lifts.co.za/",
+          ...(cfBypassSecret
+            ? {
+                "X-CF-Bypass-Secret": cfBypassSecret,
+                "cf-bypass-secret": cfBypassSecret,
+                "X-Vercel-Secret": cfBypassSecret,
+              }
+            : {}),
+        };
+
+        if (isWpDomain) {
+          const tritonKey = (process.env.TRITON_KEY || process.env.WP_MIGRATE_KEY || "").trim();
+          if (tritonKey) {
+            headers["X-Triton-Key"] = tritonKey;
+          }
+          const user = (process.env.WP_APP_USER || "").trim();
+          const pass = (process.env.WP_APP_PASSWORD || "").trim();
+          if (user && pass) {
+            headers["Authorization"] = "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+          }
+        }
+
         const requestOptions = {
           protocol: parsedUrl.protocol,
           hostname: parsedUrl.hostname,
@@ -227,11 +425,7 @@ async function fetchRemoteBuffer(
           path: parsedUrl.pathname + parsedUrl.search,
           method: "GET",
           agent,
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TritonProxy/2.0",
-           Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-           ...(cfBypassSecret ? { "X-CF-Bypass-Secret": cfBypassSecret, "X-Vercel-Secret": cfBypassSecret } : {}),
-          },
+          headers,
           timeout: timeoutMs,
         };
 
@@ -244,17 +438,33 @@ async function fetchRemoteBuffer(
             return fetchRemoteBuffer(redirectUrl, timeoutMs, 0).then(resolve).catch(reject);
           }
 
-          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
-            return reject(new Error(`Origin returned HTTP ${res.statusCode || "unknown"}`));
-          }
-
           const chunks: Buffer[] = [];
           res.on("data", (chunk: Buffer) => chunks.push(chunk));
           res.on("end", () => {
             const buffer = Buffer.concat(chunks);
-            const contentType = res.headers["content-type"] || "image/jpeg";
+            const contentType = (res.headers["content-type"] || "").toLowerCase();
+            const textSnippet = buffer.slice(0, 500).toString("utf-8");
+            const isCf =
+              res.statusCode === 403 &&
+              (res.headers["cf-mitigated"] === "challenge" ||
+                textSnippet.includes("Just a moment...") ||
+                textSnippet.includes("challenges.cloudflare.com"));
+
+            if (isCf) {
+              const cfErr = new Error("Origin returned HTTP 403 (Cloudflare Challenge)");
+              (cfErr as any).isCloudflare = true;
+              (cfErr as any).statusCode = 403;
+              return reject(cfErr);
+            }
+
+            if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+              const httpErr = new Error(`Origin returned HTTP ${res.statusCode || "unknown"}`);
+              (httpErr as any).statusCode = res.statusCode;
+              return reject(httpErr);
+            }
+
             const lastModified = res.headers["last-modified"] || new Date().toUTCString();
-            resolve({ buffer, contentType, lastModified });
+            resolve({ buffer, contentType: contentType || "image/jpeg", lastModified });
           });
         });
 
@@ -268,6 +478,10 @@ async function fetchRemoteBuffer(
     } catch (err: any) {
       lastError = err;
       attempt++;
+      // Fast-fail Cloudflare 403 challenges to avoid repeated stalls
+      if (err.isCloudflare || err.statusCode === 403) {
+        break;
+      }
       if (attempt <= maxRetries) {
         await new Promise((r) => setTimeout(r, 200 * attempt));
       }
@@ -304,6 +518,22 @@ export async function fetchAndProcessThumbnail(
     const blacklisted = failedUrlBlacklist.get(targetUrl);
     if (blacklisted) {
       if (Date.now() - blacklisted.timestamp < THUMBNAIL_CONFIG.BLACKLIST_TTL_MS) {
+        // Attempt fallback before failing
+        const fallback = await generateFallbackThumbnail(targetUrl, size);
+        if (fallback) {
+          return {
+            success: true,
+            buffer: fallback.buffer,
+            contentType: fallback.contentType,
+            etag: fallback.etag,
+            lastModified: new Date().toUTCString(),
+            sizeBytes: fallback.buffer.length,
+            width: fallback.width,
+            height: fallback.height,
+            fromCache: false,
+            isFallback: true,
+          };
+        }
         return {
           success: false,
           error: `URL temporarily blocked due to repeated failures: ${blacklisted.reason}`,
@@ -331,7 +561,77 @@ export async function fetchAndProcessThumbnail(
     };
   }
 
-  // 4. Fetch Remote Buffer
+  // 4. Fast path: Check if asset is already available locally on disk
+  const localMatch = findLocalAssetBuffer(targetUrl);
+  if (localMatch && localMatch.buffer.length > 0) {
+    try {
+      let finalBuffer = localMatch.buffer;
+      let finalContentType = localMatch.contentType;
+      let finalWidth: number | undefined;
+      let finalHeight: number | undefined;
+
+      const sizeConfig = THUMBNAIL_SIZES[size];
+      if (size !== "original" && sizeConfig) {
+        const image = sharp(localMatch.buffer).rotate();
+        const resMeta = await image.metadata();
+        const resizedPipeline = image.resize({
+          width: sizeConfig.width,
+          height: sizeConfig.height,
+          fit: "inside",
+          withoutEnlargement: true,
+        });
+
+        if (resMeta.format === "png") {
+          finalBuffer = await resizedPipeline.png({ quality: 85 }).toBuffer();
+          finalContentType = "image/png";
+        } else if (resMeta.format === "webp") {
+          finalBuffer = await resizedPipeline.webp({ quality: THUMBNAIL_CONFIG.WEBP_QUALITY }).toBuffer();
+          finalContentType = "image/webp";
+        } else {
+          finalBuffer = await resizedPipeline.jpeg({ quality: THUMBNAIL_CONFIG.JPEG_QUALITY }).toBuffer();
+          finalContentType = "image/jpeg";
+        }
+
+        const resizedMeta = await sharp(finalBuffer).metadata();
+        finalWidth = resizedMeta.width;
+        finalHeight = resizedMeta.height;
+      }
+
+      const etag = computeEtag(finalBuffer, size);
+      const lastModified = new Date().toUTCString();
+
+      setCachedThumbnail(targetUrl, size, {
+        buffer: finalBuffer,
+        contentType: finalContentType,
+        etag,
+        lastModified,
+        width: finalWidth,
+        height: finalHeight,
+        sizeBytes: finalBuffer.length,
+      });
+
+      logger.debug(
+        { url: targetUrl, size, filename: localMatch.filename, bytes: finalBuffer.length },
+        "Thumbnail served directly from local asset"
+      );
+
+      return {
+        success: true,
+        buffer: finalBuffer,
+        contentType: finalContentType,
+        etag,
+        lastModified,
+        sizeBytes: finalBuffer.length,
+        width: finalWidth,
+        height: finalHeight,
+        fromCache: false,
+      };
+    } catch (localErr: any) {
+      logger.debug({ targetUrl, err: localErr?.message }, "Failed to process local asset; falling back to remote");
+    }
+  }
+
+  // 5. Fetch Remote Buffer
   try {
     const { buffer: rawBuffer, contentType: rawContentType, lastModified } = await fetchRemoteBuffer(
       targetUrl,
@@ -348,7 +648,7 @@ export async function fetchAndProcessThumbnail(
     let finalWidth: number | undefined;
     let finalHeight: number | undefined;
 
-    // 5. Perform Sharp Resizing if size !== "original"
+    // Perform Sharp Resizing if size !== "original"
     const sizeConfig = THUMBNAIL_SIZES[size];
     if (size !== "original" && sizeConfig) {
       try {
@@ -381,14 +681,14 @@ export async function fetchAndProcessThumbnail(
         finalWidth = resMeta.width;
         finalHeight = resMeta.height;
       } catch (sharpErr: any) {
-        logger.warn({ targetUrl, err: sharpErr.message }, "Sharp resizing failed, falling back to original buffer");
+        logger.debug({ targetUrl, err: sharpErr.message }, "Sharp resizing failed, falling back to original buffer");
         finalBuffer = rawBuffer;
       }
     }
 
     const etag = computeEtag(finalBuffer, size);
 
-    // 6. Save to Cache
+    // Save to Cache
     setCachedThumbnail(targetUrl, size, {
       buffer: finalBuffer,
       contentType: finalContentType,
@@ -424,6 +724,51 @@ export async function fetchAndProcessThumbnail(
       fromCache: false,
     };
   } catch (err: any) {
+    const isOriginBlocked = err.isCloudflare || err.statusCode === 403 || (err.message && err.message.includes("403"));
+
+    // Attempt graceful fallback thumbnail generation
+    try {
+      const fallback = await generateFallbackThumbnail(targetUrl, size);
+      if (fallback) {
+        // Cache fallback so we don't hammer the origin repeatedly
+        setCachedThumbnail(targetUrl, size, {
+          buffer: fallback.buffer,
+          contentType: fallback.contentType,
+          etag: fallback.etag,
+          lastModified: new Date().toUTCString(),
+          width: fallback.width,
+          height: fallback.height,
+          sizeBytes: fallback.buffer.length,
+        });
+
+        logger.info(
+          {
+            url: targetUrl,
+            size,
+            durationMs: Date.now() - startTime,
+            reason: err.message,
+            isOriginBlocked,
+          },
+          "Origin asset unavailable; served graceful fallback thumbnail"
+        );
+
+        return {
+          success: true,
+          buffer: fallback.buffer,
+          contentType: fallback.contentType,
+          etag: fallback.etag,
+          lastModified: new Date().toUTCString(),
+          sizeBytes: fallback.buffer.length,
+          width: fallback.width,
+          height: fallback.height,
+          fromCache: false,
+          isFallback: true,
+        };
+      }
+    } catch (fallbackErr: any) {
+      logger.debug({ fallbackErr: fallbackErr?.message }, "Failed to generate fallback thumbnail");
+    }
+
     // Record into blacklist
     const current = failedUrlBlacklist.get(targetUrl);
     const attempts = (current?.attempts || 0) + 1;
@@ -433,7 +778,7 @@ export async function fetchAndProcessThumbnail(
       attempts,
     });
 
-    logger.warn(
+    logger.info(
       {
         url: targetUrl,
         size,
@@ -441,7 +786,7 @@ export async function fetchAndProcessThumbnail(
         error: err.message,
         attempts,
       },
-      "Failed to fetch or process thumbnail"
+      "Thumbnail fetch failed and no fallback available"
     );
 
     return {
