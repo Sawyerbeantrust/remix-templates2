@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Layers, Plus, Edit, Trash2, CheckCircle2, Upload, Sparkles,
-  ImageIcon, RefreshCw, AlertCircle, Save, Check, ChevronRight, X
+  ImageIcon, RefreshCw, AlertCircle, Save, Check, ChevronRight, X,
+  ChevronUp, ChevronDown, ArrowUpDown, Package
 } from 'lucide-react';
 import { FeaturedCategory, Product } from '../../types/index.js';
 import { formatCategoryLabel, normalizeCategorySlug } from '../../utils/categoryUtils.js';
 import { ConfirmationDialog } from './ConfirmationDialog.js';
 import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
+import { formatZarPrice } from '../../utils/console/formatters.js';
 
 interface CategoriesTabProps {
   categories: string[];
@@ -38,6 +40,8 @@ interface CategoriesTabProps {
   setCatAspect: (val: string) => void;
   onProductsChange?: (newProducts: Product[]) => void;
   addLog: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  handleShiftProductOrder?: (productId: string, direction: 'up' | 'down', categoryFilter?: string) => void;
+  handleSetProductSortOrder?: (productId: string, desiredRank: number, categoryFilter?: string) => void;
 }
 
 export const CategoriesTab: React.FC<CategoriesTabProps> = ({
@@ -70,12 +74,117 @@ export const CategoriesTab: React.FC<CategoriesTabProps> = ({
   setCatAspect,
   onProductsChange,
   addLog,
+  handleShiftProductOrder,
+  handleSetProductSortOrder,
 }) => {
   const [renamingSlug, setRenamingSlug] = useState<string | null>(null);
   const [catToDelete, setCatToDelete] = useState<string | null>(null);
   const [showAutoAssignConfirm, setShowAutoAssignConfirm] = useState(false);
 
   const selectedCategory = featuredCategories.find((c) => c.id === selectedCatId) || featuredCategories[0];
+
+  // Identify products belonging to this category
+  const selectedCatSlug = (selectedCategory?.id || '').replace(/^cat-/, '').toLowerCase();
+  const selectedCatName = (selectedCategory?.name || '').toLowerCase();
+
+  const categoryProducts = useMemo(() => {
+    if (!selectedCategory) return [];
+    return products
+      .filter((p) => {
+        const cat = (p.category || '').toLowerCase();
+        const rawCat = (p.rawCategoryName || '').toLowerCase();
+        return (
+          cat === selectedCatSlug ||
+          cat === selectedCatName ||
+          rawCat === selectedCatSlug ||
+          rawCat === selectedCatName ||
+          cat.replace(/[\s_]+/g, '-') === selectedCatSlug ||
+          normalizeCategorySlug(cat) === normalizeCategorySlug(selectedCatSlug) ||
+          cat.includes(selectedCatSlug) ||
+          selectedCatSlug.includes(cat) ||
+          selectedCatName.includes(cat)
+        );
+      })
+      .sort((a, b) => {
+        const sortA = a.sortOrder ?? 99999;
+        const sortB = b.sortOrder ?? 99999;
+        if (sortA !== sortB) return sortA - sortB;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+  }, [products, selectedCatSlug, selectedCatName, selectedCategory]);
+
+  const handleShiftCategoryProduct = (productId: string, direction: 'up' | 'down') => {
+    if (handleShiftProductOrder && selectedCategory) {
+      handleShiftProductOrder(productId, direction, selectedCategory.name);
+      return;
+    }
+    const currentIndex = categoryProducts.findIndex((p) => p.id === productId);
+    if (currentIndex === -1) return;
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= categoryProducts.length) return;
+
+    const reordered = [...categoryProducts];
+    const temp = reordered[currentIndex];
+    reordered[currentIndex] = reordered[newIndex];
+    reordered[newIndex] = temp;
+
+    const orderMap = new Map<string, number>();
+    reordered.forEach((p, idx) => orderMap.set(p.id, idx + 1));
+
+    const updated = products.map((p) => {
+      if (orderMap.has(p.id)) {
+        return { ...p, sortOrder: orderMap.get(p.id)! };
+      }
+      return p;
+    });
+
+    if (onProductsChange) onProductsChange(updated);
+    addLog(`Shifted product ${direction.toUpperCase()} to #${newIndex + 1} in "${selectedCategory.name}"`, 'success');
+  };
+
+  const handleSetCategoryProductRank = (productId: string, rank: number) => {
+    if (handleSetProductSortOrder && selectedCategory) {
+      handleSetProductSortOrder(productId, rank, selectedCategory.name);
+      return;
+    }
+    const currentIndex = categoryProducts.findIndex((p) => p.id === productId);
+    if (currentIndex === -1) return;
+    const targetIndex = Math.max(0, Math.min(categoryProducts.length - 1, rank - 1));
+    if (currentIndex === targetIndex) return;
+
+    const reordered = [...categoryProducts];
+    const [item] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, item);
+
+    const orderMap = new Map<string, number>();
+    reordered.forEach((p, idx) => orderMap.set(p.id, idx + 1));
+
+    const updated = products.map((p) => {
+      if (orderMap.has(p.id)) {
+        return { ...p, sortOrder: orderMap.get(p.id)! };
+      }
+      return p;
+    });
+
+    if (onProductsChange) onProductsChange(updated);
+    addLog(`Updated product order to #${targetIndex + 1} in "${selectedCategory.name}"`, 'success');
+  };
+
+  const handleResetCategoryOrder = () => {
+    const sorted = [...categoryProducts].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const orderMap = new Map<string, number>();
+    sorted.forEach((p, idx) => orderMap.set(p.id, idx + 1));
+
+    const updated = products.map((p) => {
+      if (orderMap.has(p.id)) {
+        return { ...p, sortOrder: orderMap.get(p.id)! };
+      }
+      return p;
+    });
+
+    if (onProductsChange) onProductsChange(updated);
+    addLog(`Reset category "${selectedCategory.name}" products to alphabetical order`, 'info');
+  };
 
   const handleAutoAssignCategoryMedia = () => {
     // Only fill slots that are completely empty or broken, never overwrite working paths
@@ -340,6 +449,134 @@ export const CategoriesTab: React.FC<CategoriesTabProps> = ({
                     <option>Commercial Workshop Diffuse</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            {/* Products in this Category & Display Sequence */}
+            <div className="p-4 bg-neutral-950 border border-neutral-850 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown size={14} className="text-indigo-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                    Category Product Sequence
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950/80 text-indigo-400 border border-indigo-500/30">
+                    {categoryProducts.length} items
+                  </span>
+                </div>
+                {categoryProducts.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleResetCategoryOrder}
+                    className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+                    title="Reset products in this category to alphabetical order"
+                  >
+                    Reset A-Z
+                  </button>
+                )}
+              </div>
+
+              <p className="text-[11px] text-neutral-400 leading-relaxed">
+                Control the showroom display sequence for this category. Click <strong className="text-white">Shift Up</strong> or <strong className="text-white">Shift Down</strong> to arrange products in your exact preference of order.
+              </p>
+
+              <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                {categoryProducts.map((p, idx) => {
+                  const isFirst = idx === 0;
+                  const isLast = idx === categoryProducts.length - 1;
+                  const displayRank = p.sortOrder ?? (idx + 1);
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-2.5 rounded-lg bg-neutral-900/80 border border-neutral-800 hover:border-neutral-700 flex items-center gap-3 transition-colors"
+                    >
+                      {/* Shift Up / Down buttons & Rank badge */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex flex-col items-center">
+                          <button
+                            type="button"
+                            onClick={() => handleShiftCategoryProduct(p.id, 'up')}
+                            disabled={isFirst}
+                            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-800 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-neutral-400 transition-colors"
+                            title="Shift Up in preference order"
+                          >
+                            <ChevronUp size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleShiftCategoryProduct(p.id, 'down')}
+                            disabled={isLast}
+                            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-800 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-neutral-400 transition-colors"
+                            title="Shift Down in preference order"
+                          >
+                            <ChevronDown size={14} />
+                          </button>
+                        </div>
+                        <span
+                          className="px-2 py-1 rounded text-xs font-mono font-bold bg-neutral-950 border border-neutral-800 text-amber-400 min-w-[28px] text-center"
+                          title={`Display Order Position #${displayRank}`}
+                        >
+                          #{displayRank}
+                        </span>
+                      </div>
+
+                      {/* Product Thumbnail */}
+                      <div className="w-10 h-10 rounded-md bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                          onError={(e) => handleImageElementError(e, DEFAULT_FALLBACK_IMAGE)}
+                        />
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h5 className="text-xs font-bold text-white truncate">{p.name}</h5>
+                          {p.status === 'draft' && (
+                            <span className="px-1 py-0.2 bg-amber-950 border border-amber-600/40 text-amber-400 text-[8px] font-bold uppercase rounded shrink-0">
+                              Draft
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-neutral-400 mt-0.5">
+                          <span className="font-mono text-neutral-300">{p.modelCode || p.id}</span>
+                          <span>•</span>
+                          <span className="text-amber-400 font-semibold">{formatZarPrice(p.price)}</span>
+                        </div>
+                      </div>
+
+                      {/* Quick jump to rank input */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-[10px] text-neutral-500 font-mono">Pos:</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={categoryProducts.length}
+                          value={displayRank}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (!isNaN(val)) {
+                              handleSetCategoryProductRank(p.id, val);
+                            }
+                          }}
+                          className="w-12 px-1.5 py-1 bg-neutral-950 border border-neutral-800 rounded text-xs font-mono text-center text-white focus:outline-none focus:border-indigo-500"
+                          title="Directly enter desired position number"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {categoryProducts.length === 0 && (
+                  <div className="p-6 text-center bg-neutral-900/30 border border-neutral-800/80 rounded-lg text-neutral-500 text-xs">
+                    <Package size={24} className="mx-auto mb-2 text-neutral-600" />
+                    No products currently mapped to this category.
+                  </div>
+                )}
               </div>
             </div>
           </div>

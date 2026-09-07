@@ -21,6 +21,7 @@ export function useProductManagement({
   const [editedProduct, setEditedProduct] = useState<Product | null>(null);
   const [searchProductQuery, setSearchProductQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<'all' | 'publish' | 'draft'>('all');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [saveMessage, setSaveMessage] = useState('');
   const [productToDeleteId, setProductToDeleteId] = useState<string | null>(null);
   const [autoSyncOnSave, setAutoSyncOnSave] = useState<boolean>(() => {
@@ -31,9 +32,13 @@ export function useProductManagement({
     return (safeLocalStorage.getItem('triton_auto_clean_interval') as any) || 'disabled';
   });
 
-  // Filtered and searched product list
+  // Filtered and searched product list (respecting custom sortOrder preference)
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    const filtered = products.filter((p) => {
+      const matchesCategory =
+        selectedCategoryFilter === 'all' ||
+        p.category.toLowerCase() === selectedCategoryFilter.toLowerCase();
+
       const matchesQuery =
         !searchProductQuery ||
         p.name.toLowerCase().includes(searchProductQuery.toLowerCase()) ||
@@ -46,9 +51,16 @@ export function useProductManagement({
         (selectedStatusFilter === 'draft' && p.status === 'draft') ||
         (selectedStatusFilter === 'publish' && p.status !== 'draft');
 
-      return matchesQuery && matchesStatus;
+      return matchesCategory && matchesQuery && matchesStatus;
     });
-  }, [products, searchProductQuery, selectedStatusFilter]);
+
+    return [...filtered].sort((a, b) => {
+      const sortA = a.sortOrder ?? 99999;
+      const sortB = b.sortOrder ?? 99999;
+      if (sortA !== sortB) return sortA - sortB;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [products, searchProductQuery, selectedStatusFilter, selectedCategoryFilter]);
 
   const updateProductList = useCallback(
     (newList: Product[]) => {
@@ -58,6 +70,123 @@ export function useProductManagement({
       safeLocalStorage.setItem('triton_products_db_v3', JSON.stringify(newList));
     },
     [onProductsChange]
+  );
+
+  // Reorder / Shift products up or down within their category
+  const handleShiftProductOrder = useCallback(
+    (productId: string, direction: 'up' | 'down', categoryFilter?: string) => {
+      const target = products.find((p) => p.id === productId);
+      if (!target) return;
+
+      const categoryToUse =
+        categoryFilter && categoryFilter !== 'all' ? categoryFilter : target.category;
+
+      const categoryProducts = products
+        .filter((p) => p.category.toLowerCase() === categoryToUse.toLowerCase())
+        .sort((a, b) => {
+          const sortA = a.sortOrder ?? 99999;
+          const sortB = b.sortOrder ?? 99999;
+          if (sortA !== sortB) return sortA - sortB;
+          return (a.name || '').localeCompare(b.name || '');
+        });
+
+      const currentIndex = categoryProducts.findIndex((p) => p.id === productId);
+      if (currentIndex === -1) return;
+
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (newIndex < 0 || newIndex >= categoryProducts.length) return;
+
+      const reordered = [...categoryProducts];
+      const temp = reordered[currentIndex];
+      reordered[currentIndex] = reordered[newIndex];
+      reordered[newIndex] = temp;
+
+      const orderMap = new Map<string, number>();
+      reordered.forEach((p, idx) => {
+        orderMap.set(p.id, idx + 1);
+      });
+
+      const updated = products.map((p) => {
+        if (orderMap.has(p.id)) {
+          return {
+            ...p,
+            sortOrder: orderMap.get(p.id)!,
+          };
+        }
+        return p;
+      });
+
+      updateProductList(updated);
+
+      if (editedProduct && orderMap.has(editedProduct.id)) {
+        setEditedProduct({
+          ...editedProduct,
+          sortOrder: orderMap.get(editedProduct.id)!,
+        });
+      }
+
+      addLog(
+        `Shifted [${target.name}] ${direction.toUpperCase()} to #${newIndex + 1} in "${categoryToUse}"`,
+        'success'
+      );
+    },
+    [products, updateProductList, editedProduct, addLog]
+  );
+
+  // Set explicit numeric sort order rank for product within category
+  const handleSetProductSortOrder = useCallback(
+    (productId: string, desiredRank: number, categoryFilter?: string) => {
+      const target = products.find((p) => p.id === productId);
+      if (!target) return;
+
+      const categoryToUse =
+        categoryFilter && categoryFilter !== 'all' ? categoryFilter : target.category;
+
+      const categoryProducts = products
+        .filter((p) => p.category.toLowerCase() === categoryToUse.toLowerCase())
+        .sort((a, b) => {
+          const sortA = a.sortOrder ?? 99999;
+          const sortB = b.sortOrder ?? 99999;
+          if (sortA !== sortB) return sortA - sortB;
+          return (a.name || '').localeCompare(b.name || '');
+        });
+
+      const currentIndex = categoryProducts.findIndex((p) => p.id === productId);
+      if (currentIndex === -1) return;
+
+      const targetIndex = Math.max(0, Math.min(categoryProducts.length - 1, desiredRank - 1));
+      if (currentIndex === targetIndex) return;
+
+      const [item] = categoryProducts.splice(currentIndex, 1);
+      categoryProducts.splice(targetIndex, 0, item);
+
+      const orderMap = new Map<string, number>();
+      categoryProducts.forEach((p, idx) => {
+        orderMap.set(p.id, idx + 1);
+      });
+
+      const updated = products.map((p) => {
+        if (orderMap.has(p.id)) {
+          return {
+            ...p,
+            sortOrder: orderMap.get(p.id)!,
+          };
+        }
+        return p;
+      });
+
+      updateProductList(updated);
+
+      if (editedProduct && orderMap.has(editedProduct.id)) {
+        setEditedProduct({
+          ...editedProduct,
+          sortOrder: orderMap.get(editedProduct.id)!,
+        });
+      }
+
+      addLog(`Updated [${target.name}] order position to #${targetIndex + 1} in "${categoryToUse}"`, 'success');
+    },
+    [products, updateProductList, editedProduct, addLog]
   );
 
   // Specifications field manager
@@ -321,6 +450,8 @@ export function useProductManagement({
     setSearchProductQuery,
     selectedStatusFilter,
     setSelectedStatusFilter,
+    selectedCategoryFilter,
+    setSelectedCategoryFilter,
     saveMessage,
     productToDeleteId,
     autoSyncOnSave,
@@ -334,6 +465,8 @@ export function useProductManagement({
       safeLocalStorage.setItem('triton_auto_clean_interval', val);
     },
     updateProductList,
+    handleShiftProductOrder,
+    handleSetProductSortOrder,
     handleUpdateSpecKey,
     handleUpdateSpecValue,
     handleMoveSpecUp,

@@ -51,6 +51,10 @@ interface ProductsTabProps {
   handleBulkAutoFill: () => void;
   handleBulkDeleteDrafts: () => void;
   handleExportCSV: () => void;
+  selectedCategoryFilter?: string;
+  setSelectedCategoryFilter?: (cat: string) => void;
+  handleShiftProductOrder?: (productId: string, direction: 'up' | 'down', categoryFilter?: string) => void;
+  handleSetProductSortOrder?: (productId: string, desiredRank: number, categoryFilter?: string) => void;
 }
 
 export const ProductsTab: React.FC<ProductsTabProps> = ({
@@ -63,6 +67,8 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
   setSearchProductQuery,
   selectedStatusFilter,
   setSelectedStatusFilter,
+  selectedCategoryFilter = 'all',
+  setSelectedCategoryFilter,
   saveMessage,
   productToDeleteId,
   autoSyncOnSave,
@@ -93,6 +99,8 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
   handleBulkAutoFill,
   handleBulkDeleteDrafts,
   handleExportCSV,
+  handleShiftProductOrder,
+  handleSetProductSortOrder,
 }) => {
   const [activeEditorTab, setActiveEditorTab] = useState<'basic' | 'specs' | 'features' | 'images' | 'seo'>('basic');
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
@@ -244,61 +252,104 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
         {/* Products List (Left side or Full width) */}
         <div className={editedProduct ? 'w-full md:w-72 lg:w-80 xl:w-96 shrink-0 space-y-4' : 'w-full space-y-4'}>
           {/* Action Toolbar */}
-          <div className="p-4 bg-neutral-900/80 border border-neutral-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
-                <input
-                  type="text"
-                  placeholder="Search catalog by name, model code, ID..."
-                  value={searchProductQuery}
-                  onChange={(e) => setSearchProductQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500"
-                />
+          <div className="p-4 bg-neutral-900/80 border border-neutral-800 rounded-xl space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
+                  <input
+                    type="text"
+                    placeholder="Search catalog by name, model code, ID..."
+                    value={searchProductQuery}
+                    onChange={(e) => setSearchProductQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div className="flex bg-neutral-950 border border-neutral-800 rounded-lg p-0.5">
+                  {(['all', 'publish', 'draft'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSelectedStatusFilter(s)}
+                      className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded ${
+                        selectedStatusFilter === s
+                          ? 'bg-neutral-800 text-white'
+                          : 'text-neutral-400 hover:text-neutral-200'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex bg-neutral-950 border border-neutral-800 rounded-lg p-0.5">
-                {(['all', 'publish', 'draft'] as const).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSelectedStatusFilter(s)}
-                    className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded ${
-                      selectedStatusFilter === s
-                        ? 'bg-neutral-800 text-white'
-                        : 'text-neutral-400 hover:text-neutral-200'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCreateNewProduct}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Plus size={14} />
+                  <span>New Product</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkAutoFill}
+                  title="Auto-fill missing SEO titles and descriptions"
+                  className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                >
+                  <Sparkles size={13} className="text-amber-400" />
+                  <span className="hidden sm:inline">Bulk SEO</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
+                >
+                  CSV
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Category Filter Pills & Sequence Reorder Guide */}
+            <div className="flex items-center gap-1.5 pt-2 border-t border-neutral-800/80 overflow-x-auto pb-1 text-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 shrink-0 flex items-center gap-1">
+                <Filter size={11} /> Category:
+              </span>
               <button
                 type="button"
-                onClick={handleCreateNewProduct}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-sm"
+                onClick={() => setSelectedCategoryFilter?.('all')}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg shrink-0 transition-colors ${
+                  (selectedCategoryFilter === 'all' || !selectedCategoryFilter)
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200 border border-neutral-850'
+                }`}
               >
-                <Plus size={14} />
-                <span>New Product</span>
+                All Categories ({products.length})
               </button>
-              <button
-                type="button"
-                onClick={handleBulkAutoFill}
-                title="Auto-fill missing SEO titles and descriptions"
-                className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
-              >
-                <Sparkles size={13} className="text-amber-400" />
-                <span className="hidden sm:inline">Bulk SEO</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
-              >
-                CSV
-              </button>
+              {categories.map((cat) => {
+                const count = products.filter(
+                  (p) => p.category.toLowerCase() === cat.toLowerCase()
+                ).length;
+                const isSelected = selectedCategoryFilter?.toLowerCase() === cat.toLowerCase();
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategoryFilter?.(cat)}
+                    className={`px-2.5 py-1 text-[11px] font-bold rounded-lg shrink-0 transition-colors flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200 border border-neutral-850'
+                    }`}
+                  >
+                    <span>{cat}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-indigo-700 text-indigo-100' : 'bg-neutral-900 text-neutral-500'}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -306,16 +357,59 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
           <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1">
             {filteredProducts.map((p) => {
               const isSelected = editedProduct?.id === p.id;
+
+              // Calculate category-specific sequence and bounds
+              const categoryProducts = products
+                .filter((prod) => prod.category.toLowerCase() === p.category.toLowerCase())
+                .sort((a, b) => {
+                  const sortA = a.sortOrder ?? 99999;
+                  const sortB = b.sortOrder ?? 99999;
+                  if (sortA !== sortB) return sortA - sortB;
+                  return (a.name || '').localeCompare(b.name || '');
+                });
+              const catIndex = categoryProducts.findIndex((prod) => prod.id === p.id);
+              const isFirst = catIndex <= 0;
+              const isLast = catIndex === categoryProducts.length - 1;
+              const currentRank = p.sortOrder ?? (catIndex >= 0 ? catIndex + 1 : 1);
+
               return (
                 <div
                   key={p.id}
                   onClick={() => setEditedProduct(p)}
-                  className={`p-3 rounded-xl border transition-all duration-150 cursor-pointer flex items-center gap-3.5 ${
+                  className={`p-3 rounded-xl border transition-all duration-150 cursor-pointer flex items-center gap-3 ${
                     isSelected
                       ? 'bg-indigo-950/40 border-indigo-500 shadow-md'
                       : 'bg-neutral-900/60 border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900/90'
                   }`}
                 >
+                  {/* Shift Up/Down & Rank Badge */}
+                  <div className="flex flex-col items-center justify-center shrink-0 pr-1 border-r border-neutral-800/80" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => handleShiftProductOrder?.(p.id, 'up', selectedCategoryFilter)}
+                      disabled={isFirst}
+                      className="p-1 rounded text-neutral-400 hover:text-indigo-400 hover:bg-neutral-800 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-neutral-400 transition-colors"
+                      title="Shift Up in category preference order"
+                    >
+                      <ChevronUp size={13} />
+                    </button>
+                    <span
+                      className="px-1 py-0.5 rounded text-[9px] font-mono font-bold bg-neutral-950 border border-neutral-800 text-amber-400 min-w-[22px] text-center"
+                      title={`Order position #${currentRank} in category ${p.category}`}
+                    >
+                      #{currentRank}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleShiftProductOrder?.(p.id, 'down', selectedCategoryFilter)}
+                      disabled={isLast}
+                      className="p-1 rounded text-neutral-400 hover:text-indigo-400 hover:bg-neutral-800 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-neutral-400 transition-colors"
+                      title="Shift Down in category preference order"
+                    >
+                      <ChevronDown size={13} />
+                    </button>
+                  </div>
+
                   <div className="w-12 h-12 rounded-lg bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
                     <img
                       src={p.image}
@@ -497,7 +591,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
                         Category
@@ -539,6 +633,25 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                         <option value="publish">Published (Live)</option>
                         <option value="draft">Draft (Hidden)</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                        Display Order (# in Cat)
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={editedProduct.sortOrder ?? 1}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setEditedProduct({
+                            ...editedProduct,
+                            sortOrder: isNaN(val) ? 1 : Math.max(1, val),
+                          });
+                        }}
+                        className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                        placeholder="1"
+                      />
                     </div>
                   </div>
 
