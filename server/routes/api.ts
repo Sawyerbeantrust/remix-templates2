@@ -489,15 +489,19 @@ apiRouter.post(
     const fallbackMatch = matchLocalActionImage(name, category, description);
     const ai = getGeminiClient();
 
-    if (!ai) {
-      return res.status(200).json({
-        success: true,
-        source: "local-fallback",
-        imageUrl: fallbackMatch.url,
-        actionDescription: fallbackMatch.description,
-        visualPrompt: `High-definition action photo of ${name} operating in workshop`,
-      });
-    }
+      const ai = getGeminiClient();
+
+  if (!ai) {
+    logger.warn(
+      { hasKey: Boolean(process.env.GEMINI_API_KEY), keyLength: (process.env.GEMINI_API_KEY || "").length },
+      "Assistant chat: Gemini client unavailable, using fallback"
+    );
+    return res.status(200).json({
+      success: true,
+      source: "fallback",
+      reply: phoneFallback,
+    });
+  }
 
     try {
       const prompt = buildSimulateImagePrompt(name, category, description, specifications);
