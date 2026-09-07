@@ -13,6 +13,7 @@ import {
   Check,
   Globe,
   FolderArchive,
+  ShieldAlert,
 } from 'lucide-react';
 import { ProjectAssetImage } from '../../types/console.js';
 import { normalizeImageKey } from '../../hooks/useResolvedImage.js';
@@ -20,6 +21,7 @@ import {
   subscribeToMediaStorage,
   notifyMediaStorageChanged,
 } from '../../utils/mediaSync.js';
+import { logSystemError } from '../../utils/errorLogger.js';
 
 export interface AssetPickerModalProps {
   isOpen: boolean;
@@ -40,6 +42,8 @@ export interface MergedAssetItem {
   filename: string;
   url: string;
   source_url?: string;
+  thumbnail_url?: string;
+  medium_url?: string;
   relativePath?: string;
   link?: string;
   size?: number; // Size in bytes
@@ -138,9 +142,9 @@ function formatBytes(bytes?: number): string {
 export function getThumbSrc(item: MergedAssetItem, size: 'small' | 'medium' | 'large' = 'small'): string {
   const isWp = item.source === 'wordpress' || (item.url && item.url.includes('wp-content/uploads'));
   if (isWp) {
-    const rawUrl = toAbsolute(item.url || item.source_url || item.relativePath || item.link || '');
+    const rawUrl = toAbsolute(item.thumbnail_url || item.url || item.source_url || item.relativePath || item.link || '');
     if (rawUrl) {
-      return `/api/media-thumb?url=${encodeURIComponent(rawUrl)}&size=${size}`;
+      return `/api/media-thumb?url=${encodeURIComponent(rawUrl)}&size=${size}&nofallback=true`;
     }
   }
   return normalizeImageKey(item.url || item.relativePath || '');
@@ -183,12 +187,15 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
             alt={item.filename || item.label || 'Media Asset'}
             loading="lazy"
             decoding="async"
-            crossOrigin="anonymous"
             referrerPolicy="no-referrer"
             onLoad={() => setIsLoaded(true)}
             onError={() => {
               if (isWp) {
-                console.warn("[Picker] failed:", item.filename, thumbSrc);
+                logSystemError(
+                  `WordPress Media thumbnail unavailable: ${item.filename || 'asset'}`,
+                  `Origin: ${item.url || 'unknown'} (Cloudflare WAF Challenge HTTP 403 or unreachable origin)`,
+                  'Media'
+                );
               }
               setHasError(true);
             }}
@@ -200,9 +207,13 @@ const AssetCard: React.FC<AssetCardProps> = ({ item, onSelect }) => {
           <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-neutral-900 to-neutral-950 text-neutral-400">
             {isWp ? (
               <>
-                <ImageIcon size={26} className="text-neutral-600 mb-1.5 group-hover:text-indigo-400 transition-colors" />
-                <span className="text-[10px] font-mono text-neutral-400 line-clamp-1 max-w-[90%] font-medium">
+                <ImageIcon size={26} className="text-neutral-500 mb-1.5 group-hover:text-indigo-400 transition-colors" />
+                <span className="text-[10px] font-mono text-neutral-300 line-clamp-1 max-w-[90%] font-medium">
                   {item.filename || item.label}
+                </span>
+                <span className="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[9px] font-semibold text-amber-400">
+                  <ShieldAlert size={10} />
+                  Cloudflare Protected
                 </span>
               </>
             ) : (
@@ -333,6 +344,8 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
               filename: filename,
               url: url,
               source_url: img.source_url,
+              thumbnail_url: img.thumbnail_url,
+              medium_url: img.medium_url,
               relativePath: img.relativePath || url,
               link: img.link,
               size: typeof img.size === 'number' ? img.size : 0,
@@ -351,6 +364,100 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
       setIsLoadingWp(false);
     }
   }, []);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Force Auto-Sync: Invalidate cache, re-fetch WordPress media, and test thumbnail proxy health
+  const handleForceAutoSync = useCallback(async () => {
+    setIsSyncing(true);
+    addToast('info', 'Forcing auto-sync with WordPress Media Library...');
+    try {
+      // 1. Invalidate server thumbnail cache
+      try {
+        await fetch('/api/thumbnails/invalidate-cache', { method: 'POST' });
+      } catch {}
+
+      // 2. Fresh fetch with cache buster
+      let res = await fetch(`/api/images?include-thumbnails=true&refresh=true&t=${Date.now()}`);
+      if (!res.ok) {
+        res = await fetch(`/api/list-images?t=${Date.now()}`);
+      }
+
+      if (!res.ok) {
+        throw new Error(`WordPress media API returned HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (!data.success || !Array.isArray(data.images)) {
+        throw new Error('Invalid WordPress media API response format');
+      }
+
+      const wpItems = data.images;
+      const mapped: MergedAssetItem[] = wpItems.map((img: any) => {
+        const rawUrl = img.url || img.source_url || img.relativePath || img.link || '';
+        const url = toAbsolute(rawUrl);
+        const filename = img.filename || url.split('/').pop() || 'wp_media_asset.jpg';
+        const label = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        return {
+          id: img.id || url,
+          filename: filename,
+          url: url,
+          source_url: img.source_url,
+          thumbnail_url: img.thumbnail_url,
+          medium_url: img.medium_url,
+          relativePath: img.relativePath || url,
+          link: img.link,
+          size: typeof img.size === 'number' ? img.size : 0,
+          date: img.date,
+          source: 'wordpress' as const,
+          category: 'wp-media',
+          label: label.charAt(0).toUpperCase() + label.slice(1),
+        };
+      });
+
+      setWpImages(mapped);
+
+      // 3. Probe thumbnail health for sample item to verify if Cloudflare challenge is active
+      if (mapped.length > 0) {
+        const testItem = mapped[0];
+        const testUrl = `/api/media-thumb?url=${encodeURIComponent(testItem.url)}&size=small&nofallback=true`;
+        try {
+          const thumbProbe = await fetch(testUrl);
+          if (!thumbProbe.ok) {
+            logSystemError(
+              'WordPress Media: Thumbnails blocked by Cloudflare WAF Challenge (HTTP 403)',
+              `Origin store.car-lifts.co.za returned HTTP ${thumbProbe.status} for ${testItem.filename}. Cloudflare Bot Challenge prevents server thumbnail extraction. Origin assets remain protected.`,
+              'Media'
+            );
+            addToast('error', `Synced ${mapped.length} assets. Cloudflare is challenging thumbnails (HTTP 403) — logged to Admin Errors panel.`);
+          } else {
+            addToast('success', `Force auto-sync complete: ${mapped.length} assets synchronized.`);
+          }
+        } catch (probeErr: any) {
+          logSystemError(
+            `WordPress Media Thumbnail probe failed: ${probeErr?.message || 'Network error'}`,
+            `Test URL: ${testUrl}`,
+            'Media'
+          );
+          addToast('error', `Synced ${mapped.length} assets. Thumbnail probe failed — logged to Admin Errors panel.`);
+        }
+      } else {
+        addToast('info', 'WordPress Media Library returned 0 assets.');
+      }
+
+      notifyMediaStorageChanged('sync');
+    } catch (err: any) {
+      const errMsg = err?.message || 'Force auto-sync failed';
+      logSystemError(
+        `Force Auto-Sync Failed: ${errMsg}`,
+        'AssetPickerModal Force Auto-Sync trigger',
+        'Media'
+      );
+      addToast('error', `Auto-sync failed: ${errMsg}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [addToast]);
 
 
   // Live sync on modal open and subscription to media mutations
@@ -589,14 +696,15 @@ export const AssetPickerModal: React.FC<AssetPickerModalProps> = ({
 
             <button
               type="button"
-              onClick={fetchWpMedia}
-              disabled={isLoadingWp}
-              className={`p-1.5 rounded-lg border border-neutral-800 bg-neutral-950 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors cursor-pointer ${
-                isLoadingWp ? 'animate-spin text-indigo-400' : ''
+              onClick={handleForceAutoSync}
+              disabled={isSyncing || isLoadingWp}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-500/40 bg-indigo-950/50 hover:bg-indigo-900/60 text-indigo-300 hover:text-white transition-all text-xs font-semibold cursor-pointer shadow-sm ${
+                isSyncing ? 'opacity-70 cursor-wait' : ''
               }`}
-              title="Sync & refresh WordPress media"
+              title="Force auto-sync WordPress Media Library and check thumbnail health"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={13} className={isSyncing ? 'animate-spin text-indigo-400' : ''} />
+              <span>{isSyncing ? 'Syncing...' : 'Force Auto-Sync'}</span>
             </button>
           </div>
 

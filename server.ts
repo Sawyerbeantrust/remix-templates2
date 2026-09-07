@@ -195,12 +195,13 @@ async function handleThumbnailRequest(req: express.Request, res: express.Respons
     });
   }
 
-  const result = await fetchAndProcessThumbnail(rawUrl, size);
+  const allowFallback = req.query.nofallback !== "true" && req.query.fallback !== "false";
+  const result = await fetchAndProcessThumbnail(rawUrl, size, { allowFallback });
 
   const duration = Date.now() - startTime;
 
   if (!result.success || !result.buffer) {
-    logger.warn(
+    logger.info(
       {
         endpoint: req.path,
         url: rawUrl,
@@ -210,7 +211,7 @@ async function handleThumbnailRequest(req: express.Request, res: express.Respons
         requestId: res.locals.requestId,
         error: result.error,
       },
-      "Thumbnail proxy request failed"
+      "Thumbnail proxy request unavailable"
     );
 
     return res.status(result.statusCode || 404).json({
@@ -248,6 +249,9 @@ async function handleThumbnailRequest(req: express.Request, res: express.Respons
   }
   res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
   res.setHeader("X-Cache-Hit", result.fromCache ? "true" : "false");
+  if (result.isFallback) {
+    res.setHeader("X-Thumbnail-Fallback", "true");
+  }
   if (result.width !== undefined) {
     res.setHeader("X-Image-Width", String(result.width));
   }
@@ -263,10 +267,11 @@ async function handleThumbnailRequest(req: express.Request, res: express.Respons
       statusCode: 200,
       duration,
       fromCache: result.fromCache ?? false,
+      isFallback: result.isFallback ?? false,
       bytes: result.buffer.length,
       requestId: res.locals.requestId,
     },
-    "Thumbnail served successfully"
+    result.isFallback ? "Thumbnail fallback served successfully" : "Thumbnail served successfully"
   );
 
   return res.status(200).send(result.buffer);

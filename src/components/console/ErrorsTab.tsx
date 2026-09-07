@@ -114,6 +114,33 @@ export const ErrorsTab: React.FC<ErrorsTabProps> = ({
         logSystemError(err, 'localStorage diagnostic write test', 'Storage');
       }
 
+      // 3. WordPress Media & Thumbnail Subsystem Check
+      try {
+        const mediaRes = await fetch('/api/images?per_page=3&include-thumbnails=true');
+        if (mediaRes.ok) {
+          const mediaData = await mediaRes.json();
+          if (mediaData.success && Array.isArray(mediaData.images) && mediaData.images.length > 0) {
+            const sample = mediaData.images[0];
+            const testUrl = `/api/media-thumb?url=${encodeURIComponent(sample.url)}&size=small&nofallback=true`;
+            const thumbProbe = await fetch(testUrl);
+            if (!thumbProbe.ok) {
+              const statusDesc = thumbProbe.status === 403 || thumbProbe.status === 502
+                ? 'Cloudflare WAF Challenge (HTTP 403) blocking origin thumbnail extraction'
+                : `HTTP status ${thumbProbe.status}`;
+              issuesFound.push(`WordPress Media Thumbnail proxy: ${statusDesc}`);
+              logSystemError(
+                'WordPress Media: Thumbnails blocked by Cloudflare (HTTP 403 Challenge)',
+                `Diagnostic probed thumbnail for ${sample.filename || 'asset'}. Origin store.car-lifts.co.za returned HTTP 403 Challenge on /wp-content/uploads/. Cloudflare WAF bot management blocks server-side extraction.`,
+                'Media'
+              );
+            }
+          }
+        }
+      } catch (mediaErr: any) {
+        issuesFound.push(`WordPress Media check failed: ${mediaErr?.message}`);
+        logSystemError(mediaErr, 'Diagnostic health test on WordPress media endpoints', 'Media');
+      }
+
       if (issuesFound.length === 0) {
         setDiagnosticResult('All system subsystems are healthy and operational (API 200 OK, Storage Functional, Zero Unresolved Exceptions).');
         if (typeof addLog === 'function') {

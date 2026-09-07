@@ -220,6 +220,9 @@ export async function listWpImages(perPage = 100): Promise<Array<{
   return wpRes.data.map((it: WpMediaItem) => {
     const rawSourceUrl = it.source_url || it.guid?.rendered || "";
     const canonicalUrl = normalizeImageUrl(rawSourceUrl);
+    const sizes = it.media_details?.sizes;
+    const thumbUrl = sizes?.thumbnail?.source_url ? normalizeImageUrl(sizes.thumbnail.source_url) : undefined;
+    const mediumUrl = sizes?.medium?.source_url ? normalizeImageUrl(sizes.medium.source_url) : undefined;
     return {
       id: it.id,
       filename: it.title?.rendered || it.slug || "image",
@@ -228,6 +231,9 @@ export async function listWpImages(perPage = 100): Promise<Array<{
       relativePath: canonicalUrl,
       size: it.media_details?.filesize || 0,
       date: it.date,
+      thumbnail_url: thumbUrl,
+      medium_url: mediumUrl,
+      sizes: sizes,
     };
   });
 }
