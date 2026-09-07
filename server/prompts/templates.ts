@@ -59,6 +59,48 @@ Return STRICT JSON only matching this schema:
 }`;
 }
 
+export function buildLongDescriptionPrompt(
+  name: string,
+  category?: string,
+  modelCode?: string,
+  shortDesc?: string,
+  price?: number,
+  features?: string[],
+  specifications?: Record<string, string>
+): string {
+  return `You are a chief technical writer and industrial equipment specialist for Triton Car Lifts & Automotive Equipment South Africa.
+Write an authoritative, highly detailed, engineering-grade Long Description and Technical Narrative for this product.
+The content will be published directly on the product's catalog and specification page.
+
+Product Name: ${name}
+Category: ${category || "Automotive Workshop Machinery"}
+Model / SKU: ${modelCode || "Industrial Edition"}
+Price: ${price ? `R ${price.toLocaleString()}` : "Trade Price Upon Application"}
+Short Overview: ${shortDesc || "Commercial-grade industrial workshop machinery"}
+Features: ${features && features.length ? features.join("; ") : "Heavy-duty steel construction, CE certified safety systems, high-torque industrial motor"}
+Specifications: ${JSON.stringify(specifications || {})}
+
+Target Audience: Auto repair workshop owners, fleet mechanics, panel beaters, tyre fitment centers, and dealerships in South Africa (Johannesburg, Pretoria, Cape Town, Durban, Bloemfontein, Port Elizabeth).
+
+Format Instructions:
+- Output clean, semantic HTML tags only (using <h3>, <p>, <ul>, <li>, <strong>, <em>).
+- Do NOT wrap in markdown \`\`\` blocks, do NOT include <html> or <body> tags.
+- Use British/South African English spelling (e.g. tyre, specialised, aluminium).
+
+Required Structure:
+1. <h3>Engineering Architecture & Commercial Overview</h3>: 2-3 deep, authoritative paragraphs describing the physical build, column strength, structural tolerances, hydraulic/pneumatic power pack, and productivity improvements for high-throughput workshops.
+2. <h3>Key Structural & Operational Advantages</h3>: 4-6 detailed bullet points (with <strong> bold lead-ins) explaining exact operational advantages (e.g. dual hydraulic synchronization, mechanical safety locks, symmetric/asymmetric arm reach, electro-magnetic release).
+3. <h3>Built for Demanding South African Workshop Environments</h3>: Explain thermal endurance, overload bypass protection, powder-coated anti-corrosion finish, and compatibility with local single-phase 220V or three-phase 380V workshop power grids.
+4. <h3>Operational Specifications & Load Capabilities</h3>: A clear summary highlighting capacity ratings, lift/work heights, cycle times, and vehicle wheel-base adaptability.
+5. <h3>Warranty, Spares & Triton Certified Support</h3>: Detailed assurance explaining the 3-Year Triton Structural Warranty, 1-Year electrical/hydraulic warranty, nationwide technician support, and warehouse-stocked spare parts in Gauteng and Western Cape.
+
+Return STRICT JSON only matching this schema:
+{
+  "longDescription": "<h3>...</h3><p>...</p>...",
+  "summary": "1-2 sentence executive summary of this product"
+}`;
+}
+
 export function buildGlobalSeoPrompt(
   storeName: string,
   targetAudience: string,

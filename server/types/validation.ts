@@ -101,6 +101,19 @@ export const GenerateSeoSchema = z.object({
   specifications: z.record(z.string(), z.any()).optional(),
 });
 
+// ============ LONG DESCRIPTION GENERATION VALIDATION ============
+
+export const GenerateLongDescriptionSchema = z.object({
+  name: z.string().min(2, "Product name is required").max(250),
+  category: z.string().max(150).optional(),
+  modelCode: z.string().max(100).optional(),
+  price: z.number().optional(),
+  description: z.string().max(4000).optional(),
+  features: z.array(z.string()).optional(),
+  specifications: z.record(z.string(), z.any()).optional(),
+  format: z.enum(["html", "markdown"]).default("html").optional(),
+});
+
 export const GenerateGlobalSeoSchema = z.object({
   storeName: z.string().min(2).max(200).optional(),
   targetAudience: z.string().max(500).optional(),
