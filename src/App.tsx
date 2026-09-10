@@ -3425,23 +3425,6 @@ export default function App() {
         </button>
       </div>
 
-      {/* WordPress & WooCommerce Sync Controller */}
-      <WordPressConsole 
-        products={products}
-        onProductsChange={handleProductsChange}
-        featuredCategories={featuredCategories}
-        onFeaturedCategoriesChange={handleFeaturedCategoriesChange}
-        theme={theme}
-        onThemeChange={handleThemeChange}
-        globalSeoTitle={globalSeoTitle}
-        onGlobalSeoTitleChange={setGlobalSeoTitle}
-        globalSeoDescription={globalSeoDescription}
-        onGlobalSeoDescriptionChange={setGlobalSeoDescription}
-        onCategoryClick={handleCategoryClick}
-        maintenanceMode={maintenanceMode}
-        onMaintenanceModeChange={(mode) => setMaintenanceMode(mode)}
-      />
-
       {/* Floating Back to Top Button */}
       {showScrollTop && (
         <button
@@ -3475,20 +3458,7 @@ export default function App() {
         </a>
       )}
 
-      {/* Floating Admin Access Button */}
-      {currentView === 'store' && (
-        <button
-          id="admin-access-floating-btn"
-          onClick={handleOpenAdminAccess}
-          className="fixed bottom-6 left-6 z-[100] flex items-center gap-2 px-3.5 py-3 bg-[#111111]/90 hover:bg-red-600 text-neutral-300 hover:text-white rounded-full shadow-2xl transition-all duration-300 group cursor-pointer border border-neutral-800 hover:border-red-500 backdrop-blur-md"
-          title="Administrative Terminal Access"
-        >
-          <Shield size={16} className="text-red-500 group-hover:text-white transition-colors animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider font-sans hidden sm:inline">
-            Admin Access
-          </span>
-        </button>
-      )}
+
 
       {/* Admin Login / Passcode Modal */}
       <AdminLoginModal
