@@ -14,10 +14,31 @@ export function requireTritonKey(req: Request, res: Response, next: NextFunction
     ""
   ).trim();
 
-  // If request is from the same-origin browser client (e.g., frontend SPA), allow it
-  const isSameOrigin = req.headers["sec-fetch-site"] === "same-origin" ||
-    (req.headers["origin"] && req.headers["host"] && req.headers["origin"].includes(req.headers["host"]));
-  if (isSameOrigin) {
+  // If request is from the authenticated same-origin browser client (e.g., frontend SPA), verify origin securely
+  const host = req.headers["host"] || "";
+  const origin = req.headers["origin"] as string | undefined;
+  const referer = req.headers["referer"] as string | undefined;
+
+  let isVerifiedSameOrigin = false;
+  if (origin && host) {
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.host === host) {
+        isVerifiedSameOrigin = true;
+      }
+    } catch {}
+  } else if (referer && host) {
+    try {
+      const parsedReferer = new URL(referer);
+      if (parsedReferer.host === host) {
+        isVerifiedSameOrigin = true;
+      }
+    } catch {}
+  } else if (req.headers["sec-fetch-site"] === "same-origin") {
+    isVerifiedSameOrigin = true;
+  }
+
+  if (isVerifiedSameOrigin) {
     return next();
   }
 

@@ -28,6 +28,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       setIsSuccess(true);
       setError('');
       sessionStorage.setItem('triton_admin_unlocked', 'true');
+      sessionStorage.setItem('admin_authenticated', 'true');
       setTimeout(() => {
         setIsSuccess(false);
         setPasscode('');
@@ -109,18 +110,11 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </button>
         </form>
 
-        <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-500 font-mono">
-          <span>DEFAULT PIN: 5252</span>
-          <button
-            onClick={() => {
-              sessionStorage.setItem('triton_admin_unlocked', 'true');
-              window.location.hash = '#admin';
-              onAuthenticated();
-            }}
-            className="text-neutral-400 hover:text-white underline underline-offset-2 flex items-center gap-1 cursor-pointer"
-          >
-            Direct Jump <ArrowRight size={12} />
-          </button>
+        <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-center text-[11px] text-neutral-500 font-mono tracking-wider uppercase">
+          <span className="flex items-center gap-1.5">
+            <Lock size={12} className="text-red-500" />
+            Triton Terminal Security • Authorized Personnel Only
+          </span>
         </div>
       </div>
     </div>

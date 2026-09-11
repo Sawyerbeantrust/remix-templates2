@@ -51,11 +51,16 @@ export async function sendSmtpEmail({
       auth: { user, pass },
     });
 
+    // Sanitize headers against CRLF injection attacks
+    const cleanFromName = (fromName || "Car-Lifts SA Web").replace(/[\r\n"<>]/g, "").trim();
+    const cleanSubject = (subject || "Customer Inquiry").replace(/[\r\n]/g, " ").trim();
+    const cleanReplyTo = replyTo ? replyTo.replace(/[\r\n]/g, "").trim() : user;
+
     await transporter.sendMail({
-      from: `"${fromName || "Car-Lifts SA Web"}" <${user}>`,
-      replyTo: replyTo || user,
+      from: `"${cleanFromName}" <${user}>`,
+      replyTo: cleanReplyTo,
       to: user,
-      subject,
+      subject: cleanSubject,
       text: body,
     });
 

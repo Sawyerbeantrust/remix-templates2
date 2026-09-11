@@ -10,6 +10,7 @@ import { calculateSeoScore, generateDeterministicProductSeo } from '../../utils/
 import { ConfirmationDialog } from './ConfirmationDialog.js';
 import { handleImageElementError, DEFAULT_FALLBACK_IMAGE } from '../../utils/imageFallback.js';
 import { buildClientFallbackLongDescription } from '../../utils/console/productDescriptionGenerator.js';
+import { sanitizeHtml } from '../../utils/sanitizeHtml.js';
 
 interface ProductsTabProps {
   products: Product[];
@@ -718,7 +719,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     {previewLongDescription ? (
                       <div className="p-4 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-neutral-300 space-y-2 max-h-72 overflow-y-auto leading-relaxed [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-indigo-300 [&_h3]:mt-3 [&_h3]:mb-1.5 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_li]:text-neutral-300 [&_strong]:text-white">
                         {editedProduct.longDescription ? (
-                          <div dangerouslySetInnerHTML={{ __html: editedProduct.longDescription }} />
+                          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(editedProduct.longDescription) }} />
                         ) : (
                           <p className="text-neutral-500 italic">No description generated yet.</p>
                         )}

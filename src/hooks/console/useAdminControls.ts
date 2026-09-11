@@ -71,11 +71,20 @@ export function useAdminControls({
   );
 
   const handleToggleMaintenance = useCallback(
-    (enabled: boolean) => {
+    async (enabled: boolean) => {
       setMaintenanceModeState(enabled);
       safeLocalStorage.setItem('triton_maintenance_mode', enabled ? 'true' : 'false');
       if (onMaintenanceModeChange) {
         onMaintenanceModeChange(enabled);
+      }
+      try {
+        await fetch('/api/maintenance-mode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ maintenanceMode: enabled }),
+        });
+      } catch (e) {
+        console.warn('Failed to sync maintenance mode with backend:', e);
       }
       addLog(`Maintenance mode ${enabled ? 'ENABLED - Public store hidden' : 'DISABLED - Public store live'}.`, 'warning');
     },
@@ -85,6 +94,7 @@ export function useAdminControls({
   const handleLogout = useCallback(() => {
     setIsUnlocked(false);
     sessionStorage.removeItem('triton_admin_unlocked');
+    sessionStorage.removeItem('admin_authenticated');
     addLog('Administrator signed out.', 'info');
   }, [addLog]);
 

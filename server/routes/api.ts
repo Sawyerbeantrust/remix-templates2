@@ -33,6 +33,7 @@ import {
 } from "../prompts/templates.js";
 import { generateEmailPayloadWithGemini, sendSmtpEmail } from "../services/email.js";
 import { CONFIG, THUMBNAIL_SIZES, type ThumbnailSizeKey } from "../config.js";
+import { getMaintenanceMode, setMaintenanceMode } from "../services/systemSettings.js";
 import {
   UploadImageSchema,
   SaveCategoryImageSchema,
@@ -66,6 +67,30 @@ export const apiRateLimiter = rateLimit({
   message: {
     success: false,
     error: "Too many requests. Please slow down and try again shortly.",
+  },
+});
+
+// Specialized Rate Limiter for Contact Inquiries & Quote Requests (15 requests per 15 min per IP)
+export const inquiryRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Too many quote requests from this IP. Please wait a few minutes or call our sales desk directly at 021 556 2413.",
+  },
+});
+
+// Specialized Rate Limiter for AI Assistant Chat (40 requests per minute per IP)
+export const chatRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "AI Assistant rate limit reached. Please pause for a moment before sending more messages.",
   },
 });
 
@@ -106,7 +131,7 @@ export const memoryCatalog: CatalogData = {
   products: PRODUCTS,
   featuredCategories: DEFAULT_FEATURED_CATEGORIES,
   categoriesList: DEFAULT_CATEGORIES_LIST,
-  maintenanceMode: false,
+  maintenanceMode: getMaintenanceMode(),
 };
 
 // 1) POST /api/upload-image (Validates payload + magic bytes + dimensions + uploads + generates variants)
@@ -364,18 +389,55 @@ apiRouter.post(
   })
 );
 
+// 4b) GET /api/maintenance-mode
+apiRouter.get(
+  "/maintenance-mode",
+  asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    return res.status(200).json({
+      success: true,
+      maintenanceMode: getMaintenanceMode(),
+      timestamp: new Date().toISOString(),
+    });
+  })
+);
+
+// 4c) POST /api/maintenance-mode (Updates persistent maintenance mode setting)
+apiRouter.post(
+  "/maintenance-mode",
+  asyncHandler(async (req, res) => {
+    const { maintenanceMode } = req.body || {};
+    if (typeof maintenanceMode !== "boolean") {
+      return sendError(res, "Field 'maintenanceMode' must be a boolean", 400);
+    }
+
+    setMaintenanceMode(maintenanceMode);
+    memoryCatalog.maintenanceMode = maintenanceMode;
+
+    return res.status(200).json({
+      success: true,
+      maintenanceMode,
+      message: maintenanceMode
+        ? "Maintenance mode activated. Public storefront is now protected."
+        : "Maintenance mode deactivated. Public storefront is live.",
+      timestamp: new Date().toISOString(),
+    });
+  })
+);
+
 // 5) GET /api/catalog
 apiRouter.get(
   "/catalog",
   asyncHandler(async (req, res) => {
     const wpBase = CONFIG.WP_BASE_URL;
     const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
+    const persistentMaintenance = getMaintenanceMode();
 
     const localData = {
       products: PRODUCTS,
       featuredCategories: DEFAULT_FEATURED_CATEGORIES,
       categoriesList: DEFAULT_CATEGORIES_LIST,
-      maintenanceMode: memoryCatalog?.maintenanceMode ?? false,
+      maintenanceMode: persistentMaintenance,
     };
 
     try {
@@ -387,6 +449,9 @@ apiRouter.get(
         if (!wpRes.data.featuredCategories || !Array.isArray(wpRes.data.featuredCategories) || wpRes.data.featuredCategories.length === 0) {
           wpRes.data.featuredCategories = DEFAULT_FEATURED_CATEGORIES;
         }
+        // Force the local disk-persisted maintenance mode state
+        wpRes.data.maintenanceMode = persistentMaintenance;
+
         const jsonStr = JSON.stringify({ success: true, source: "wordpress", ...wpRes.data })
           .replace(/http:\/\/store\.car-lifts\.co\.za/g, "https://store.car-lifts.co.za")
           .replace(/http:\/\/car-lifts\.co\.za/g, "https://car-lifts.co.za");
@@ -439,7 +504,10 @@ apiRouter.post(
     if (incomingData.products) memoryCatalog.products = incomingData.products;
     if (incomingData.featuredCategories) memoryCatalog.featuredCategories = incomingData.featuredCategories;
     if (incomingData.categoriesList) memoryCatalog.categoriesList = incomingData.categoriesList;
-    if (typeof incomingData.maintenanceMode === "boolean") memoryCatalog.maintenanceMode = incomingData.maintenanceMode;
+    if (typeof incomingData.maintenanceMode === "boolean") {
+      memoryCatalog.maintenanceMode = incomingData.maintenanceMode;
+      setMaintenanceMode(incomingData.maintenanceMode);
+    }
 
     const wpBase = CONFIG.WP_BASE_URL;
     const endpoint = `${wpBase}/wp-json/triton/v1/catalog`;
@@ -692,6 +760,7 @@ apiRouter.post(
 // 12) POST /api/generate-email
 apiRouter.post(
   "/generate-email",
+  inquiryRateLimiter,
   asyncHandler(async (req, res) => {
     const parseResult = GenerateEmailSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -751,6 +820,7 @@ apiRouter.post(
 // 13) POST /api/send-inquiry
 apiRouter.post(
   "/send-inquiry",
+  inquiryRateLimiter,
   asyncHandler(async (req, res) => {
     const parseResult = SendInquirySchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -1024,5 +1094,5 @@ ${JSON.stringify(catalogContext, null, 2)}
   });
 }
 
-apiRouter.post("/assistant-chat", asyncHandler(handleAssistantChat));
-apiRouter.post("/chat", asyncHandler(handleAssistantChat));
+apiRouter.post("/assistant-chat", chatRateLimiter, asyncHandler(handleAssistantChat));
+apiRouter.post("/chat", chatRateLimiter, asyncHandler(handleAssistantChat));

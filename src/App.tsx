@@ -144,10 +144,25 @@ export default function App() {
     }
   };
 
-  // Global Maintenance Mode State (persisted via WordPress MySQL & mirrored in localStorage)
+  // Global Maintenance Mode State (persisted via server disk/MySQL & mirrored in localStorage)
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(() => {
     return safeLocalStorage.getItem('triton_maintenance_mode') === 'true';
   });
+
+  // Fast-sync maintenance mode immediately on mount to prevent any refresh flash
+  useEffect(() => {
+    fetch('/api/maintenance-mode')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.maintenanceMode === 'boolean') {
+          setMaintenanceMode(data.maintenanceMode);
+          safeLocalStorage.setItem('triton_maintenance_mode', String(data.maintenanceMode));
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not fetch maintenance mode state on mount:', err);
+      });
+  }, []);
 
   // Back to top navigation states and event tracking
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -1997,9 +2012,7 @@ export default function App() {
   const isAdminAuthenticated = () => {
     if (typeof window === 'undefined') return false;
     return (
-      currentView === 'admin' ||
-      window.location.hash === '#admin' ||
-      window.location.search.includes('admin') ||
+      safeSessionStorage.getItem('triton_admin_unlocked') === 'true' ||
       safeSessionStorage.getItem('admin_authenticated') === 'true'
     );
   };
@@ -2007,16 +2020,43 @@ export default function App() {
   // If maintenance mode is ON and visitor is not authenticated as administrator, show maintenance page
   if (maintenanceMode && !isAdminAuthenticated()) {
     return (
-      <MaintenancePage
-        onAdminAccess={() => {
-          window.location.hash = '#admin';
-          setCurrentView('admin');
-        }}
-      />
+      <div className="w-full min-h-screen">
+        <MaintenancePage
+          onAdminAccess={() => {
+            setIsAdminLoginModalOpen(true);
+          }}
+        />
+        <AdminLoginModal
+          isOpen={isAdminLoginModalOpen}
+          onClose={() => setIsAdminLoginModalOpen(false)}
+          onAuthenticated={() => {
+            setIsAdminLoginModalOpen(false);
+            window.location.hash = '#admin';
+            setCurrentView('admin');
+          }}
+        />
+      </div>
     );
   }
 
   if (currentView === 'admin') {
+    if (!isAdminAuthenticated()) {
+      return (
+        <div className="w-full min-h-screen bg-black flex items-center justify-center p-4">
+          <AdminLoginModal
+            isOpen={true}
+            onClose={() => {
+              window.location.hash = '';
+              setCurrentView('store');
+            }}
+            onAuthenticated={() => {
+              setCurrentView('admin');
+            }}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="w-full min-h-screen">
         <title>WooCommerce Sync Terminal - Triton Car Lifts & Premium Workshop Equipment</title>
@@ -2035,7 +2075,19 @@ export default function App() {
           onGlobalSeoDescriptionChange={setGlobalSeoDescription}
           onCategoryClick={handleCategoryClick}
           maintenanceMode={maintenanceMode}
-          onMaintenanceModeChange={(mode) => setMaintenanceMode(mode)}
+          onMaintenanceModeChange={async (mode) => {
+            setMaintenanceMode(mode);
+            safeLocalStorage.setItem('triton_maintenance_mode', String(mode));
+            try {
+              await fetch('/api/maintenance-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ maintenanceMode: mode }),
+              });
+            } catch (e) {
+              console.warn('Failed to sync maintenance mode:', e);
+            }
+          }}
         />
       </div>
     );
@@ -2065,6 +2117,11 @@ export default function App() {
                 setMaintenanceMode(false);
                 safeLocalStorage.setItem('triton_maintenance_mode', 'false');
                 try {
+                  await fetch('/api/maintenance-mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ maintenanceMode: false }),
+                  });
                   await syncCatalogToServer(products, featuredCategories, undefined, false);
                 } catch (e) {}
               }}
